@@ -10,6 +10,7 @@ use Illuminate\Console\Command;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 /**
  * I guasti del negozio che non sono errori.
@@ -261,7 +262,7 @@ class SorvegliaLoShop extends Command
     {
         try {
             $esito = Artisan::call('paypal:verifica');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
 
             // Si riprova al giro dopo invece di aspettare un'ora.

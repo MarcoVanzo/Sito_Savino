@@ -4,25 +4,35 @@ namespace App\Filament\Resources;
 
 use App\Enums\StaffType;
 use App\Filament\Clusters\SdbYouth;
-use App\Filament\Resources\YouthStaffResource\Pages;
+use App\Filament\Resources\YouthStaffResource\Pages\CreateYouthStaff;
+use App\Filament\Resources\YouthStaffResource\Pages\EditYouthStaff;
+use App\Filament\Resources\YouthStaffResource\Pages\ListYouthStaff;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\StaffMember;
-use Filament\Forms;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Form;
-use Filament\Pages\SubNavigationPosition;
-use Filament\Resources\Concerns\Translatable;
+use Filament\Forms\Components\TextInput;
+use Filament\Pages\Enums\SubNavigationPosition;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
 
 class YouthStaffResource extends Resource
 {
     use HasStandardTableActions;
     use Translatable;
 
-    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+    protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     protected static ?string $model = StaffMember::class;
 
@@ -34,7 +44,7 @@ class YouthStaffResource extends Resource
 
     protected static ?string $cluster = SdbYouth::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-briefcase';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-briefcase';
 
     protected static ?string $navigationLabel = 'Staff e Medico';
 
@@ -52,21 +62,21 @@ class YouthStaffResource extends Resource
             ->whereIn('type', [StaffType::Tecnico, StaffType::Medico])->with('media');
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Anagrafica e Ruolo')
+        return $schema
+            ->components([
+                Section::make('Anagrafica e Ruolo')
                     ->schema([
-                        Forms\Components\TextInput::make('first_name')
+                        TextInput::make('first_name')
                             ->label('Nome')
                             ->required()
                             ->maxLength(255),
-                        Forms\Components\TextInput::make('last_name')
+                        TextInput::make('last_name')
                             ->label('Cognome')
                             ->required()
                             ->maxLength(255),
-                        Forms\Components\Select::make('type')
+                        Select::make('type')
                             ->label('Sezione (Tipologia)')
                             ->options([
                                 StaffType::Tecnico->value => StaffType::Tecnico->label(),
@@ -74,16 +84,16 @@ class YouthStaffResource extends Resource
                             ])
                             ->required()
                             ->helperText('Determina in quale pagina del sito comparirà.'),
-                        Forms\Components\TextInput::make('role')
+                        TextInput::make('role')
                             ->label('Ruolo specifico')
                             ->required()
                             ->maxLength(255)
                             ->helperText('Es. Allenatore, Presidente, Medico...'),
-                        Forms\Components\Hidden::make('section')
+                        Hidden::make('section')
                             ->default('youth'),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Foto Profilo')
+                Section::make('Foto Profilo')
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('avatar')
                             ->label('Immagine di Profilo (Avatar)')
@@ -104,22 +114,22 @@ class YouthStaffResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\SpatieMediaLibraryImageColumn::make('avatar')
+                SpatieMediaLibraryImageColumn::make('avatar')
                     ->checkFileExistence(false)
                     ->conversion('thumb')
                     ->label('')
                     ->collection('staff')
                     ->circular(),
-                Tables\Columns\TextColumn::make('first_name')
+                TextColumn::make('first_name')
                     ->label('Nome')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('last_name')
+                TextColumn::make('last_name')
                     ->label('Cognome')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('role')
+                TextColumn::make('role')
                     ->label('Ruolo')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('type')
+                TextColumn::make('type')
                     ->label('Sezione')
                     ->badge()
                     ->sortable(),
@@ -127,19 +137,19 @@ class YouthStaffResource extends Resource
             ->defaultSort('sort_order')
             ->reorderable('sort_order')
             ->filters([
-                Tables\Filters\SelectFilter::make('type')
+                SelectFilter::make('type')
                     ->label('Filtra per Sezione')
                     ->options([
                         StaffType::Tecnico->value => StaffType::Tecnico->label(),
                         StaffType::Medico->value => StaffType::Medico->label(),
                     ]),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -147,9 +157,9 @@ class YouthStaffResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListYouthStaff::route('/'),
-            'create' => Pages\CreateYouthStaff::route('/create'),
-            'edit' => Pages\EditYouthStaff::route('/{record}/edit'),
+            'index' => ListYouthStaff::route('/'),
+            'create' => CreateYouthStaff::route('/create'),
+            'edit' => EditYouthStaff::route('/{record}/edit'),
         ];
     }
 }

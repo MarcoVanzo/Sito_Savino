@@ -2,19 +2,31 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\GalleryImageResource\Pages;
+use App\Filament\Resources\GalleryImageResource\Pages\CreateGalleryImage;
+use App\Filament\Resources\GalleryImageResource\Pages\EditGalleryImage;
+use App\Filament\Resources\GalleryImageResource\Pages\ListGalleryImages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Jobs\AnalyzeGalleryImageJob;
 use App\Models\GalleryImage;
 use App\Models\Player;
 use App\Models\StaffMember;
-use Filament\Forms;
+use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -26,7 +38,7 @@ class GalleryImageResource extends Resource
 
     protected static ?string $model = GalleryImage::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-photo';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-photo';
 
     protected static bool $shouldRegisterNavigation = false;
 
@@ -34,17 +46,17 @@ class GalleryImageResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Galleria Fotografica';
 
-    protected static ?string $navigationGroup = 'Stagione';
+    protected static string|\UnitEnum|null $navigationGroup = 'Stagione';
 
     protected static ?int $navigationSort = 7;
 
     protected static ?string $slug = 'gallery-images';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Immagine e Dettagli')
+        return $schema
+            ->components([
+                Section::make('Immagine e Dettagli')
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('image')
                             ->label('Immagine')
@@ -58,11 +70,11 @@ class GalleryImageResource extends Resource
                             ->imageResizeUpscale(false)
                             ->required()
                             ->columnSpanFull(),
-                        Forms\Components\TextInput::make('title')
+                        TextInput::make('title')
                             ->label('Titolo / Testo Alternativo')
                             ->maxLength(255)
                             ->helperText('Breve descrizione dell\'immagine, utile per SEO e accessibilità.'),
-                        Forms\Components\TextInput::make('category')
+                        TextInput::make('category')
                             ->label('Categoria')
                             ->required()
                             ->maxLength(255)
@@ -74,11 +86,11 @@ class GalleryImageResource extends Resource
                                 'Tifosi',
                                 'Backstage',
                             ]),
-                        Forms\Components\Toggle::make('is_active')
+                        Toggle::make('is_active')
                             ->label('Attiva')
                             ->default(true)
                             ->required(),
-                        Forms\Components\Select::make('players')
+                        Select::make('players')
                             ->label('Atlete Taggate')
                             ->multiple()
                             ->options(fn () => Player::orderBy('last_name')
@@ -86,12 +98,12 @@ class GalleryImageResource extends Resource
                                 ->mapWithKeys(fn (Player $p) => [$p->id => "{$p->first_name} {$p->last_name}"]))
                             ->searchable()
                             ->preload()
-                            ->afterStateHydrated(function (Forms\Components\Select $component, ?GalleryImage $record) {
+                            ->afterStateHydrated(function (Select $component, ?GalleryImage $record) {
                                 if ($record) {
                                     $component->state($record->players->pluck('id')->toArray());
                                 }
                             }),
-                        Forms\Components\Select::make('staff_members')
+                        Select::make('staff_members')
                             ->label('Staff Taggato')
                             ->multiple()
                             ->options(fn () => StaffMember::orderBy('last_name')
@@ -99,7 +111,7 @@ class GalleryImageResource extends Resource
                                 ->mapWithKeys(fn (StaffMember $s) => [$s->id => "{$s->first_name} {$s->last_name}"]))
                             ->searchable()
                             ->preload()
-                            ->afterStateHydrated(function (Forms\Components\Select $component, ?GalleryImage $record) {
+                            ->afterStateHydrated(function (Select $component, ?GalleryImage $record) {
                                 if ($record) {
                                     $component->state($record->staffMembers->pluck('id')->toArray());
                                 }
@@ -118,20 +130,20 @@ class GalleryImageResource extends Resource
                     ->label('Immagine')
                     ->collection('gallery')
                     ->square(),
-                Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->label('Titolo')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('category')
+                TextColumn::make('category')
                     ->label('Categoria')
                     ->searchable()
                     ->sortable()
                     ->badge(),
-                Tables\Columns\TextColumn::make('players.last_name')
+                TextColumn::make('players.last_name')
                     ->label('Atlete')
                     ->badge()
                     ->searchable()
                     ->limitList(3),
-                Tables\Columns\IconColumn::make('needs_review')
+                IconColumn::make('needs_review')
                     ->label('Da Rev.')
                     ->tooltip('Un volto grande somiglia a una persona in anagrafica senza raggiungere la soglia del tag: conferma o correggi con "Identifica".')
                     ->boolean()
@@ -139,12 +151,12 @@ class GalleryImageResource extends Resource
                     ->trueColor('warning')
                     ->falseIcon('heroicon-o-check-circle')
                     ->falseColor('success'),
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label('Attiva')
                     ->boolean(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('category')
+                SelectFilter::make('category')
                     ->label('Categoria')
                     ->options(function () {
                         return Cache::remember('gallery_image_categories', 3600, fn () => GalleryImage::query()
@@ -154,38 +166,38 @@ class GalleryImageResource extends Resource
                             ->toArray()
                         );
                     }),
-                Tables\Filters\SelectFilter::make('gallery_event_id')
+                SelectFilter::make('gallery_event_id')
                     ->label('Evento')
                     ->relationship('galleryEvent', 'title')
                     ->searchable()
                     ->preload(),
-                Tables\Filters\TernaryFilter::make('needs_review')
+                TernaryFilter::make('needs_review')
                     ->label('Da Revisionare')
                     ->placeholder('Tutte le foto')
                     ->trueLabel('Sì, volto quasi riconosciuto')
                     ->falseLabel('No, OK'),
             ])
-            ->actions([
-                Tables\Actions\Action::make('identifica')
+            ->recordActions([
+                Action::make('identifica')
                     ->label('Identifica')
                     ->icon('heroicon-o-user-plus')
                     ->color('warning')
                     ->visible(fn (GalleryImage $record) => $record->needs_review)
-                    ->mountUsing(function (Form $form, GalleryImage $record) {
-                        $form->fill([
+                    ->mountUsing(function (Schema $schema, GalleryImage $record) {
+                        $schema->fill([
                             'players' => $record->players->pluck('id')->toArray(),
                             'staff_members' => $record->staffMembers->pluck('id')->toArray(),
                         ]);
                     })
-                    ->form([
-                        Forms\Components\Select::make('players')
+                    ->schema([
+                        Select::make('players')
                             ->label('Atlete presenti')
                             ->multiple()
                             ->options(fn () => Player::orderBy('last_name')
                                 ->get()
                                 ->mapWithKeys(fn (Player $p) => [$p->id => "{$p->first_name} {$p->last_name}"]))
                             ->searchable(),
-                        Forms\Components\Select::make('staff_members')
+                        Select::make('staff_members')
                             ->label('Staff presente')
                             ->multiple()
                             ->options(fn () => StaffMember::orderBy('last_name')
@@ -200,12 +212,12 @@ class GalleryImageResource extends Resource
                         $record->save();
                         Notification::make()->title('Identificata con successo')->success()->send();
                     }),
-                Tables\Actions\EditAction::make()
+                EditAction::make()
                     ->after(function (GalleryImage $record, array $data) {
                         $record->players()->sync($data['players'] ?? []);
                         $record->staffMembers()->sync($data['staff_members'] ?? []);
                     }),
-                Tables\Actions\Action::make('analyze')
+                Action::make('analyze')
                     ->label('Analizza AI')
                     ->icon('heroicon-o-sparkles')
                     ->color('info')
@@ -217,13 +229,13 @@ class GalleryImageResource extends Resource
                             ->success()
                             ->send();
                     }),
-                Tables\Actions\DeleteAction::make()
+                DeleteAction::make()
                     ->before(function (GalleryImage $record) {
                         $record->clearMediaCollection('gallery');
                     }),
             ])
-            ->bulkActions(array_merge(static::standardBulkActions(), [
-                Tables\Actions\BulkAction::make('analyzeBulk')
+            ->toolbarActions(array_merge(static::standardBulkActions(), [
+                BulkAction::make('analyzeBulk')
                     ->label('Analizza con AI (Bulk)')
                     ->icon('heroicon-o-sparkles')
                     ->action(function (Collection $records) {
@@ -246,9 +258,9 @@ class GalleryImageResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListGalleryImages::route('/'),
-            'create' => Pages\CreateGalleryImage::route('/create'),
-            'edit' => Pages\EditGalleryImage::route('/{record}/edit'),
+            'index' => ListGalleryImages::route('/'),
+            'create' => CreateGalleryImage::route('/create'),
+            'edit' => EditGalleryImage::route('/{record}/edit'),
         ];
     }
 

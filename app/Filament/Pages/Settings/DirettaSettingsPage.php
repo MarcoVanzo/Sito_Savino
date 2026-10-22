@@ -11,14 +11,16 @@ use App\Observers\CacheInvalidationObserver;
 use App\Services\Diretta\RegiaDellaDiretta;
 use App\Support\Diretta\DirettaPerIlSito;
 use App\Support\Diretta\ImpostazioniDellaDiretta as Diretta;
-use Filament\Forms\Components\Actions\Action;
-use Filament\Forms\Components\Section;
+use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Form;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -38,15 +40,15 @@ class DirettaSettingsPage extends BaseSettingsPage implements HasTable
     /** Da quanti giorni indietro l'elenco mostra le partite. */
     private const GIORNI_INDIETRO = 2;
 
-    protected static string $view = 'filament.pages.diretta-page';
+    protected string $view = 'filament.pages.diretta-page';
 
-    protected static ?string $navigationIcon = 'heroicon-o-signal';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-signal';
 
     protected static ?string $navigationLabel = 'Diretta';
 
     protected static ?string $title = 'Diretta';
 
-    protected static ?string $navigationGroup = 'Sponsor';
+    protected static string|\UnitEnum|null $navigationGroup = 'Sponsor';
 
     protected static ?int $navigationSort = 3;
 
@@ -104,10 +106,10 @@ class DirettaSettingsPage extends BaseSettingsPage implements HasTable
         return Diretta::PREDEFINITI;
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Section::make('Interruttore generale')
                     ->description('Spento, la diretta sul sito resta quella di sempre: niente spot prima né cornici durante la gara.')
                     ->schema([
@@ -168,33 +170,33 @@ class DirettaSettingsPage extends BaseSettingsPage implements HasTable
             )
             ->defaultSort('match_date')
             ->columns([
-                Tables\Columns\TextColumn::make('match_date')
+                TextColumn::make('match_date')
                     ->label('Data')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('partita')
+                TextColumn::make('partita')
                     ->label('Partita')
                     ->getStateUsing(fn (Game $record): string => $record->homeTeam?->nomePubblico().' – '.$record->awayTeam?->nomePubblico())
                     ->description(fn (Game $record): string => (string) $record->competition_type?->getLabel()),
-                Tables\Columns\IconColumn::make('con_link')
+                IconColumn::make('con_link')
                     ->label('Link')
                     ->boolean()
                     ->getStateUsing(fn (Game $record): bool => filled($record->stream_url)),
-                Tables\Columns\TextColumn::make('sponsor')
+                TextColumn::make('sponsor')
                     ->label('Sponsor')
                     ->getStateUsing(fn (Game $record): string => self::sponsorDellaGara($record))
                     ->placeholder('—'),
             ])
             ->filters([
-                Tables\Filters\Filter::make('prossime')
+                Filter::make('prossime')
                     ->label('Solo da due giorni fa in avanti')
                     ->default()
                     ->query(fn (Builder $query): Builder => $query->where('match_date', '>=', now()->subDays(self::GIORNI_INDIETRO)->startOfDay())),
             ])
-            ->actions([
+            ->recordActions([
                 ImpostaLaDirettaAction::make(),
                 // La diretta come la vedrà il tifoso, anche a interruttore spento.
-                Tables\Actions\Action::make('prova')
+                Action::make('prova')
                     ->label('Prova')
                     ->icon('heroicon-o-eye')
                     ->color('gray')

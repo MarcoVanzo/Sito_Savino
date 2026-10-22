@@ -128,7 +128,8 @@ class PaginaInPiuLingueTest extends TestCase
         $en = $pagina->getTranslation('content_data', 'en');
 
         $this->assertTrue(array_is_list($en['benefits']));
-        $this->assertSame('Discounts', $en['benefits'][0]['text']);
+        // L'editor di Filament 4 salva il testo in paragrafi.
+        $this->assertSame('<p>Discounts</p>', $en['benefits'][0]['text']);
         $this->assertIsString($en['gift_card_image']);
         Storage::disk(config('filament.default_filesystem_disk'))->assertExists($en['gift_card_image']);
     }

@@ -48,10 +48,16 @@ use App\Support\DatiInizialiDellaPagina;
 use App\Support\FotoAlleggerita;
 use App\Support\HostFidati;
 use Closure;
+use Filament\Actions\Action;
 use Filament\Forms\Components\BaseFileUpload;
+use Filament\Forms\Components\Field;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\SpatieLaravelTranslatableContentDriver;
-use Filament\Tables\Actions\Action as TableAction;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Schemas\Components\Fieldset;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Table;
 use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -63,6 +69,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\Compilers\BladeCompiler;
+use LaraZeus\SpatieTranslatable\SpatieTranslatableContentDriver;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Resend\Client as ResendClient;
 use Resend\Contracts\Client as ResendClientContract;
@@ -72,6 +79,8 @@ use Resend\ValueObjects\ApiKey;
 use Resend\ValueObjects\Transporter\BaseUri;
 use Resend\ValueObjects\Transporter\Headers;
 use Throwable;
+
+use function Livewire\on;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -104,7 +113,7 @@ class AppServiceProvider extends ServiceProvider
         // (`app($driver, ['activeLocale' => …])`) e ne ha il nome cablato nel trait
         // HasActiveLocaleSwitcher: rimpiazzarlo qui è l'unico punto d'aggancio che
         // non richieda di sovrascrivere ogni pagina di ogni risorsa.
-        $this->app->bind(SpatieLaravelTranslatableContentDriver::class, TranslatableContentDriver::class);
+        $this->app->bind(SpatieTranslatableContentDriver::class, TranslatableContentDriver::class);
 
         // Il client di Resend nasce con un Guzzle senza timeout: un invio
         // sincrono (AvvisoTecnico, ricevuta di recesso, reset della password)
@@ -162,11 +171,28 @@ class AppServiceProvider extends ServiceProvider
         // spostare l'ordinamento" (organigramma, 25/09/2026). Un pulsante con
         // la parola vale per tutte le tabelle riordinabili del pannello.
         Table::configureUsing(fn (Table $table) => $table->reorderRecordsTriggerAction(
-            fn (TableAction $action, bool $isReordering) => $action
+            fn (Action $action, bool $isReordering) => $action
                 ->button()
                 ->label($isReordering ? 'Fine riordino' : 'Riordina')
                 ->icon($isReordering ? 'heroicon-o-check' : 'heroicon-o-arrows-up-down'),
         ));
+
+        // Filament 4 ha cambiato alcuni comportamenti predefiniti: qui si
+        // tengono quelli della 3, su cui sono costruiti pannello e test.
+        // - File su Spaces (s3): dalla 4 sarebbero privati, il sito li serve
+        //   per indirizzo pubblico.
+        // - Filtri applicati subito, non dietro un pulsante «Applica».
+        // - Grid, Section e Fieldset a tutta larghezza come prima.
+        // - `unique()` non ignora il record corrente se non lo si chiede
+        //   (`ignoreRecord: true`, scritto dove serve).
+        FileUpload::configureUsing(fn (FileUpload $upload) => $upload->visibility('public'));
+        ImageColumn::configureUsing(fn (ImageColumn $column) => $column->visibility('public'));
+        ImageEntry::configureUsing(fn (ImageEntry $entry) => $entry->visibility('public'));
+        Table::configureUsing(fn (Table $table) => $table->deferFilters(false));
+        Fieldset::configureUsing(fn (Fieldset $fieldset) => $fieldset->columnSpanFull());
+        Grid::configureUsing(fn (Grid $grid) => $grid->columnSpanFull());
+        Section::configureUsing(fn (Section $section) => $section->columnSpanFull());
+        Field::configureUsing(fn (Field $field) => $field->uniqueValidationIgnoresRecordByDefault(false));
 
         // La media library rifiuta i file oltre `media-library.max_file_size`
         // solo al salvataggio, con un 500: le foto prodotto da fotocamera
@@ -207,7 +233,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Caricamento perso fra upload e Salva (un rilascio ha sostituito il
         // container): avviso alla redazione invece del 500.
-        \Livewire\on('exception', fn ($component, Throwable $e, Closure $stopPropagation) => UploadTemporaneoPerso::gestisci($e, $stopPropagation));
+        on('exception', fn ($component, Throwable $e, Closure $stopPropagation) => UploadTemporaneoPerso::gestisci($e, $stopPropagation));
 
         // Requisiti minimi di robustezza, applicati ovunque si usi
         // Rules\Password::defaults(). `uncompromised()` interroga l'API di

@@ -214,7 +214,7 @@ class GalleryUploadServiceTest extends TestCase
         GalleryUploadService::processUploads($this->componente(), [$this->fileSuDisco('a.jpg', 'gara')], $primo);
         GalleryUploadService::processUploads($this->componente(), [$this->fileSuDisco('b.jpg', 'gara')], $nuovo);
 
-        $avviso = collect(session('filament.notifications'))->last();
+        $avviso = collect($this->notificheDiFilament())->last();
         $this->assertStringContainsString("nell'album «Giornata 4» (senza data) [id {$primo->id}]", $avviso['body']);
     }
 
@@ -228,7 +228,7 @@ class GalleryUploadServiceTest extends TestCase
             $this->fileSuDisco('b.jpg', 'uguale'),
         ], $evento);
 
-        $avviso = collect(session('filament.notifications'))->last();
+        $avviso = collect($this->notificheDiFilament())->last();
         $this->assertStringContainsString('Sono già in questo album.', $avviso['body']);
     }
 }

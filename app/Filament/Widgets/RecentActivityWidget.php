@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Cache;
 
 class RecentActivityWidget extends Widget
 {
-    protected static string $view = 'filament.widgets.recent-activity';
+    protected string $view = 'filament.widgets.recent-activity';
 
     protected int|string|array $columnSpan = 'full';
 

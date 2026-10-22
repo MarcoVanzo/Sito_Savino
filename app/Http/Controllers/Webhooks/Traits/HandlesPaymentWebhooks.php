@@ -17,6 +17,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 trait HandlesPaymentWebhooks
 {
@@ -223,7 +224,7 @@ trait HandlesPaymentWebhooks
 
             return response()->json(['message' => 'Pagamento processato'], 200);
 
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // `report()` oltre al log: un pagamento incassato dal gateway ma non
             // registrato qui è denaro preso senza ordine confermato. Il solo
             // Log::error finiva su stderr, effimero e non presidiato.
@@ -499,7 +500,7 @@ trait HandlesPaymentWebhooks
         try {
             Mail::to($recipientEmail, $recipientName)
                 ->queue(new OrderConfirmation($order));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Il webhook non deve fallire per un problema di posta: il pagamento
             // è già registrato e il gateway ritenterebbe inutilmente. Ma va
             // segnalato, altrimenti un cliente che non riceve la conferma

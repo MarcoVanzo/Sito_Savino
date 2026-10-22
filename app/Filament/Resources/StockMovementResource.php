@@ -3,13 +3,20 @@
 namespace App\Filament\Resources;
 
 use App\Enums\StockMovementType;
-use App\Filament\Resources\StockMovementResource\Pages;
+use App\Filament\Resources\StockMovementResource\Pages\CreateStockMovement;
+use App\Filament\Resources\StockMovementResource\Pages\ListStockMovements;
 use App\Models\ProductVariant;
 use App\Models\StockMovement;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -25,9 +32,9 @@ class StockMovementResource extends Resource
     // Nascosto dalla nav: il Magazzino è gestito dalla custom page MagazzinoPage
     protected static bool $shouldRegisterNavigation = false;
 
-    protected static ?string $navigationIcon = 'heroicon-o-archive-box';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-archive-box';
 
-    protected static ?string $navigationGroup = 'Shop Ufficiale';
+    protected static string|\UnitEnum|null $navigationGroup = 'Shop Ufficiale';
 
     protected static ?string $navigationLabel = 'Magazzino';
 
@@ -37,31 +44,31 @@ class StockMovementResource extends Resource
 
     protected static ?int $navigationSort = 4;
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Dettagli Movimento')
+        return $schema
+            ->components([
+                Section::make('Dettagli Movimento')
                     ->schema([
-                        Forms\Components\Select::make('product_id')
+                        Select::make('product_id')
                             ->label('Prodotto')
                             ->relationship('product', 'name')
                             ->searchable()
                             ->preload()
                             ->required()
                             ->live(),
-                        Forms\Components\Select::make('product_variant_id')
+                        Select::make('product_variant_id')
                             ->label('Variante')
                             // Un prodotto con taglie si carica e si scarica sulla
                             // taglia: un movimento sul solo prodotto spostava il
                             // riepilogo, che le taglie poi riallineano.
-                            ->required(fn (Forms\Get $get): bool => filled($get('product_id'))
+                            ->required(fn (Get $get): bool => filled($get('product_id'))
                                 && ProductVariant::where('product_id', $get('product_id'))->exists())
-                            ->relationship('variant', 'sku', fn (Builder $query, Forms\Get $get) => $query->where('product_id', $get('product_id'))
+                            ->relationship('variant', 'sku', fn (Builder $query, Get $get) => $query->where('product_id', $get('product_id'))
                             )
                             ->searchable()
                             ->preload(),
-                        Forms\Components\Select::make('type')
+                        Select::make('type')
                             ->label('Tipo di Movimento')
                             ->options([
                                 StockMovementType::Purchase->value => StockMovementType::Purchase->getLabel(),
@@ -70,15 +77,15 @@ class StockMovementResource extends Resource
                             ->required()
                             ->default(StockMovementType::Purchase)
                             ->helperText('Le vendite vengono registrate automaticamente dagli ordini.'),
-                        Forms\Components\TextInput::make('quantity')
+                        TextInput::make('quantity')
                             ->label('Quantità')
                             ->numeric()
                             ->required()
                             ->helperText('Usa valori positivi per aggiungere (es. 50), negativi per togliere (es. -5).'),
                     ])->columns(2),
-                Forms\Components\Section::make('Informazioni Aggiuntive')
+                Section::make('Informazioni Aggiuntive')
                     ->schema([
-                        Forms\Components\Textarea::make('notes')
+                        Textarea::make('notes')
                             ->label('Note')
                             ->columnSpanFull(),
                     ]),
@@ -91,19 +98,19 @@ class StockMovementResource extends Resource
     public static function getMovementColumns(): array
     {
         return [
-            Tables\Columns\TextColumn::make('created_at')
+            TextColumn::make('created_at')
                 ->label('Data')
                 ->dateTime('d/m/Y H:i')
                 ->sortable(),
-            Tables\Columns\TextColumn::make('product.name')
+            TextColumn::make('product.name')
                 ->label('Prodotto')
                 ->searchable()
                 ->sortable(),
-            Tables\Columns\TextColumn::make('variant.sku')
+            TextColumn::make('variant.sku')
                 ->label('SKU Variante')
                 ->searchable()
                 ->sortable(),
-            Tables\Columns\TextColumn::make('type')
+            TextColumn::make('type')
                 ->label('Tipo')
                 ->badge()
                 ->formatStateUsing(fn (StockMovementType $state): string => $state->getLabel())
@@ -112,15 +119,15 @@ class StockMovementResource extends Resource
                     StockMovementType::Sale => 'danger',
                     StockMovementType::Adjustment => 'warning',
                 }),
-            Tables\Columns\TextColumn::make('quantity')
+            TextColumn::make('quantity')
                 ->label('Q.tà')
                 ->numeric()
                 ->sortable(),
-            Tables\Columns\TextColumn::make('order.id')
+            TextColumn::make('order.id')
                 ->label('Ordine #')
                 ->placeholder('Manuale')
                 ->sortable(),
-            Tables\Columns\TextColumn::make('notes')
+            TextColumn::make('notes')
                 ->label('Note')
                 ->limit(30)
                 ->searchable(),
@@ -133,7 +140,7 @@ class StockMovementResource extends Resource
     public static function getMovementFilters(): array
     {
         return [
-            Tables\Filters\SelectFilter::make('type')
+            SelectFilter::make('type')
                 ->label('Tipo Movimento')
                 ->options(StockMovementType::class),
         ];
@@ -145,11 +152,11 @@ class StockMovementResource extends Resource
             ->columns(static::getMovementColumns())
             ->defaultSort('created_at', 'desc')
             ->filters(static::getMovementFilters())
-            ->actions([
-                Tables\Actions\ViewAction::make(),
+            ->recordActions([
+                ViewAction::make(),
                 // Nessun EditAction: i movimenti di magazzino sono record di audit immutabili
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 // Nessun bulk delete: i movimenti non devono essere cancellati
             ]);
     }
@@ -164,8 +171,8 @@ class StockMovementResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListStockMovements::route('/'),
-            'create' => Pages\CreateStockMovement::route('/create'),
+            'index' => ListStockMovements::route('/'),
+            'create' => CreateStockMovement::route('/create'),
             // Nessuna pagina edit: i movimenti sono immutabili
         ];
     }

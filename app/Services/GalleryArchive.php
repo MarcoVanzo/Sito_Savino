@@ -6,6 +6,7 @@ use App\Models\GalleryImage;
 use App\Models\Player;
 use App\Support\GenerazioneDiCache;
 use App\Support\TestiSeoDellaFoto;
+use DateTimeInterface;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -95,7 +96,7 @@ class GalleryArchive
         return $foto;
     }
 
-    private function durata(): \DateTimeInterface
+    private function durata(): DateTimeInterface
     {
         return now()->addDay();
     }

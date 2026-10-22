@@ -6,7 +6,9 @@ use App\Filament\Actions\RevocaRiconoscimentoVoltiAction;
 use App\Filament\Actions\TrainAiFacesAction;
 use App\Filament\Resources\PlayerResource;
 use App\Services\FacialRecognitionService;
-use Filament\Actions;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 
@@ -22,12 +24,12 @@ class EditPlayer extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\ActionGroup::make([
-                Actions\Action::make('addTrainingFaces')
+            ActionGroup::make([
+                Action::make('addTrainingFaces')
                     ->label('Addestra AI (Upload Foto)')
                     ->icon('heroicon-o-academic-cap')
                     ->color('success')
-                    ->form(TrainAiFacesAction::formSchema())
+                    ->schema(TrainAiFacesAction::formSchema())
                     ->modalHeading('Addestra Intelligenza Artificiale')
                     ->modalDescription('L\'AI imparerà a riconoscere questa atleta analizzando le foto caricate. Questo processo non cancellerà le foto precedenti.')
                     ->modalSubmitActionLabel('Invia e Addestra')
@@ -35,7 +37,7 @@ class EditPlayer extends EditRecord
                         TrainAiFacesAction::execute($this->record, $data);
                     }),
 
-                Actions\Action::make('resetAiFaces')
+                Action::make('resetAiFaces')
                     ->label('Resetta Memoria Volto')
                     ->icon('heroicon-o-trash')
                     ->color('danger')
@@ -61,7 +63,7 @@ class EditPlayer extends EditRecord
 
                 RevocaRiconoscimentoVoltiAction::perLaScheda(),
             ])->icon('heroicon-m-sparkles')->label('Azioni AI'),
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 }

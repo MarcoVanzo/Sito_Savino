@@ -3,6 +3,7 @@
 namespace App\Policies\Concerns;
 
 use App\Models\User;
+use LogicException;
 
 /**
  * Autorizzazione basata sui permessi del ruolo, uguale per quasi tutte le
@@ -136,7 +137,7 @@ trait AuthorizesByRole
         $role = $user->role;
 
         if (! method_exists($role, $ability)) {
-            throw new \LogicException(sprintf(
+            throw new LogicException(sprintf(
                 'La policy %s richiede il permesso "%s", che non esiste su %s.',
                 static::class,
                 $ability,

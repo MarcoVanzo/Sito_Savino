@@ -169,8 +169,7 @@ class PrerollDellaDirettaTest extends TestCase
                 // Lo stato del Repeater come lo idrata il modulo: chiavi interne.
                 'sponsor' => [
                     'a' => ['sponsor_id' => $altroSponsor->sponsor_id, 'preroll' => [$altroSponsor->id], 'cornici' => []],
-                    // Una grafica di un altro sponsor spuntata per errore non passa.
-                    'b' => ['sponsor_id' => $primo->sponsor_id, 'preroll' => [$secondo->id, $primo->id, $altroSponsor->id], 'cornici' => [$cornice->id]],
+                    'b' => ['sponsor_id' => $primo->sponsor_id, 'preroll' => [$secondo->id, $primo->id], 'cornici' => [$cornice->id]],
                 ],
                 'ciclo_attivo' => true,
                 'ciclo_ogni_minuti' => 8,
@@ -190,6 +189,35 @@ class PrerollDellaDirettaTest extends TestCase
     }
 
     #[Test]
+    public function una_grafica_di_un_altro_sponsor_non_passa(): void
+    {
+        $this->comunicazione();
+        $gara = $this->gara();
+        $primo = $this->spot();
+        $altroSponsor = $this->spot();
+
+        // Da Filament 4 la spunta fuori dalle voci dello sponsor la rifiuta già
+        // il modulo; il modello resta la seconda difesa.
+        Livewire::test(DirettaSettingsPage::class)
+            ->callTableAction('imposta', $gara, [
+                'stream_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                'preroll_attivo' => true,
+                'preroll_salta_dopo_secondi' => 3,
+                'sponsor' => [
+                    'b' => ['sponsor_id' => $primo->sponsor_id, 'preroll' => [$primo->id, $altroSponsor->id], 'cornici' => []],
+                ],
+                'ciclo_attivo' => true,
+                'ciclo_ogni_minuti' => 8,
+                'ciclo_durata_secondi' => 20,
+                'ciclo_ritardo_minuti' => 10,
+                'pausa_durata_predefinita_secondi' => 120,
+            ])
+            ->assertHasTableActionErrors(['sponsor.b.preroll.1']);
+
+        $this->assertNull($gara->liveSession()->first());
+    }
+
+    #[Test]
     public function riaprendo_si_ritrovano_gli_sponsor_con_le_loro_grafiche(): void
     {
         $this->comunicazione();
@@ -202,10 +230,11 @@ class PrerollDellaDirettaTest extends TestCase
 
         $pagina = Livewire::test(DirettaSettingsPage::class)->mountTableAction('imposta', $gara);
 
-        $dati = $pagina->get('mountedTableActionsData.0');
+        $dati = $pagina->get('mountedActions.0.data');
         $this->assertSame($gara->stream_url, $dati['stream_url']);
         $voci = array_map(fn (array $v): array => array_intersect_key($v, array_flip(['sponsor_id', 'preroll', 'cornici'])), array_values($dati['sponsor']));
-        $this->assertSame([['sponsor_id' => $spot->sponsor_id, 'preroll' => [$spot->id], 'cornici' => [$cornice->id]]], $voci);
+        // Filament 4 tiene lo stato di tendine e spunte come stringhe.
+        $this->assertSame([['sponsor_id' => (string) $spot->sponsor_id, 'preroll' => [(string) $spot->id], 'cornici' => [(string) $cornice->id]]], $voci);
     }
 
     #[Test]
@@ -339,8 +368,8 @@ class PrerollDellaDirettaTest extends TestCase
 
         Livewire::test(DirettaSettingsPage::class)
             ->mountTableAction('imposta', $gara)
-            ->assertSee('Cornice autunno')
-            ->assertSee('adt-sotto', false);
+            ->assertMountedActionModalSee('Cornice autunno')
+            ->assertMountedActionModalSee('adt-sotto', false);
     }
 
     #[Test]

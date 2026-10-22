@@ -3,14 +3,19 @@
 namespace App\Filament\Resources;
 
 use App\Enums\UserRole;
-use App\Filament\Resources\AnalyticsSiteResource\Pages;
+use App\Filament\Resources\AnalyticsSiteResource\Pages\ListAnalyticsSites;
 use App\Models\AnalyticsSite;
 use App\Services\Analytics\WebAnalyticsService;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 /**
@@ -31,11 +36,11 @@ class AnalyticsSiteResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Siti Analytics';
 
-    protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-globe-alt';
 
     protected static ?string $navigationLabel = 'Siti Analytics';
 
-    protected static ?string $navigationGroup = 'Amministrazione';
+    protected static string|\UnitEnum|null $navigationGroup = 'Amministrazione';
 
     protected static ?int $navigationSort = 40;
 
@@ -46,18 +51,18 @@ class AnalyticsSiteResource extends Resource
         return auth()->user()?->role === UserRole::SuperAdmin;
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
         $email = app(WebAnalyticsService::class)->serviceAccountEmail();
 
-        return $form->schema([
-            Forms\Components\TextInput::make('name')
+        return $schema->components([
+            TextInput::make('name')
                 ->label('Nome')
                 ->helperText('Come compare nel selettore della pagina Analytics Sito.')
                 ->required()
                 ->maxLength(255),
 
-            Forms\Components\TextInput::make('property_id')
+            TextInput::make('property_id')
                 ->label('ID proprietà GA4')
                 ->helperText(
                     'Solo il numero, da Google Analytics → Amministrazione → Impostazioni proprietà.'
@@ -69,12 +74,12 @@ class AnalyticsSiteResource extends Resource
                 ->unique(ignoreRecord: true)
                 ->maxLength(20),
 
-            Forms\Components\TextInput::make('url')
+            TextInput::make('url')
                 ->label('Indirizzo del sito')
                 ->url()
                 ->maxLength(255),
 
-            Forms\Components\TextInput::make('sort')
+            TextInput::make('sort')
                 ->label('Ordine')
                 ->numeric()
                 ->default(0),
@@ -86,15 +91,15 @@ class AnalyticsSiteResource extends Resource
         return $table
             ->defaultSort('sort')
             ->columns([
-                Tables\Columns\TextColumn::make('name')->label('Nome')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('property_id')->label('Proprietà GA4')->copyable(),
-                Tables\Columns\TextColumn::make('url')->label('Indirizzo')->url(fn (AnalyticsSite $r): ?string => $r->url)->openUrlInNewTab(),
-                Tables\Columns\TextColumn::make('daily_count')->label('Giorni in archivio')->counts('daily'),
+                TextColumn::make('name')->label('Nome')->searchable()->sortable(),
+                TextColumn::make('property_id')->label('Proprietà GA4')->copyable(),
+                TextColumn::make('url')->label('Indirizzo')->url(fn (AnalyticsSite $r): ?string => $r->url)->openUrlInNewTab(),
+                TextColumn::make('daily_count')->label('Giorni in archivio')->counts('daily'),
             ])
-            ->actions([
+            ->recordActions([
                 // Verificare l'accesso subito dopo aver inserito la property evita
                 // il classico "la pagina è vuota" scoperto una settimana dopo.
-                Tables\Actions\Action::make('verify')
+                Action::make('verify')
                     ->label('Verifica accesso')
                     ->icon('heroicon-m-check-badge')
                     ->color('gray')
@@ -118,12 +123,12 @@ class AnalyticsSiteResource extends Resource
                             ->persistent()
                             ->send();
                     }),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -131,7 +136,7 @@ class AnalyticsSiteResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListAnalyticsSites::route('/'),
+            'index' => ListAnalyticsSites::route('/'),
         ];
     }
 }

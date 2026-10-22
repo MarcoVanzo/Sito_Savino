@@ -25,19 +25,19 @@ class WebAnalyticsPage extends Page
 {
     use RestrictsAccessByRole;
 
-    protected static ?string $navigationIcon = 'heroicon-o-chart-bar-square';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chart-bar-square';
 
     protected static ?string $navigationLabel = 'Analytics Sito';
 
     protected static ?string $title = 'Analytics Sito';
 
-    protected static ?string $navigationGroup = 'Marketing';
+    protected static string|\UnitEnum|null $navigationGroup = 'Marketing';
 
     protected static ?int $navigationSort = 10;
 
     protected static ?string $slug = 'analytics/sito';
 
-    protected static string $view = 'filament.pages.web-analytics';
+    protected string $view = 'filament.pages.web-analytics';
 
     public ?int $siteId = null;
 
@@ -78,7 +78,7 @@ class WebAnalyticsPage extends Page
                 ? Action::make('site')
                     ->label('Sito')
                     ->icon('heroicon-m-globe-alt')
-                    ->form([
+                    ->schema([
                         Select::make('siteId')
                             ->label('Sito')
                             ->options($sites)
@@ -91,7 +91,7 @@ class WebAnalyticsPage extends Page
             Action::make('period')
                 ->label('Periodo')
                 ->icon('heroicon-m-calendar-days')
-                ->form([
+                ->schema([
                     Select::make('days')
                         ->label('Periodo')
                         ->options([

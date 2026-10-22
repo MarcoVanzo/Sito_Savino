@@ -2,15 +2,15 @@
 
 namespace App\Filament\Support;
 
-use Filament\SpatieLaravelTranslatableContentDriver;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Builder;
+use LaraZeus\SpatieTranslatable\SpatieTranslatableContentDriver;
 
 use function Filament\Support\generate_search_column_expression;
 use function Filament\Support\generate_search_term_expression;
 
 /**
- * Sostituisce il content driver del plugin filament/spatie-laravel-translatable
+ * Sostituisce il content driver del plugin lara-zeus/spatie-translatable
  * per la sola ricerca in tabella, che nella versione originale non funziona:
  *
  * 1. il driver del plugin passa il termine cercato così com'è, mentre la colonna
@@ -35,7 +35,7 @@ use function Filament\Support\generate_search_term_expression;
  * La ricerca resta limitata alla lingua attiva nello switcher, come nel driver
  * originale.
  */
-class TranslatableContentDriver extends SpatieLaravelTranslatableContentDriver
+class TranslatableContentDriver extends SpatieTranslatableContentDriver
 {
     public function applySearchConstraintToQuery(Builder $query, string $column, string $search, string $whereClause, ?bool $isCaseInsensitivityForced = null): Builder
     {

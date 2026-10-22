@@ -9,7 +9,7 @@ use Livewire\Attributes\Reactive;
 
 class CustomersWidget extends BaseWidget
 {
-    protected static ?string $pollingInterval = null;
+    protected ?string $pollingInterval = null;
 
     protected static ?int $sort = 7;
 

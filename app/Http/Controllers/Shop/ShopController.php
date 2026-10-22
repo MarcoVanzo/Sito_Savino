@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use stdClass;
 
 class ShopController extends Controller
 {
@@ -26,7 +27,7 @@ class ShopController extends Controller
      * costruendo, letto con una query sola (precaricaLoStorico). Senza, ogni
      * card in sconto ne faceva una sua.
      *
-     * @var array<int, Collection<int, \stdClass>>
+     * @var array<int, Collection<int, stdClass>>
      */
     private array $storico = [];
 

@@ -5,12 +5,13 @@ namespace App\Filament\Resources\GalleryEventResource\Pages;
 use App\Filament\Resources\GalleryEventResource;
 use App\Jobs\AnalyzeGalleryImageJob;
 use App\Models\GalleryImage;
-use Filament\Actions;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Pages\ListRecords\Concerns\Translatable;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
+use LaraZeus\SpatieTranslatable\Resources\Pages\ListRecords\Concerns\Translatable;
 
 class ListGalleryEvents extends ListRecords
 {
@@ -18,7 +19,7 @@ class ListGalleryEvents extends ListRecords
 
     protected static string $resource = GalleryEventResource::class;
 
-    protected static string $view = 'filament.pages.list-gallery-events';
+    protected string $view = 'filament.pages.list-gallery-events';
 
     /**
      * Cache key globale — l'analisi AI è un'operazione che impatta tutti gli eventi,
@@ -32,7 +33,7 @@ class ListGalleryEvents extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('analyzeAll')
+            Action::make('analyzeAll')
                 ->label('Analizza Tutti con AI')
                 ->icon('heroicon-o-sparkles')
                 ->color('warning')
@@ -95,7 +96,7 @@ class ListGalleryEvents extends ListRecords
                         ->success()
                         ->send();
                 }),
-            Actions\CreateAction::make(),
+            CreateAction::make(),
         ];
     }
 

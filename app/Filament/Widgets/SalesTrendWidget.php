@@ -10,9 +10,9 @@ use Livewire\Attributes\Reactive;
 
 class SalesTrendWidget extends ChartWidget
 {
-    protected static ?string $heading = 'Trend Vendite';
+    protected ?string $heading = 'Trend Vendite';
 
-    protected static ?string $pollingInterval = null;
+    protected ?string $pollingInterval = null;
 
     protected static bool $isDiscovered = false;
 
@@ -20,7 +20,7 @@ class SalesTrendWidget extends ChartWidget
 
     protected int|string|array $columnSpan = 'full';
 
-    protected static ?string $maxHeight = '350px';
+    protected ?string $maxHeight = '350px';
 
     /**
      * Periodo in giorni, passato da ShopAnalyticsPage::getWidgetData(). #[Reactive]

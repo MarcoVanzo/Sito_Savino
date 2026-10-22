@@ -3,17 +3,23 @@
 namespace App\Filament\Resources;
 
 use App\Enums\UserRole;
-use App\Filament\Resources\ActivityLogResource\Pages;
+use App\Filament\Resources\ActivityLogResource\Pages\ListActivityLogs;
+use App\Filament\Resources\ActivityLogResource\Pages\ViewActivityLog;
 use App\Models\ActivityLog;
 use App\Models\User;
 use App\Services\RevocaDelRiconoscimentoDeiVolti;
 use Carbon\Carbon;
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Infolists;
-use Filament\Infolists\Infolist;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DatePicker;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ViewEntry;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\Indicator;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
@@ -26,11 +32,11 @@ class ActivityLogResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Registro Attività';
 
-    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
     protected static ?string $navigationLabel = 'Log Attività';
 
-    protected static ?string $navigationGroup = 'Amministrazione';
+    protected static string|\UnitEnum|null $navigationGroup = 'Amministrazione';
 
     protected static ?int $navigationSort = 2;
 
@@ -51,16 +57,16 @@ class ActivityLogResource extends Resource
     /**
      * Nessun form — i log sono di sola lettura.
      */
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form->schema([]);
+        return $schema->components([]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('action')
+                TextColumn::make('action')
                     ->label('Azione')
                     ->badge()
                     ->formatStateUsing(fn ($record) => $record->action_label)
@@ -68,45 +74,45 @@ class ActivityLogResource extends Resource
                     ->color(fn ($record) => $record->action_color)
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('user.name')
+                TextColumn::make('user.name')
                     ->label('Utente')
                     ->default('Sistema')
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('model_type')
+                TextColumn::make('model_type')
                     ->label('Risorsa')
                     ->formatStateUsing(fn ($record) => $record->model_type_label)
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('model_label')
+                TextColumn::make('model_label')
                     ->label('Dettaglio')
                     ->limit(40)
                     ->searchable()
                     ->tooltip(fn ($record) => $record->model_label),
 
-                Tables\Columns\TextColumn::make('model_id')
+                TextColumn::make('model_id')
                     ->label('ID')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('ip_address')
+                TextColumn::make('ip_address')
                     ->label('IP')
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label('Data / Ora')
                     ->dateTime('d/m/Y H:i:s')
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                Tables\Filters\SelectFilter::make('user_id')
+                SelectFilter::make('user_id')
                     ->label('Utente')
                     ->options(fn () => User::pluck('name', 'id')->toArray())
                     ->searchable(),
 
-                Tables\Filters\SelectFilter::make('action')
+                SelectFilter::make('action')
                     ->label('Azione')
                     ->options([
                         'created' => 'Creazione',
@@ -117,7 +123,7 @@ class ActivityLogResource extends Resource
                         RevocaDelRiconoscimentoDeiVolti::AZIONE => 'Revoca riconoscimento volti',
                     ]),
 
-                Tables\Filters\SelectFilter::make('model_type')
+                SelectFilter::make('model_type')
                     ->label('Tipo Risorsa')
                     ->options(fn () => Cache::remember('activity_log_model_types', 3600, fn () => ActivityLog::query()
                         ->distinct()
@@ -126,11 +132,11 @@ class ActivityLogResource extends Resource
                         ->toArray()
                     )),
 
-                Tables\Filters\Filter::make('created_at')
-                    ->form([
-                        Forms\Components\DatePicker::make('from')
+                Filter::make('created_at')
+                    ->schema([
+                        DatePicker::make('from')
                             ->label('Da'),
-                        Forms\Components\DatePicker::make('until')
+                        DatePicker::make('until')
                             ->label('A'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
@@ -141,67 +147,67 @@ class ActivityLogResource extends Resource
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
                         if ($data['from'] ?? null) {
-                            $indicators[] = Tables\Filters\Indicator::make('Da '.Carbon::parse($data['from'])->format('d/m/Y'))
+                            $indicators[] = Indicator::make('Da '.Carbon::parse($data['from'])->format('d/m/Y'))
                                 ->removeField('from');
                         }
                         if ($data['until'] ?? null) {
-                            $indicators[] = Tables\Filters\Indicator::make('A '.Carbon::parse($data['until'])->format('d/m/Y'))
+                            $indicators[] = Indicator::make('A '.Carbon::parse($data['until'])->format('d/m/Y'))
                                 ->removeField('until');
                         }
 
                         return $indicators;
                     }),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
+            ->recordActions([
+                ViewAction::make(),
             ])
-            ->bulkActions([]);  // Nessuna bulk action — log immutabili
+            ->toolbarActions([]);  // Nessuna bulk action — log immutabili
     }
 
-    public static function infolist(Infolist $infolist): Infolist
+    public static function infolist(Schema $schema): Schema
     {
-        return $infolist
-            ->schema([
-                Infolists\Components\Section::make('Dettagli Azione')
+        return $schema
+            ->components([
+                Section::make('Dettagli Azione')
                     ->schema([
-                        Infolists\Components\TextEntry::make('action')
+                        TextEntry::make('action')
                             ->label('Azione')
                             ->badge()
                             ->formatStateUsing(fn ($record) => $record->action_label)
                             ->color(fn ($record) => $record->action_color),
 
-                        Infolists\Components\TextEntry::make('user.name')
+                        TextEntry::make('user.name')
                             ->label('Utente')
                             ->default('Sistema (CLI)'),
 
-                        Infolists\Components\TextEntry::make('created_at')
+                        TextEntry::make('created_at')
                             ->label('Data e Ora')
                             ->dateTime('d/m/Y H:i:s'),
 
-                        Infolists\Components\TextEntry::make('model_type')
+                        TextEntry::make('model_type')
                             ->label('Tipo Risorsa')
                             ->formatStateUsing(fn ($record) => $record->model_type_label),
 
-                        Infolists\Components\TextEntry::make('model_label')
+                        TextEntry::make('model_label')
                             ->label('Record'),
 
-                        Infolists\Components\TextEntry::make('model_id')
+                        TextEntry::make('model_id')
                             ->label('ID Record'),
 
-                        Infolists\Components\TextEntry::make('ip_address')
+                        TextEntry::make('ip_address')
                             ->label('Indirizzo IP')
                             ->default('—'),
 
-                        Infolists\Components\TextEntry::make('user_agent')
+                        TextEntry::make('user_agent')
                             ->label('Browser / Client')
                             ->default('—')
                             ->columnSpanFull(),
                     ])->columns(3),
 
                 // Sezione diff modifiche — visibile solo se ci sono changes
-                Infolists\Components\Section::make('Modifiche')
+                Section::make('Modifiche')
                     ->schema([
-                        Infolists\Components\ViewEntry::make('changes')
+                        ViewEntry::make('changes')
                             ->label('')
                             ->view('filament.infolists.entries.activity-changes'),
                     ])
@@ -218,8 +224,8 @@ class ActivityLogResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListActivityLogs::route('/'),
-            'view' => Pages\ViewActivityLog::route('/{record}'),
+            'index' => ListActivityLogs::route('/'),
+            'view' => ViewActivityLog::route('/{record}'),
         ];
     }
 

@@ -7,7 +7,6 @@ use App\Models\StaffMember;
 use App\Services\RevocaDelRiconoscimentoDeiVolti;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
-use Filament\Tables\Actions\Action as AzioneDiTabella;
 
 /**
  * «Revoca consenso al riconoscimento», sulla scheda e nell'elenco di atlete
@@ -39,9 +38,9 @@ class RevocaRiconoscimentoVoltiAction
             ->action(fn (Player|StaffMember $record) => self::esegui($record));
     }
 
-    public static function perLaTabella(): AzioneDiTabella
+    public static function perLaTabella(): Action
     {
-        return AzioneDiTabella::make(self::NOME)
+        return Action::make(self::NOME)
             ->label('Revoca consenso al riconoscimento')
             ->icon('heroicon-o-no-symbol')
             ->color('danger')

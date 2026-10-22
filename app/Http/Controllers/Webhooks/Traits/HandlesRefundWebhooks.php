@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 /**
  * I rimborsi notificati dal gateway (Stripe `charge.refunded`, PayPal
@@ -131,7 +132,7 @@ trait HandlesRefundWebhooks
             if ($recipientEmail) {
                 try {
                     Mail::to($recipientEmail)->queue(new RefundConfirmation($order));
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     report($e);
 
                     Log::error('Errore invio email rimborso', ['order_id' => $order->id, 'error' => $e->getMessage()]);
@@ -145,7 +146,7 @@ trait HandlesRefundWebhooks
 
             return response()->json(['message' => 'Rimborso processato'], 200);
 
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
 
             Log::error("{$this->getGatewayName()} {$this->canaleDiIncasso()}: errore processamento rimborso", [

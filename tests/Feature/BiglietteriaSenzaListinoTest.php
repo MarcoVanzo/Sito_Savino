@@ -173,7 +173,9 @@ class BiglietteriaSenzaListinoTest extends TestCase
         $contenuti = $pagina->refresh()->getTranslation('content_data', 'it');
 
         $this->assertTrue(array_is_list($contenuti['benefits']));
-        $this->assertSame('Sconto 10%', $contenuti['benefits'][0]['text']);
+        // L'editor di Filament 4 salva il testo in paragrafi (la pagina li
+        // stampa senza margini, Ticketing.vue).
+        $this->assertSame('<p>Sconto 10%</p>', $contenuti['benefits'][0]['text']);
         $this->assertTrue(array_is_list($contenuti['phases']));
         $this->assertSame('Prelazione ex abbonati', $contenuti['phases'][0]['title']);
         $this->assertSame('Gift Card', $contenuti['gift_card_title']);

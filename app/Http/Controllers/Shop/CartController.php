@@ -11,6 +11,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use InvalidArgumentException;
+use OverflowException;
 
 class CartController extends Controller
 {
@@ -82,9 +84,9 @@ class CartController extends Controller
             );
 
             return back()->with('success', __('messages.cart.added'));
-        } catch (\OverflowException $e) {
+        } catch (OverflowException $e) {
             return back()->with('error', $e->getMessage());
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             return back()->with('error', $e->getMessage());
         }
     }
@@ -108,9 +110,9 @@ class CartController extends Controller
             );
 
             return back()->with('success', __('messages.cart.updated'));
-        } catch (\OverflowException $e) {
+        } catch (OverflowException $e) {
             return back()->with('error', $e->getMessage());
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             return back()->with('error', $e->getMessage());
         }
     }
@@ -127,9 +129,9 @@ class CartController extends Controller
             $this->cartService->removeItem($cartItem->id);
 
             return back()->with('success', __('messages.cart.removed'));
-        } catch (\OverflowException $e) {
+        } catch (OverflowException $e) {
             return back()->with('error', $e->getMessage());
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             return back()->with('error', $e->getMessage());
         }
     }

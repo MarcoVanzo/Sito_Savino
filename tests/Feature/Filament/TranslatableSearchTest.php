@@ -7,9 +7,9 @@ use App\Filament\Resources\PostResource\Pages\ListPosts;
 use App\Filament\Support\TranslatableContentDriver;
 use App\Models\Post;
 use App\Models\User;
-use Filament\SpatieLaravelTranslatableContentDriver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use LaraZeus\SpatieTranslatable\SpatieTranslatableContentDriver;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -36,7 +36,7 @@ class TranslatableSearchTest extends TestCase
     #[Test]
     public function il_content_driver_del_plugin_e_sostituito_dal_nostro(): void
     {
-        $driver = app(SpatieLaravelTranslatableContentDriver::class, ['activeLocale' => 'it']);
+        $driver = app(SpatieTranslatableContentDriver::class, ['activeLocale' => 'it']);
 
         $this->assertInstanceOf(TranslatableContentDriver::class, $driver);
     }

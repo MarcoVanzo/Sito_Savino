@@ -7,8 +7,12 @@ use App\Models\SiteSetting;
 use App\Models\Sponsor;
 use App\Observers\CacheInvalidationObserver;
 use Filament\Actions\Action;
-use Filament\Forms;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Utilities\Get;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -33,7 +37,7 @@ class NomiDelleSezioniSponsorAction
             ->modalSubmitActionLabel('Salva')
             ->authorize(fn (): bool => (bool) auth()->user()?->can('create', Sponsor::class))
             ->fillForm(fn (): array => ['sezioni' => self::sezioniSalvate()])
-            ->form(fn (): array => [self::elenco()])
+            ->schema(fn (): array => [self::elenco()])
             ->action(function (array $data): void {
                 self::salva(array_values($data['sezioni'] ?? []));
 
@@ -45,19 +49,19 @@ class NomiDelleSezioniSponsorAction
      * Una voce per livello, nell'ordine di pubblicazione: si trascinano, non
      * si aggiungono né si tolgono.
      */
-    private static function elenco(): Forms\Components\Repeater
+    private static function elenco(): Repeater
     {
         $locali = config('app.supported_locales', ['it', 'en']);
 
-        return Forms\Components\Repeater::make('sezioni')
+        return Repeater::make('sezioni')
             ->hiddenLabel()
             ->schema([
-                Forms\Components\Hidden::make('tier'),
-                Forms\Components\Grid::make(count($locali))
+                Hidden::make('tier'),
+                Grid::make(count($locali))
                     ->schema(array_map(
-                        fn (string $locale): Forms\Components\TextInput => Forms\Components\TextInput::make($locale)
+                        fn (string $locale): TextInput => TextInput::make($locale)
                             ->label('Nome ('.strtoupper($locale).')')
-                            ->placeholder(fn (Forms\Get $get): string => SponsorTier::tryFrom((string) $get('tier'))?->nomePredefinito($locale) ?? '')
+                            ->placeholder(fn (Get $get): string => SponsorTier::tryFrom((string) $get('tier'))?->nomePredefinito($locale) ?? '')
                             ->maxLength(80),
                         $locali,
                     )),

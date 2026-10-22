@@ -3,15 +3,19 @@
 namespace App\Filament\Resources;
 
 use App\Enums\UserRole;
-use App\Filament\Resources\CustomerResource\Pages;
+use App\Filament\Resources\CustomerResource\Pages\ListCustomers;
+use App\Filament\Resources\CustomerResource\Pages\ViewCustomer;
 use App\Filament\Resources\UserResource\RelationManagers\OrdersRelationManager;
 use App\Models\Order;
 use App\Models\User;
-use Filament\Infolists;
-use Filament\Infolists\Infolist;
+use Filament\Actions\ViewAction;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
-use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -23,11 +27,11 @@ class CustomerResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Clienti';
 
-    protected static ?string $navigationIcon = 'heroicon-o-user-group';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-user-group';
 
     protected static ?string $navigationLabel = 'Clienti';
 
-    protected static ?string $navigationGroup = 'Shop Ufficiale';
+    protected static string|\UnitEnum|null $navigationGroup = 'Shop Ufficiale';
 
     protected static ?int $navigationSort = 5;
 
@@ -44,32 +48,32 @@ class CustomerResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label('Nome')
                     ->searchable()
                     ->sortable()
                     ->weight(FontWeight::Bold),
-                Tables\Columns\TextColumn::make('email')
+                TextColumn::make('email')
                     ->label('Email')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('phone')
+                TextColumn::make('phone')
                     ->label('Telefono')
                     ->placeholder('-')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('orders_count')
+                TextColumn::make('orders_count')
                     ->label('N° Ordini')
                     ->counts('orders')
                     ->sortable()
                     ->badge()
                     ->color('info'),
-                Tables\Columns\TextColumn::make('orders_sum_total_price')
+                TextColumn::make('orders_sum_total_price')
                     ->label('Totale Speso')
                     ->sum('orders', 'total_price')
                     ->money('EUR')
                     ->sortable()
                     ->weight(FontWeight::Bold),
-                Tables\Columns\TextColumn::make('latest_order_date')
+                TextColumn::make('latest_order_date')
                     ->label('Ultimo Ordine')
                     ->getStateUsing(fn (User $record) => $record->orders()->latest()->value('created_at'))
                     ->dateTime('d/m/Y')
@@ -83,7 +87,7 @@ class CustomerResource extends Resource
                         );
                     })
                     ->placeholder('Nessun ordine'),
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label('Registrato il')
                     ->dateTime('d/m/Y')
                     ->sortable()
@@ -91,38 +95,38 @@ class CustomerResource extends Resource
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                Tables\Filters\Filter::make('has_orders')
+                Filter::make('has_orders')
                     ->label('Con ordini')
                     ->query(fn (Builder $query) => $query->has('orders'))
                     ->toggle(),
-                Tables\Filters\Filter::make('registered_recently')
+                Filter::make('registered_recently')
                     ->label('Ultimi 30 giorni')
                     ->query(fn (Builder $query) => $query->where('created_at', '>=', now()->subDays(30)))
                     ->toggle(),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
+            ->recordActions([
+                ViewAction::make(),
             ])
-            ->bulkActions([]);
+            ->toolbarActions([]);
     }
 
-    public static function infolist(Infolist $infolist): Infolist
+    public static function infolist(Schema $schema): Schema
     {
-        return $infolist
-            ->schema([
-                Infolists\Components\Section::make('Dati Cliente')
+        return $schema
+            ->components([
+                Section::make('Dati Cliente')
                     ->schema([
-                        Infolists\Components\TextEntry::make('name')->label('Nome'),
-                        Infolists\Components\TextEntry::make('email')->label('Email'),
-                        Infolists\Components\TextEntry::make('phone')->label('Telefono')->placeholder('-'),
-                        Infolists\Components\TextEntry::make('created_at')->label('Registrato il')->dateTime('d/m/Y H:i'),
+                        TextEntry::make('name')->label('Nome'),
+                        TextEntry::make('email')->label('Email'),
+                        TextEntry::make('phone')->label('Telefono')->placeholder('-'),
+                        TextEntry::make('created_at')->label('Registrato il')->dateTime('d/m/Y H:i'),
                     ])->columns(2),
-                Infolists\Components\Section::make('Riepilogo Acquisti')
+                Section::make('Riepilogo Acquisti')
                     ->schema([
-                        Infolists\Components\TextEntry::make('orders_count')
+                        TextEntry::make('orders_count')
                             ->label('Ordini Totali')
                             ->getStateUsing(fn (User $record) => $record->orders()->count()),
-                        Infolists\Components\TextEntry::make('total_spent')
+                        TextEntry::make('total_spent')
                             ->label('Totale Speso')
                             ->getStateUsing(fn (User $record) => '€ '.number_format($record->orders()->sum('total_price'), 2, ',', '.')),
                     ])->columns(2),
@@ -139,8 +143,8 @@ class CustomerResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListCustomers::route('/'),
-            'view' => Pages\ViewCustomer::route('/{record}'),
+            'index' => ListCustomers::route('/'),
+            'view' => ViewCustomer::route('/{record}'),
         ];
     }
 

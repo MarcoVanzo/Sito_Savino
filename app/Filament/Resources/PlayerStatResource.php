@@ -2,16 +2,28 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\PlayerStatResource\Pages;
+use App\Filament\Resources\PlayerStatResource\Pages\CreatePlayerStat;
+use App\Filament\Resources\PlayerStatResource\Pages\EditPlayerStat;
+use App\Filament\Resources\PlayerStatResource\Pages\ListPlayerStats;
+use App\Filament\Resources\PlayerStatResource\Pages\ViewPlayerStat;
 use App\Models\PlayerStat;
 use App\Models\Season;
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Infolists;
-use Filament\Infolists\Infolist;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables;
+use Filament\Tables\Columns\ColumnGroup;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -61,9 +73,9 @@ class PlayerStatResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Statistiche atlete';
 
-    protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chart-bar';
 
-    protected static ?string $navigationGroup = 'Stagione';
+    protected static string|\UnitEnum|null $navigationGroup = 'Stagione';
 
     protected static ?string $navigationLabel = 'Statistiche atlete';
 
@@ -77,18 +89,18 @@ class PlayerStatResource extends Resource
         return $record instanceof PlayerStat && $record->last_synced_at === null;
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Riga')
+        return $schema
+            ->components([
+                Section::make('Riga')
                     ->description(
                         'Inserimento manuale: da usare per le squadre giovanili, i cui campionati '
                         .'non hanno tabellini pubblicati dalla Lega. Per le squadre sincronizzate i '
                         .'totali si ricostruiscono da soli e questa riga verrebbe sovrascritta.'
                     )
                     ->schema([
-                        Forms\Components\Select::make('player_id')
+                        Select::make('player_id')
                             ->label('Giocatrice')
                             ->relationship('player', 'last_name')
                             ->searchable()
@@ -99,20 +111,20 @@ class PlayerStatResource extends Resource
                             // all'errore SQL.
                             ->unique(
                                 ignoreRecord: true,
-                                modifyRuleUsing: fn (Unique $rule, Forms\Get $get): Unique => $rule
+                                modifyRuleUsing: fn (Unique $rule, Get $get): Unique => $rule
                                     ->where('season_id', $get('season_id'))
                                     ->where('team_id', $get('team_id')),
                             )
                             ->validationMessages([
                                 'unique' => 'Questa atleta ha già una riga per la stagione e la squadra scelte.',
                             ]),
-                        Forms\Components\Select::make('season_id')
+                        Select::make('season_id')
                             ->label('Stagione')
                             ->relationship('season', 'name')
                             ->preload()
                             ->required()
                             ->default(fn () => Season::query()->where('is_current', true)->value('id')),
-                        Forms\Components\Select::make('team_id')
+                        Select::make('team_id')
                             ->label('Squadra')
                             // Solo le squadre della società: le avversarie
                             // importate non hanno atlete in anagrafica.
@@ -123,77 +135,77 @@ class PlayerStatResource extends Resource
                             ->helperText('I totali sono per squadra: un\'atleta schierata in A1 e in B1 ha due righe distinte.'),
                     ])->columns(3),
 
-                Forms\Components\Section::make('Impiego')
+                Section::make('Impiego')
                     ->schema([
-                        Forms\Components\TextInput::make('matches_played')
+                        TextInput::make('matches_played')
                             ->label(self::LABEL_MATCHES_PLAYED)
                             ->numeric()->minValue(0)->default(0)->required(),
-                        Forms\Components\TextInput::make('sets_played')
+                        TextInput::make('sets_played')
                             ->label(self::LABEL_SETS_PLAYED)
                             ->numeric()->minValue(0)->default(0)->required(),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Punti')
+                Section::make('Punti')
                     ->schema([
-                        Forms\Components\TextInput::make('points')
+                        TextInput::make('points')
                             ->label('Punti totali')
                             ->numeric()->minValue(0)->default(0)->required(),
-                        Forms\Components\TextInput::make('points_break')
+                        TextInput::make('points_break')
                             ->label('Break point')
                             ->numeric()->minValue(0)->default(0)->required(),
-                        Forms\Components\TextInput::make('blocks')
+                        TextInput::make('blocks')
                             ->label('Muri punto')
                             ->numeric()->minValue(0)->default(0)->required(),
                     ])->columns(3),
 
-                Forms\Components\Section::make('Attacco')
+                Section::make('Attacco')
                     ->schema([
-                        Forms\Components\TextInput::make('attacks')
+                        TextInput::make('attacks')
                             // Etichetta esplicita: il campo si chiama `attacks`
                             // ma non sono i punti.
                             ->label('Attacchi tentati')
                             ->numeric()->minValue(0)->default(0)->required(),
-                        Forms\Components\TextInput::make('attack_points')
+                        TextInput::make('attack_points')
                             ->label('Punti in attacco')
                             ->numeric()->minValue(0)->default(0)->required(),
-                        Forms\Components\TextInput::make('attack_errors')
+                        TextInput::make('attack_errors')
                             ->label('Errori')
                             ->numeric()->minValue(0)->default(0)->required(),
-                        Forms\Components\TextInput::make('attack_blocked')
+                        TextInput::make('attack_blocked')
                             ->label('Attacchi murati')
                             ->numeric()->minValue(0)->default(0)->required(),
-                        Forms\Components\TextInput::make('attack_pct')
+                        TextInput::make('attack_pct')
                             ->label('Efficacia %')
                             ->numeric()->minValue(0)->maxValue(100)
                             ->suffix('%')
                             ->helperText('Punti in attacco sul totale dei tentativi.'),
                     ])->columns(3),
 
-                Forms\Components\Section::make('Battuta')
+                Section::make('Battuta')
                     ->schema([
-                        Forms\Components\TextInput::make('aces')
+                        TextInput::make('aces')
                             ->label('Ace')
                             ->numeric()->minValue(0)->default(0)->required(),
-                        Forms\Components\TextInput::make('serve_total')
+                        TextInput::make('serve_total')
                             ->label('Battute totali')
                             ->numeric()->minValue(0)->default(0)->required(),
-                        Forms\Components\TextInput::make('serve_errors')
+                        TextInput::make('serve_errors')
                             ->label('Errori')
                             ->numeric()->minValue(0)->default(0)->required(),
                     ])->columns(3),
 
-                Forms\Components\Section::make('Ricezione')
+                Section::make('Ricezione')
                     ->schema([
-                        Forms\Components\TextInput::make('receptions')
+                        TextInput::make('receptions')
                             ->label('Ricezioni totali')
                             ->numeric()->minValue(0)->default(0)->required(),
-                        Forms\Components\TextInput::make('reception_errors')
+                        TextInput::make('reception_errors')
                             ->label('Errori')
                             ->numeric()->minValue(0)->default(0)->required(),
-                        Forms\Components\TextInput::make('reception_positive_pct')
+                        TextInput::make('reception_positive_pct')
                             ->label('Positive %')
                             ->numeric()->minValue(0)->maxValue(100)->suffix('%'),
-                        Forms\Components\TextInput::make('reception_perfect_pct')
+                        TextInput::make('reception_perfect_pct')
                             ->label('Perfette %')
                             ->numeric()->minValue(0)->maxValue(100)->suffix('%'),
                     ])->columns(4),
@@ -209,20 +221,20 @@ class PlayerStatResource extends Resource
     public static function identityColumns(bool $withTeam = true): array
     {
         return array_values(array_filter([
-            Tables\Columns\TextColumn::make('player.full_name')
+            TextColumn::make('player.full_name')
                 ->label('Atleta')
                 ->searchable(['first_name', 'last_name'])
                 ->sortable(['last_name', 'first_name'])
                 ->weight(FontWeight::Medium),
 
             $withTeam
-                ? Tables\Columns\TextColumn::make('team.name')
+                ? TextColumn::make('team.name')
                     ->label('Squadra')
                     ->placeholder('—')
                     ->sortable()
                 : null,
 
-            Tables\Columns\TextColumn::make('season.name')
+            TextColumn::make('season.name')
                 ->label('Stagione')
                 ->sortable()
                 ->toggleable(isToggledHiddenByDefault: true),
@@ -237,19 +249,19 @@ class PlayerStatResource extends Resource
     public static function workloadColumns(): array
     {
         return [
-            Tables\Columns\TextColumn::make('matches_played')
+            TextColumn::make('matches_played')
                 ->label('PG')
                 ->tooltip(self::LABEL_MATCHES_PLAYED)
                 ->alignCenter()
                 ->sortable(),
 
-            Tables\Columns\TextColumn::make('sets_played')
+            TextColumn::make('sets_played')
                 ->label('Set')
                 ->tooltip(self::LABEL_SETS_PLAYED)
                 ->alignCenter()
                 ->sortable(),
 
-            Tables\Columns\TextColumn::make('points')
+            TextColumn::make('points')
                 ->label('Punti')
                 ->alignCenter()
                 ->weight(FontWeight::Bold)
@@ -257,7 +269,7 @@ class PlayerStatResource extends Resource
 
             // Il confronto sensato tra atlete con minutaggi diversi. Non è una
             // colonna del database: l'ordinamento va scritto a mano.
-            Tables\Columns\TextColumn::make('points_per_set')
+            TextColumn::make('points_per_set')
                 ->label('Pt/set')
                 ->tooltip('Punti per set giocato')
                 ->alignCenter()
@@ -278,13 +290,13 @@ class PlayerStatResource extends Resource
      * arriva a venti colonne numeriche e diventa illeggibile. Restano visibili
      * solo le due percentuali che riassumono il fondamentale.
      *
-     * @return array<Tables\Columns\ColumnGroup>
+     * @return array<ColumnGroup>
      */
     public static function fundamentalColumnGroups(): array
     {
         return [
-            Tables\Columns\ColumnGroup::make('Attacco', [
-                Tables\Columns\TextColumn::make('attack_pct')
+            ColumnGroup::make('Attacco', [
+                TextColumn::make('attack_pct')
                     ->label('%')
                     ->tooltip('Punti in attacco sul totale dei tentativi')
                     ->alignCenter()
@@ -292,43 +304,43 @@ class PlayerStatResource extends Resource
                     ->placeholder('—')
                     ->sortable()
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('attack_points')
+                TextColumn::make('attack_points')
                     ->label('Punti')
                     ->alignCenter()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 // `attacks` = tentativi, NON punti: l'etichetta lo dice.
-                Tables\Columns\TextColumn::make('attacks')
+                TextColumn::make('attacks')
                     ->label('Tentati')
                     ->tooltip('Attacchi tentati, punti compresi')
                     ->alignCenter()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('attack_errors')
+                TextColumn::make('attack_errors')
                     ->label('Errori')
                     ->alignCenter()
                     ->color('danger')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('attack_blocked')
+                TextColumn::make('attack_blocked')
                     ->label('Murati')
                     ->alignCenter()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ]),
 
-            Tables\Columns\ColumnGroup::make('Battuta', [
-                Tables\Columns\TextColumn::make('aces')
+            ColumnGroup::make('Battuta', [
+                TextColumn::make('aces')
                     ->label('Ace')
                     ->alignCenter()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('serve_total')
+                TextColumn::make('serve_total')
                     ->label('Totali')
                     ->alignCenter()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('serve_errors')
+                TextColumn::make('serve_errors')
                     ->label('Errori')
                     ->alignCenter()
                     ->color('danger')
@@ -336,8 +348,8 @@ class PlayerStatResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ]),
 
-            Tables\Columns\ColumnGroup::make('Ricezione', [
-                Tables\Columns\TextColumn::make('reception_positive_pct')
+            ColumnGroup::make('Ricezione', [
+                TextColumn::make('reception_positive_pct')
                     ->label('Pos. %')
                     ->tooltip('Ricezioni positive: valore stimato, la Lega pubblica solo la percentuale per gara')
                     ->alignCenter()
@@ -345,7 +357,7 @@ class PlayerStatResource extends Resource
                     ->placeholder('—')
                     ->sortable()
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('reception_perfect_pct')
+                TextColumn::make('reception_perfect_pct')
                     ->label('Perf. %')
                     ->tooltip('Ricezioni perfette: valore stimato')
                     ->alignCenter()
@@ -353,12 +365,12 @@ class PlayerStatResource extends Resource
                     ->placeholder('—')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('receptions')
+                TextColumn::make('receptions')
                     ->label('Totali')
                     ->alignCenter()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('reception_errors')
+                TextColumn::make('reception_errors')
                     ->label('Errori')
                     ->alignCenter()
                     ->color('danger')
@@ -366,14 +378,14 @@ class PlayerStatResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ]),
 
-            Tables\Columns\ColumnGroup::make('Muro e break', [
-                Tables\Columns\TextColumn::make('blocks')
+            ColumnGroup::make('Muro e break', [
+                TextColumn::make('blocks')
                     ->label('Muri')
                     ->tooltip('Punti realizzati a muro')
                     ->alignCenter()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('points_break')
+                TextColumn::make('points_break')
                     ->label('Break')
                     ->tooltip('Punti conquistati in break point')
                     ->alignCenter()
@@ -387,9 +399,9 @@ class PlayerStatResource extends Resource
      * Origine della riga, come nella classifica: la data di sincronizzazione
      * dice anche perché la riga non si può modificare.
      */
-    public static function syncColumn(): Tables\Columns\TextColumn
+    public static function syncColumn(): TextColumn
     {
-        return Tables\Columns\TextColumn::make('last_synced_at')
+        return TextColumn::make('last_synced_at')
             ->label('Aggiornata il')
             ->dateTime('d/m/Y H:i')
             ->placeholder('inserita a mano')
@@ -409,16 +421,16 @@ class PlayerStatResource extends Resource
             // Chi guarda queste tabelle cerca le migliori realizzatrici.
             ->defaultSort('points', 'desc')
             ->filters([
-                Tables\Filters\SelectFilter::make('season_id')
+                SelectFilter::make('season_id')
                     ->label('Stagione')
                     ->relationship('season', 'name')
                     ->default(Season::query()->where('is_current', true)->value('id')),
-                Tables\Filters\SelectFilter::make('team_id')
+                SelectFilter::make('team_id')
                     ->label('Squadra')
                     ->relationship('team', 'name', fn (Builder $query) => $query->where('is_internal', true))
                     ->searchable()
                     ->preload(),
-                Tables\Filters\TernaryFilter::make('origin')
+                TernaryFilter::make('origin')
                     ->label('Origine')
                     ->placeholder('Tutte')
                     ->trueLabel('Importate dalla Lega')
@@ -430,15 +442,15 @@ class PlayerStatResource extends Resource
                     ),
             ])
             ->persistFiltersInSession()
-            ->actions([
-                Tables\Actions\ViewAction::make(),
+            ->recordActions([
+                ViewAction::make(),
                 // Compare solo sulle righe inserite a mano (vedi canEdit()).
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             // Nessuna cancellazione in blocco: la selezione multipla non
             // distingue le righe manuali da quelle rigenerate dall'import.
-            ->bulkActions([])
+            ->toolbarActions([])
             ->emptyStateIcon('heroicon-o-chart-bar')
             ->emptyStateHeading('Nessuna statistica per questi filtri')
             ->emptyStateDescription(
@@ -448,50 +460,50 @@ class PlayerStatResource extends Resource
             );
     }
 
-    public static function infolist(Infolist $infolist): Infolist
+    public static function infolist(Schema $schema): Schema
     {
-        return $infolist
-            ->schema([
-                Infolists\Components\Section::make('Atleta')
+        return $schema
+            ->components([
+                Section::make('Atleta')
                     ->schema([
-                        Infolists\Components\TextEntry::make('player.full_name')->label('Giocatrice'),
-                        Infolists\Components\TextEntry::make('team.name')->label('Squadra')->placeholder('—'),
-                        Infolists\Components\TextEntry::make('season.name')->label('Stagione'),
+                        TextEntry::make('player.full_name')->label('Giocatrice'),
+                        TextEntry::make('team.name')->label('Squadra')->placeholder('—'),
+                        TextEntry::make('season.name')->label('Stagione'),
                     ])->columns(3),
 
-                Infolists\Components\Section::make('Impiego e punti')
+                Section::make('Impiego e punti')
                     ->schema([
-                        Infolists\Components\TextEntry::make('matches_played')->label(self::LABEL_MATCHES_PLAYED),
-                        Infolists\Components\TextEntry::make('sets_played')->label(self::LABEL_SETS_PLAYED),
-                        Infolists\Components\TextEntry::make('points')->label('Punti totali'),
-                        Infolists\Components\TextEntry::make('points_per_set')
+                        TextEntry::make('matches_played')->label(self::LABEL_MATCHES_PLAYED),
+                        TextEntry::make('sets_played')->label(self::LABEL_SETS_PLAYED),
+                        TextEntry::make('points')->label('Punti totali'),
+                        TextEntry::make('points_per_set')
                             ->label('Punti per set')
                             ->placeholder('—')
                             ->state(fn (PlayerStat $record): ?float => $record->pointsPerSet()),
-                        Infolists\Components\TextEntry::make('points_break')->label('Break point'),
+                        TextEntry::make('points_break')->label('Break point'),
                     ])->columns(5),
 
-                Infolists\Components\Section::make('Attacco')
+                Section::make('Attacco')
                     ->schema([
-                        Infolists\Components\TextEntry::make('attack_points')->label('Punti'),
+                        TextEntry::make('attack_points')->label('Punti'),
                         // Ripetuto anche qui: `attacks` non sono i punti.
-                        Infolists\Components\TextEntry::make('attacks')->label('Tentati'),
-                        Infolists\Components\TextEntry::make('attack_errors')->label('Errori'),
-                        Infolists\Components\TextEntry::make('attack_blocked')->label('Murati'),
-                        Infolists\Components\TextEntry::make('attack_pct')
+                        TextEntry::make('attacks')->label('Tentati'),
+                        TextEntry::make('attack_errors')->label('Errori'),
+                        TextEntry::make('attack_blocked')->label('Murati'),
+                        TextEntry::make('attack_pct')
                             ->label('Efficacia')
                             ->suffix('%')
                             ->placeholder('—'),
                     ])->columns(5),
 
-                Infolists\Components\Section::make('Battuta')
+                Section::make('Battuta')
                     ->schema([
-                        Infolists\Components\TextEntry::make('aces')->label('Ace'),
-                        Infolists\Components\TextEntry::make('serve_total')->label('Battute totali'),
-                        Infolists\Components\TextEntry::make('serve_errors')->label('Errori'),
+                        TextEntry::make('aces')->label('Ace'),
+                        TextEntry::make('serve_total')->label('Battute totali'),
+                        TextEntry::make('serve_errors')->label('Errori'),
                     ])->columns(3),
 
-                Infolists\Components\Section::make('Ricezione')
+                Section::make('Ricezione')
                     ->description(
                         'Le percentuali di stagione sono stimate: la Lega pubblica solo quella della '
                         .'singola gara, mai il conteggio assoluto delle ricezioni positive. Si pesa '
@@ -499,26 +511,26 @@ class PlayerStatResource extends Resource
                         .'arrotondamenti del referto.'
                     )
                     ->schema([
-                        Infolists\Components\TextEntry::make('receptions')->label('Ricezioni totali'),
-                        Infolists\Components\TextEntry::make('reception_errors')->label('Errori'),
-                        Infolists\Components\TextEntry::make('reception_positive_pct')
+                        TextEntry::make('receptions')->label('Ricezioni totali'),
+                        TextEntry::make('reception_errors')->label('Errori'),
+                        TextEntry::make('reception_positive_pct')
                             ->label('Positive')->suffix('%')->placeholder('—'),
-                        Infolists\Components\TextEntry::make('reception_perfect_pct')
+                        TextEntry::make('reception_perfect_pct')
                             ->label('Perfette')->suffix('%')->placeholder('—'),
                     ])->columns(4),
 
-                Infolists\Components\Section::make('Muro')
+                Section::make('Muro')
                     ->schema([
-                        Infolists\Components\TextEntry::make('blocks')->label('Punti a muro'),
+                        TextEntry::make('blocks')->label('Punti a muro'),
                     ]),
 
-                Infolists\Components\Section::make('Origine dei dati')
+                Section::make('Origine dei dati')
                     ->schema([
-                        Infolists\Components\TextEntry::make('last_synced_at')
+                        TextEntry::make('last_synced_at')
                             ->label('Ultima sincronizzazione')
                             ->dateTime('d/m/Y H:i:s')
                             ->placeholder('mai: riga inserita a mano'),
-                        Infolists\Components\TextEntry::make('origin_note')
+                        TextEntry::make('origin_note')
                             ->label('Modificabile')
                             ->state(fn (PlayerStat $record): string => static::isManual($record)
                                 ? 'Sì: riga inserita dal CMS, la sincronizzazione non la tocca.'
@@ -531,10 +543,10 @@ class PlayerStatResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPlayerStats::route('/'),
-            'create' => Pages\CreatePlayerStat::route('/create'),
-            'view' => Pages\ViewPlayerStat::route('/{record}'),
-            'edit' => Pages\EditPlayerStat::route('/{record}/edit'),
+            'index' => ListPlayerStats::route('/'),
+            'create' => CreatePlayerStat::route('/create'),
+            'view' => ViewPlayerStat::route('/{record}'),
+            'edit' => EditPlayerStat::route('/{record}/edit'),
         ];
     }
 

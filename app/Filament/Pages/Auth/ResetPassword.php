@@ -5,7 +5,6 @@ namespace App\Filament\Pages\Auth;
 use App\Models\User;
 use App\Rules\NotAPreviousPassword;
 use Filament\Forms\Components\TextInput;
-use Filament\Pages\Auth\PasswordReset\ResetPassword as BaseResetPassword;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 
@@ -16,7 +15,7 @@ use Illuminate\Validation\Rules\Password as PasswordRule;
  * dell'applicazione: requisiti di robustezza (Password::defaults) e divieto di
  * riuso delle ultime N password.
  */
-class ResetPassword extends BaseResetPassword
+class ResetPassword extends \Filament\Auth\Pages\PasswordReset\ResetPassword
 {
     protected function getPasswordFormComponent(): TextInput
     {

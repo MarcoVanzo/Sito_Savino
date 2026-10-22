@@ -27,19 +27,19 @@ class SocialAnalyticsPage extends Page
 {
     use RestrictsAccessByRole;
 
-    protected static ?string $navigationIcon = 'heroicon-o-hashtag';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-hashtag';
 
     protected static ?string $navigationLabel = 'Analytics Social';
 
     protected static ?string $title = 'Analytics Social';
 
-    protected static ?string $navigationGroup = 'Marketing';
+    protected static string|\UnitEnum|null $navigationGroup = 'Marketing';
 
     protected static ?int $navigationSort = 11;
 
     protected static ?string $slug = 'analytics/social';
 
-    protected static string $view = 'filament.pages.social-analytics';
+    protected string $view = 'filament.pages.social-analytics';
 
     public ?int $accountId = null;
 
@@ -80,7 +80,7 @@ class SocialAnalyticsPage extends Page
                 ? Action::make('account')
                     ->label('Account')
                     ->icon('heroicon-m-user-group')
-                    ->form([
+                    ->schema([
                         Select::make('accountId')
                             ->label('Account')
                             ->options($accounts)
@@ -93,7 +93,7 @@ class SocialAnalyticsPage extends Page
             Action::make('period')
                 ->label('Periodo')
                 ->icon('heroicon-m-calendar-days')
-                ->form([
+                ->schema([
                     Select::make('days')
                         ->label('Periodo')
                         ->options([

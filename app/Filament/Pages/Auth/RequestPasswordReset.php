@@ -5,7 +5,7 @@ namespace App\Filament\Pages\Auth;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
-use Filament\Pages\Auth\PasswordReset\RequestPasswordReset as BaseRequestPasswordReset;
+use Illuminate\Contracts\Support\Htmlable;
 use Livewire\Attributes\Locked;
 
 /**
@@ -20,10 +20,10 @@ use Livewire\Attributes\Locked;
  * Filament («Non troviamo nessun utente…») permetteva di scoprire quali email
  * hanno un account nel pannello.
  */
-class RequestPasswordReset extends BaseRequestPasswordReset
+class RequestPasswordReset extends \Filament\Auth\Pages\PasswordReset\RequestPasswordReset
 {
     /** @var view-string */
-    protected static string $view = 'filament.pages.auth.request-password-reset';
+    protected string $view = 'filament.pages.auth.request-password-reset';
 
     // Solo il server lo scrive: dal browser si potrebbe accendere la conferma
     // senza aver mandato niente.
@@ -49,6 +49,12 @@ class RequestPasswordReset extends BaseRequestPasswordReset
     {
         $this->inviataA = null;
         $this->form->fill();
+    }
+
+    // Con la conferma a schermo il link all'accesso sta nel pulsante sotto.
+    public function getSubheading(): string|Htmlable|null
+    {
+        return $this->inviataA ? null : parent::getSubheading();
     }
 
     public function minutiDiValidita(): int

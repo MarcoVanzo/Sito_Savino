@@ -4,7 +4,7 @@ namespace App\Filament\Resources\StaffMemberResource\Pages;
 
 use App\Filament\Resources\StaffMemberResource;
 use Filament\Resources\Pages\CreateRecord;
-use Filament\Resources\Pages\CreateRecord\Concerns\Translatable;
+use LaraZeus\SpatieTranslatable\Resources\Pages\CreateRecord\Concerns\Translatable;
 
 class CreateStaffMember extends CreateRecord
 {

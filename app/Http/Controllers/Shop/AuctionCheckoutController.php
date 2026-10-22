@@ -12,6 +12,7 @@ use App\Models\ShippingZone;
 use App\Models\SiteSetting;
 use App\Services\AuctionService;
 use App\Services\OrdineDelVincitoreDellAsta;
+use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -220,7 +221,7 @@ class AuctionCheckoutController extends Controller
             return Inertia::location($this->ordineDelVincitore->urlDelGateway($result['order']));
         } catch (ValidationException $e) {
             throw $e;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Errore durante il checkout asta', [
                 'auction_id' => $auction->id,
                 'token' => $token,

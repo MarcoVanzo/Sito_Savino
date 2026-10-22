@@ -5,8 +5,9 @@ namespace App\Filament\Resources;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
 use App\Exceptions\UnsupportedPaymentGatewayException;
-use App\Filament\Resources\OrderResource\Pages;
-use App\Filament\Resources\OrderResource\RelationManagers;
+use App\Filament\Resources\OrderResource\Pages\EditOrder;
+use App\Filament\Resources\OrderResource\Pages\ListOrders;
+use App\Filament\Resources\OrderResource\RelationManagers\OrderItemsRelationManager;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Mail\OrderShipped;
 use App\Models\Order;
@@ -15,22 +16,38 @@ use App\Services\Payments\PayPalPaymentService;
 use App\Services\Payments\StripePaymentService;
 use App\Services\ReceiptService;
 use Carbon\Carbon;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\RestoreBulkAction;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Fieldset;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
-use Filament\Tables;
-use Filament\Tables\Actions\Action;
-use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Columns\Column;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\BaseFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\Indicator;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 class OrderResource extends Resource
 {
@@ -50,26 +67,26 @@ class OrderResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Ordini';
 
-    protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-shopping-cart';
 
     protected static ?string $navigationLabel = 'Ordini';
 
-    protected static ?string $navigationGroup = 'Shop Ufficiale';
+    protected static string|\UnitEnum|null $navigationGroup = 'Shop Ufficiale';
 
     protected static ?int $navigationSort = 3;
 
     protected static ?string $slug = 'shop/ordini';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Tabs::make('Ordine')
+        return $schema
+            ->components([
+                Tabs::make('Ordine')
                     ->tabs([
-                        Forms\Components\Tabs\Tab::make('Dettagli')
+                        Tab::make('Dettagli')
                             ->icon('heroicon-o-document-text')
                             ->schema([
-                                Forms\Components\TextInput::make('order_number')
+                                TextInput::make('order_number')
                                     ->label('Numero Ordine')
                                     ->disabled()
                                     ->dehydrated(false),
@@ -79,71 +96,71 @@ class OrderResource extends Resource
                                 // pagamento, Segna spedito, Annulla, Rimborso), che
                                 // ammettono solo le transizioni sensate e portano con
                                 // se' magazzino, coupon ed email.
-                                Forms\Components\Select::make('status')
+                                Select::make('status')
                                     ->label(self::LABEL_ORDER_STATUS)
                                     ->options(OrderStatus::class)
                                     ->disabled()
                                     ->dehydrated(false)
                                     ->helperText('Si cambia con le azioni dell\'ordine (Conferma pagamento, Segna spedito, Annulla, Rimborso).'),
-                                Forms\Components\Select::make('user_id')
+                                Select::make('user_id')
                                     ->label('Cliente (Utente)')
                                     ->relationship('user', 'name')
                                     ->searchable()
                                     ->nullable(),
-                                Forms\Components\Select::make('payment_gateway')
+                                Select::make('payment_gateway')
                                     ->label('Gateway Pagamento')
                                     ->options(PaymentGateway::class)
                                     ->nullable(),
-                                Forms\Components\TextInput::make('payment_id')
+                                TextInput::make('payment_id')
                                     ->label('ID Pagamento')
                                     ->disabled()
                                     ->dehydrated(false),
-                                Forms\Components\DateTimePicker::make('paid_at')
+                                DateTimePicker::make('paid_at')
                                     ->label('Pagato il')
                                     ->disabled()
                                     ->dehydrated(false),
-                                Forms\Components\TextInput::make('codice_fiscale')
+                                TextInput::make('codice_fiscale')
                                     ->label('Codice Fiscale'),
                             ])->columns(2),
 
-                        Forms\Components\Tabs\Tab::make('Cliente Guest')
+                        Tab::make('Cliente Guest')
                             ->icon('heroicon-o-user')
                             ->schema([
-                                Forms\Components\TextInput::make('guest_name')
+                                TextInput::make('guest_name')
                                     ->label('Nome Guest')
                                     ->disabled(),
-                                Forms\Components\TextInput::make('guest_email')
+                                TextInput::make('guest_email')
                                     ->label('Email Guest')
                                     ->disabled(),
-                                Forms\Components\TextInput::make('guest_phone')
+                                TextInput::make('guest_phone')
                                     ->label('Telefono Guest')
                                     ->disabled(),
-                                Forms\Components\TextInput::make('phone')
+                                TextInput::make('phone')
                                     ->label('Telefono (Utente registrato)')
                                     ->disabled(),
                             ])->columns(3),
 
-                        Forms\Components\Tabs\Tab::make('Spedizione')
+                        Tab::make('Spedizione')
                             ->icon('heroicon-o-truck')
                             ->schema([
                                 // Indirizzo strutturato (nuovi ordini)
-                                Forms\Components\Fieldset::make('Indirizzo di Spedizione')
+                                Fieldset::make('Indirizzo di Spedizione')
                                     ->schema([
-                                        Forms\Components\TextInput::make('shipping_address.first_name')
+                                        TextInput::make('shipping_address.first_name')
                                             ->label('Nome'),
-                                        Forms\Components\TextInput::make('shipping_address.last_name')
+                                        TextInput::make('shipping_address.last_name')
                                             ->label('Cognome'),
-                                        Forms\Components\TextInput::make('shipping_address.street')
+                                        TextInput::make('shipping_address.street')
                                             ->label('Via')
                                             ->columnSpanFull(),
-                                        Forms\Components\TextInput::make('shipping_address.city')
+                                        TextInput::make('shipping_address.city')
                                             ->label('Città'),
-                                        Forms\Components\TextInput::make('shipping_address.zip_code')
+                                        TextInput::make('shipping_address.zip_code')
                                             ->label('CAP'),
-                                        Forms\Components\TextInput::make('shipping_address.province')
+                                        TextInput::make('shipping_address.province')
                                             ->label('Provincia'),
                                         // Fallback per vecchi ordini con indirizzo in testo libero
-                                        Forms\Components\Textarea::make('shipping_address.raw_address')
+                                        Textarea::make('shipping_address.raw_address')
                                             ->label('Indirizzo (vecchio formato)')
                                             ->rows(2)
                                             ->visible(fn ($record) => isset($record?->shipping_address['raw_address']))
@@ -151,68 +168,68 @@ class OrderResource extends Resource
                                     ])->columns(2),
 
                                 // Indirizzo fatturazione strutturato
-                                Forms\Components\Fieldset::make('Indirizzo di Fatturazione')
+                                Fieldset::make('Indirizzo di Fatturazione')
                                     ->schema([
-                                        Forms\Components\TextInput::make('billing_address.first_name')
+                                        TextInput::make('billing_address.first_name')
                                             ->label('Nome'),
-                                        Forms\Components\TextInput::make('billing_address.last_name')
+                                        TextInput::make('billing_address.last_name')
                                             ->label('Cognome'),
-                                        Forms\Components\TextInput::make('billing_address.street')
+                                        TextInput::make('billing_address.street')
                                             ->label('Via')
                                             ->columnSpanFull(),
-                                        Forms\Components\TextInput::make('billing_address.city')
+                                        TextInput::make('billing_address.city')
                                             ->label('Città'),
-                                        Forms\Components\TextInput::make('billing_address.zip_code')
+                                        TextInput::make('billing_address.zip_code')
                                             ->label('CAP'),
-                                        Forms\Components\TextInput::make('billing_address.province')
+                                        TextInput::make('billing_address.province')
                                             ->label('Provincia'),
-                                        Forms\Components\Textarea::make('billing_address.raw_address')
+                                        Textarea::make('billing_address.raw_address')
                                             ->label('Indirizzo (vecchio formato)')
                                             ->rows(2)
                                             ->visible(fn ($record) => isset($record?->billing_address['raw_address']))
                                             ->columnSpanFull(),
                                     ])->columns(2),
 
-                                Forms\Components\TextInput::make('country')
+                                TextInput::make('country')
                                     ->label('Paese (Spedizione)')
                                     ->maxLength(2),
-                                Forms\Components\TextInput::make('billing_country')
+                                TextInput::make('billing_country')
                                     ->label('Paese (Fatturazione)')
                                     ->maxLength(2),
-                                Forms\Components\TextInput::make('tracking_number')
+                                TextInput::make('tracking_number')
                                     ->label('Numero Tracking'),
-                                Forms\Components\TextInput::make('tracking_url')
+                                TextInput::make('tracking_url')
                                     ->label('URL Tracking')
                                     ->url(),
-                                Forms\Components\DateTimePicker::make('shipped_at')
+                                DateTimePicker::make('shipped_at')
                                     ->label('Spedito il'),
                             ])->columns(2),
 
-                        Forms\Components\Tabs\Tab::make('Importi')
+                        Tab::make('Importi')
                             ->icon('heroicon-o-currency-euro')
                             ->schema([
-                                Forms\Components\TextInput::make('total_price')
+                                TextInput::make('total_price')
                                     ->label('Totale Ordine')
                                     ->disabled()
                                     ->prefix('€'),
-                                Forms\Components\TextInput::make('shipping_cost')
+                                TextInput::make('shipping_cost')
                                     ->label('Costo Spedizione')
                                     ->disabled()
                                     ->prefix('€'),
-                                Forms\Components\TextInput::make('coupon_discount')
+                                TextInput::make('coupon_discount')
                                     ->label('Sconto Coupon')
                                     ->disabled()
                                     ->prefix('€'),
-                                Forms\Components\Select::make('coupon_id')
+                                Select::make('coupon_id')
                                     ->label('Coupon')
                                     ->relationship('coupon', 'code')
                                     ->disabled(),
                             ])->columns(2),
 
-                        Forms\Components\Tabs\Tab::make('Note')
+                        Tab::make('Note')
                             ->icon('heroicon-o-chat-bubble-left-right')
                             ->schema([
-                                Forms\Components\Textarea::make('notes')
+                                Textarea::make('notes')
                                     ->label('Note')
                                     ->rows(4)
                                     ->columnSpanFull(),
@@ -229,13 +246,13 @@ class OrderResource extends Resource
             ->columns(self::colonne())
             ->defaultSort('created_at', 'desc')
             ->filters(self::filtri())
-            ->actions(self::azioni())
+            ->recordActions(self::azioni())
             // Niente cancellazione, né in blocco né singola: gli ordini sono
             // documenti contabili da conservare (OrderPolicy). Resta il
             // ripristino di quelli cancellati prima di questa regola.
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\RestoreBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    RestoreBulkAction::make(),
                 ]),
             ]);
     }
@@ -246,12 +263,12 @@ class OrderResource extends Resource
     private static function colonne(): array
     {
         return [
-            Tables\Columns\TextColumn::make('order_number')
+            TextColumn::make('order_number')
                 ->label('Numero Ordine')
                 ->searchable()
                 ->sortable()
                 ->weight(FontWeight::Bold),
-            Tables\Columns\TextColumn::make('customer_name')
+            TextColumn::make('customer_name')
                 ->label('Cliente')
                 ->getStateUsing(fn ($record) => $record->user->name ?? $record->guest_name ?? '-')
                 ->url(fn ($record) => $record->user_id ? UserResource::getUrl('edit', ['record' => $record->user_id]) : null)
@@ -263,24 +280,24 @@ class OrderResource extends Resource
                             ->orWhere('guest_email', 'like', "%{$search}%");
                     });
                 }),
-            Tables\Columns\TextColumn::make('contact_phone')
+            TextColumn::make('contact_phone')
                 ->label('Telefono')
                 ->getStateUsing(fn ($record) => $record->phone ?? $record->guest_phone ?? '-')
                 ->toggleable(isToggledHiddenByDefault: true),
-            Tables\Columns\TextColumn::make('status')
+            TextColumn::make('status')
                 ->label(self::LABEL_ORDER_STATUS)
                 ->badge()
                 ->sortable(),
-            Tables\Columns\TextColumn::make('payment_gateway')
+            TextColumn::make('payment_gateway')
                 ->label('Pagamento')
                 ->badge()
                 ->sortable()
                 ->toggleable(isToggledHiddenByDefault: true),
-            Tables\Columns\TextColumn::make('total_price')
+            TextColumn::make('total_price')
                 ->label('Totale')
                 ->money('EUR')
                 ->sortable(),
-            Tables\Columns\TextColumn::make('created_at')
+            TextColumn::make('created_at')
                 ->label('Data Ordine')
                 ->dateTime('d/m/Y H:i')
                 ->sortable(),
@@ -293,18 +310,18 @@ class OrderResource extends Resource
     private static function filtri(): array
     {
         return [
-            Tables\Filters\SelectFilter::make('status')
+            SelectFilter::make('status')
                 ->label(self::LABEL_ORDER_STATUS)
                 ->options(OrderStatus::class),
-            Tables\Filters\SelectFilter::make('payment_gateway')
+            SelectFilter::make('payment_gateway')
                 ->label('Gateway Pagamento')
                 ->options(PaymentGateway::class),
-            Tables\Filters\Filter::make('created_at')
+            Filter::make('created_at')
                 ->label('Periodo')
-                ->form([
-                    Forms\Components\DatePicker::make('from')
+                ->schema([
+                    DatePicker::make('from')
                         ->label('Da'),
-                    Forms\Components\DatePicker::make('until')
+                    DatePicker::make('until')
                         ->label('A'),
                 ])
                 ->query(function (Builder $query, array $data): Builder {
@@ -321,17 +338,17 @@ class OrderResource extends Resource
                 ->indicateUsing(function (array $data): array {
                     $indicators = [];
                     if ($data['from'] ?? null) {
-                        $indicators[] = Tables\Filters\Indicator::make('Da: '.Carbon::parse($data['from'])->format('d/m/Y'))
+                        $indicators[] = Indicator::make('Da: '.Carbon::parse($data['from'])->format('d/m/Y'))
                             ->removeField('from');
                     }
                     if ($data['until'] ?? null) {
-                        $indicators[] = Tables\Filters\Indicator::make('A: '.Carbon::parse($data['until'])->format('d/m/Y'))
+                        $indicators[] = Indicator::make('A: '.Carbon::parse($data['until'])->format('d/m/Y'))
                             ->removeField('until');
                     }
 
                     return $indicators;
                 }),
-            Tables\Filters\TrashedFilter::make(),
+            TrashedFilter::make(),
         ];
     }
 
@@ -398,12 +415,12 @@ class OrderResource extends Resource
                     OrderStatus::Processing,
                     OrderStatus::Paid,
                 ]))
-                ->form([
-                    Forms\Components\TextInput::make('tracking_number')
+                ->schema([
+                    TextInput::make('tracking_number')
                         ->label('Numero Tracking')
                         ->required()
                         ->maxLength(100),
-                    Forms\Components\TextInput::make('tracking_url')
+                    TextInput::make('tracking_url')
                         ->label('URL Tracking')
                         ->url()
                         ->maxLength(500),
@@ -509,8 +526,8 @@ class OrderResource extends Resource
                     in_array($record->payment_gateway, [PaymentGateway::Stripe, PaymentGateway::PayPal]) &&
                     $record->status !== OrderStatus::Refunded
                 )
-                ->form([
-                    Forms\Components\Radio::make('refund_type')
+                ->schema([
+                    Radio::make('refund_type')
                         ->label('Tipo di Rimborso')
                         ->options([
                             'full' => 'Rimborso Totale',
@@ -519,12 +536,12 @@ class OrderResource extends Resource
                         ->default('full')
                         ->required()
                         ->live(), // filament 3 uses live() instead of reactive()
-                    Forms\Components\TextInput::make('amount')
+                    TextInput::make('amount')
                         ->label('Importo (EUR)')
                         ->numeric()
                         ->prefix('€')
                         ->required()
-                        ->visible(fn (Forms\Get $get) => $get('refund_type') === 'partial')
+                        ->visible(fn (Get $get) => $get('refund_type') === 'partial')
                         ->maxValue(fn (Order $record) => (float) $record->total_price)
                         ->minValue(0.01)
                         ->step(0.01),
@@ -566,7 +583,7 @@ class OrderResource extends Resource
                             ->success()
                             ->send();
 
-                    } catch (\Throwable $e) {
+                    } catch (Throwable $e) {
                         Notification::make()
                             ->title('Errore durante il rimborso')
                             ->body($e->getMessage())
@@ -596,15 +613,15 @@ class OrderResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\OrderItemsRelationManager::class,
+            OrderItemsRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListOrders::route('/'),
-            'edit' => Pages\EditOrder::route('/{record}/edit'),
+            'index' => ListOrders::route('/'),
+            'edit' => EditOrder::route('/{record}/edit'),
         ];
     }
 

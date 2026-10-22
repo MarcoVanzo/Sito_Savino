@@ -10,7 +10,7 @@ use Livewire\Attributes\Reactive;
 
 class TopProductsWidget extends Widget
 {
-    protected static string $view = 'filament.widgets.top-products';
+    protected string $view = 'filament.widgets.top-products';
 
     protected static ?int $sort = 3;
 

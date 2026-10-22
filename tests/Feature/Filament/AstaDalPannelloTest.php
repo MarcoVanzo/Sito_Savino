@@ -106,8 +106,9 @@ class AstaDalPannelloTest extends TestCase
             ->test(EditAuction::class, ['record' => $asta->getRouteKey()])
             ->fillForm(['status' => AuctionStatus::Active->value])
             ->call('save')
-            ->assertHasNoFormErrors()
-            ->assertNotified();
+            // Da Filament 4 la tendina rifiuta già un valore fuori dalle sue
+            // voci (gli stati raggiungibili); il modello resta la seconda difesa.
+            ->assertHasFormErrors(['status']);
 
         $this->assertSame(AuctionStatus::Ended, $asta->refresh()->status);
     }

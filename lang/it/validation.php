@@ -16,6 +16,7 @@ return [
     'date' => 'Il campo :attribute non è una data valida.',
     'declined' => 'Il campo :attribute deve essere rifiutato.',
     'different' => 'I campi :attribute e :other devono essere diversi.',
+    'dimensions' => 'Le dimensioni dell\'immagine :attribute non vanno bene.',
     'digits' => 'Il campo :attribute deve essere di :digits cifre.',
     'email' => 'Il campo :attribute deve essere un indirizzo email valido.',
     'exists' => 'Il valore selezionato per :attribute non è valido.',

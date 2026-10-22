@@ -14,10 +14,17 @@ use App\Support\Diretta\DirettaPerIlSito;
 use App\Support\Diretta\ImpostazioniDellaDiretta as Diretta;
 use App\Support\LiveStream;
 use Closure;
-use Filament\Forms;
-use Filament\Forms\Get;
+use Filament\Actions\Action;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
-use Filament\Tables\Actions\Action;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Illuminate\Support\HtmlString;
 
 /**
@@ -41,7 +48,7 @@ class ImpostaLaDirettaAction
             ->modalSubmitActionLabel('Salva')
             ->authorize(fn (): bool => (bool) auth()->user()?->can('update', LiveSession::class))
             ->fillForm(fn (Game $record): array => self::valori($record, LiveSession::perLaGaraSenzaCrearla($record)))
-            ->form(fn (Game $record): array => self::campi($record))
+            ->schema(fn (Game $record): array => self::campi($record))
             ->action(function (Game $record, array $data): void {
                 if (self::salva($record, $data)) {
                     Notification::make()->title('Diretta salvata')->success()->send();
@@ -193,14 +200,14 @@ class ImpostaLaDirettaAction
     }
 
     /**
-     * @return list<Forms\Components\Component>
+     * @return list<Component>
      */
     private static function campi(Game $game): array
     {
         return [
-            Forms\Components\Section::make('Link della diretta')
+            Section::make('Link della diretta')
                 ->schema([
-                    Forms\Components\TextInput::make('stream_url')
+                    TextInput::make('stream_url')
                         ->hiddenLabel()
                         ->url()
                         // Finisce in un `href` e, se incorporabile, in un `src`:
@@ -218,15 +225,15 @@ class ImpostaLaDirettaAction
                         ->placeholder('es. https://youtube.com/live/AbC123xyz')
                         ->helperText('Il link della singola diretta: YouTube, Vimeo, Twitch o Dailymotion. Su YouTube: programma la diretta, poi Condividi → Copia link; la diretta deve consentire l\'incorporamento.'),
                 ]),
-            Forms\Components\Section::make('Sponsor')
+            Section::make('Sponsor')
                 ->description(fn (): string => Diretta::abilitata()
                     ? 'Per ogni sponsor spunta le grafiche da mandare in onda. Gli spot ruotano prima della diretta (uno per visione), le cornici durante la gara, nell\'ordine degli sponsor.'
                     : 'Gli sponsor nella diretta sono spenti (interruttore qui sotto): puoi già prepararli, il sito li mostrerà quando li accendi.')
                 ->schema([
-                    Forms\Components\Repeater::make('sponsor')
+                    Repeater::make('sponsor')
                         ->hiddenLabel()
                         ->schema([
-                            Forms\Components\Select::make('sponsor_id')
+                            Select::make('sponsor_id')
                                 ->label('Sponsor')
                                 // Anche quelli con le grafiche tutte spente: uno già
                                 // scelto per la gara non deve diventare un valore
@@ -237,17 +244,17 @@ class ImpostaLaDirettaAction
                                 ->distinct()
                                 ->live()
                                 ->helperText('Compaiono gli sponsor con almeno una grafica: si caricano nella scheda dello sponsor.'),
-                            Forms\Components\CheckboxList::make('preroll')
+                            CheckboxList::make('preroll')
                                 ->label('Spot prima della diretta')
                                 ->options(fn (Get $get): array => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Preroll, $get('preroll') ?? []))
                                 ->live()
                                 ->visible(fn (Get $get): bool => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Preroll, $get('preroll') ?? []) !== []),
-                            Forms\Components\CheckboxList::make('cornici')
+                            CheckboxList::make('cornici')
                                 ->label('Cornici durante la gara')
                                 ->options(fn (Get $get): array => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Cornice, $get('cornici') ?? []))
                                 ->live()
                                 ->visible(fn (Get $get): bool => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Cornice, $get('cornici') ?? []) !== []),
-                            Forms\Components\Placeholder::make('anteprima')
+                            Placeholder::make('anteprima')
                                 ->label('Anteprima')
                                 ->content(fn (Get $get): HtmlString => self::anteprimaDelleGrafiche(
                                     [...self::ids($get('preroll') ?? []), ...self::ids($get('cornici') ?? [])],
@@ -260,37 +267,37 @@ class ImpostaLaDirettaAction
                         ->collapsible()
                         ->defaultItems(0)
                         ->addActionLabel('Aggiungi uno sponsor'),
-                    Forms\Components\Toggle::make('preroll_attivo')
+                    Toggle::make('preroll_attivo')
                         ->label('Spot prima della diretta')
                         ->live(),
-                    Forms\Components\TextInput::make('preroll_salta_dopo_secondi')
+                    TextInput::make('preroll_salta_dopo_secondi')
                         ->label('Secondi prima di «Salta»')
                         ->helperText('0 = non si può saltare.')
                         ->numeric()->integer()->minValue(0)->maxValue(Diretta::PRIMA_DI_SALTA_MASSIMO)->required()
                         ->visible(fn (Get $get): bool => (bool) $get('preroll_attivo')),
                 ]),
-            Forms\Components\Section::make('Durante la gara')
+            Section::make('Durante la gara')
                 ->description('Ogni tanto il player si riduce e accanto compare la cornice dello sponsor, poi torna grande. Le stesse cornici ruotano negli spot mandati dalla regia.')
                 ->schema([
-                    Forms\Components\Toggle::make('ciclo_attivo')
+                    Toggle::make('ciclo_attivo')
                         ->label('Ciclo automatico')
                         ->live()
                         ->columnSpanFull(),
-                    Forms\Components\TextInput::make('ciclo_ogni_minuti')
+                    TextInput::make('ciclo_ogni_minuti')
                         ->label('Ogni quanti minuti')
                         ->numeric()->integer()->minValue(Diretta::CICLO_OGNI_MINUTI_MINIMO)->maxValue(Diretta::CICLO_OGNI_MINUTI_MASSIMO)->required()
                         ->live(onBlur: true),
-                    Forms\Components\TextInput::make('ciclo_durata_secondi')
+                    TextInput::make('ciclo_durata_secondi')
                         ->label('Per quanti secondi')
                         ->numeric()->integer()->minValue(Diretta::CICLO_DURATA_MINIMA)->maxValue(Diretta::CICLO_DURATA_MASSIMA)->required(),
-                    Forms\Components\TextInput::make('ciclo_ritardo_minuti')
+                    TextInput::make('ciclo_ritardo_minuti')
                         ->label('Minuti dopo l\'inizio della gara')
                         ->numeric()->integer()->minValue(0)->maxValue(Diretta::RITARDO_MASSIMO_MINUTI)->required()
                         ->live(onBlur: true),
-                    Forms\Components\TextInput::make('pausa_durata_predefinita_secondi')
+                    TextInput::make('pausa_durata_predefinita_secondi')
                         ->label('Durata degli spot della regia (secondi)')
                         ->numeric()->integer()->minValue(Diretta::PAUSA_DURATA_MINIMA)->maxValue(Diretta::PAUSA_DURATA_MASSIMA)->required(),
-                    Forms\Components\Placeholder::make('anteprima_del_ciclo')
+                    Placeholder::make('anteprima_del_ciclo')
                         ->label('Primi cicli')
                         ->content(fn (Get $get): string => self::anteprima($game, $get))
                         ->columnSpanFull(),

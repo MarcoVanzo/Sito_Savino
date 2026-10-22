@@ -13,7 +13,8 @@ use App\Support\Diretta\ImpostazioniDellaDiretta as Diretta;
 use App\Support\MatchDay;
 use Closure;
 use Filament\Actions\Action;
-use Filament\Forms;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Collection;
@@ -28,9 +29,9 @@ use Illuminate\Database\Eloquent\Collection;
  */
 class RegiaDiretta extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-video-camera';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-video-camera';
 
-    protected static ?string $navigationGroup = 'Sponsor';
+    protected static string|\UnitEnum|null $navigationGroup = 'Sponsor';
 
     protected static ?string $navigationLabel = 'Regia diretta';
 
@@ -40,7 +41,7 @@ class RegiaDiretta extends Page
 
     protected static ?string $slug = 'regia-diretta';
 
-    protected static string $view = 'filament.pages.regia-diretta';
+    protected string $view = 'filament.pages.regia-diretta';
 
     /** Giorni attorno a oggi fra cui scegliere la gara. */
     private const GIORNI_PRIMA = 1;
@@ -168,15 +169,15 @@ class RegiaDiretta extends Page
             ->disabled(fn (): bool => ($this->riepilogo()['cornici'] ?? 0) === 0)
             ->modalHeading('Mostra una cornice')
             ->modalSubmitActionLabel('Manda in onda')
-            ->form(fn (): array => [
-                Forms\Components\Select::make('creativita')
+            ->schema(fn (): array => [
+                Select::make('creativita')
                     ->label('Cornice')
                     // Solo le cornici di questa gara: sono quelle che il sito
                     // conosce e che il report accetta.
                     ->options(fn (): array => $this->corniciDaMostrare())
                     ->in(fn (): array => array_keys($this->corniciDaMostrare()))
                     ->required(),
-                Forms\Components\TextInput::make('secondi')
+                TextInput::make('secondi')
                     ->label('Per quanti secondi')
                     ->numeric()->integer()
                     ->minValue(Diretta::PAUSA_DURATA_MINIMA)->maxValue(Diretta::PAUSA_DURATA_MASSIMA)

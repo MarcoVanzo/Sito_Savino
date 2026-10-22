@@ -7,6 +7,7 @@ use App\Services\CartService;
 use App\Services\CheckoutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use InvalidArgumentException;
 
 class ValidateCouponController extends Controller
 {
@@ -53,7 +54,7 @@ class ValidateCouponController extends Controller
                     'discount' => number_format($result['discount'], 2),
                 ]),
             ]);
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             return response()->json([
                 'valid' => false,
                 'message' => $e->getMessage(),

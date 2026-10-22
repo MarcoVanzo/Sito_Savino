@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\ReindirizzamentoResource\Pages;
 
 use App\Filament\Resources\ReindirizzamentoResource;
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditReindirizzamento extends EditRecord
@@ -13,7 +13,7 @@ class EditReindirizzamento extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 

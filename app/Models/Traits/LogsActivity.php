@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
+use Throwable;
 
 /**
  * Trait per abilitare il logging automatico delle azioni CRUD su un modello.
@@ -101,7 +102,7 @@ trait LogsActivity
                 'user_agent' => $dalPannello ? Request::userAgent() : null,
                 'created_at' => now(),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Non bloccare l'operazione principale se il log fallisce
             // (es. tabella activity_logs non ancora migrata)
             report($e);

@@ -8,19 +8,34 @@ use App\Models\LiveCreative;
 use App\Support\Diretta\FormatiDelleCreativita;
 use App\Support\Diretta\ImpostazioniDellaDiretta;
 use Closure;
-use Filament\Forms;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Form;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
-use Filament\Resources\RelationManagers\Concerns\Translatable;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
+use LaraZeus\SpatieTranslatable\Actions\LocaleSwitcher;
+use LaraZeus\SpatieTranslatable\Resources\RelationManagers\Concerns\Translatable;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -55,18 +70,18 @@ class LiveCreativesRelationManager extends RelationManager
         return false;
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Creatività')
+        return $schema
+            ->components([
+                Section::make('Creatività')
                     ->schema([
-                        Forms\Components\TextInput::make('nome')
+                        TextInput::make('nome')
                             ->label('Nome')
                             ->helperText('Uso interno, per riconoscerla nella regia e nel report.')
                             ->required()
                             ->maxLength(255),
-                        Forms\Components\Select::make('uso')
+                        Select::make('uso')
                             ->label('Dove va in onda')
                             ->options(UsoCreativita::class)
                             ->default(UsoCreativita::Preroll->value)
@@ -81,7 +96,7 @@ class LiveCreativesRelationManager extends RelationManager
                         // il file già caricato lascerebbe un video segnato
                         // come immagine. Per cambiare tipo si crea un'altra
                         // creatività.
-                        Forms\Components\Select::make('tipo')
+                        Select::make('tipo')
                             ->label('Tipo')
                             ->options(TipoCreativita::class)
                             ->default(TipoCreativita::Immagine->value)
@@ -92,9 +107,9 @@ class LiveCreativesRelationManager extends RelationManager
                             ->disabledOn('edit'),
                     ])->columns(2),
 
-                Forms\Components\Section::make('File')
+                Section::make('File')
                     ->schema([
-                        Forms\Components\Placeholder::make('formato_richiesto')
+                        Placeholder::make('formato_richiesto')
                             ->hiddenLabel()
                             ->content(fn (Get $get): HtmlString => new HtmlString(view('filament.components.formato-richiesto', [
                                 'voci' => FormatiDelleCreativita::requisiti(self::uso($get), self::tipo($get)),
@@ -145,7 +160,7 @@ class LiveCreativesRelationManager extends RelationManager
                             ])
                             ->visible(fn (Get $get): bool => self::uso($get) === UsoCreativita::Cornice)
                             ->columnSpanFull(),
-                        Forms\Components\TextInput::make('durata_secondi')
+                        TextInput::make('durata_secondi')
                             ->label('Durata (secondi)')
                             ->helperText(fn (Get $get): string => self::tipo($get) === TipoCreativita::Video
                                 ? 'Letta dal video al caricamento; al massimo 30 secondi.'
@@ -156,12 +171,12 @@ class LiveCreativesRelationManager extends RelationManager
                             ->maxValue(FormatiDelleCreativita::DURATA_MASSIMA_SECONDI)
                             ->default(FormatiDelleCreativita::DURATA_IMMAGINE_SECONDI)
                             ->required(),
-                        Forms\Components\TextInput::make('testo_alternativo')
+                        TextInput::make('testo_alternativo')
                             ->label('Testo alternativo')
                             ->helperText('Cosa mostra la creatività, per chi non vede le immagini (es. «Estra: energia per lo sport»). Obbligatorio per le immagini.')
                             ->required(fn (Get $get): bool => self::tipo($get) === TipoCreativita::Immagine)
                             ->maxLength(255),
-                        Forms\Components\TextInput::make('link_url')
+                        TextInput::make('link_url')
                             ->label('Link dello sponsor')
                             ->helperText('Si apre in una nuova scheda, senza fermare la diretta.')
                             ->url()
@@ -169,14 +184,14 @@ class LiveCreativesRelationManager extends RelationManager
                             ->maxLength(2048),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Validità')
+                Section::make('Validità')
                     ->schema([
-                        Forms\Components\Toggle::make('attiva')
+                        Toggle::make('attiva')
                             ->label('Attiva')
                             ->default(true),
-                        Forms\Components\DatePicker::make('valida_dal')
+                        DatePicker::make('valida_dal')
                             ->label('Dal'),
-                        Forms\Components\DatePicker::make('valida_al')
+                        DatePicker::make('valida_al')
                             ->label('Al')
                             ->afterOrEqual('valida_dal'),
                     ])->columns(3),
@@ -187,7 +202,7 @@ class LiveCreativesRelationManager extends RelationManager
     {
         return $table
             ->columns([
-                Tables\Columns\SpatieMediaLibraryImageColumn::make('anteprima')
+                SpatieMediaLibraryImageColumn::make('anteprima')
                     ->label('Anteprima')
                     ->collection(LiveCreative::COLLEZIONE_CONTENUTO)
                     ->conversion('thumb')
@@ -197,42 +212,42 @@ class LiveCreativesRelationManager extends RelationManager
                         fn (Media $file): bool => str_starts_with((string) $file->mime_type, 'image/'),
                     ))
                     ->checkFileExistence(false),
-                Tables\Columns\TextColumn::make('nome')
+                TextColumn::make('nome')
                     ->label('Nome')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('uso')
+                TextColumn::make('uso')
                     ->label('Dove')
                     ->badge(),
-                Tables\Columns\TextColumn::make('tipo')
+                TextColumn::make('tipo')
                     ->label('Tipo')
                     ->badge(),
-                Tables\Columns\TextColumn::make('durata_secondi')
+                TextColumn::make('durata_secondi')
                     ->label('Durata')
                     ->suffix(' s'),
-                Tables\Columns\TextColumn::make('validita')
+                TextColumn::make('validita')
                     ->label('Validità')
                     ->getStateUsing(fn (LiveCreative $record): string => self::validita($record)),
-                Tables\Columns\ToggleColumn::make('attiva')
+                ToggleColumn::make('attiva')
                     ->label('Attiva'),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('uso')
+                SelectFilter::make('uso')
                     ->label('Dove')
                     ->options(UsoCreativita::class),
             ])
             ->headerActions([
-                Tables\Actions\Action::make('modelloCornice')
+                Action::make('modelloCornice')
                     ->label('Modello della cornice')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('gray')
                     ->url(asset(self::MODELLO_CORNICE))
                     ->extraAttributes(['download' => 'modello-cornice-1920x1080.png']),
-                Tables\Actions\LocaleSwitcher::make(),
-                Tables\Actions\CreateAction::make()
+                LocaleSwitcher::make(),
+                CreateAction::make()
                     ->label('Nuova grafica'),
             ])
-            ->actions([
-                Tables\Actions\Action::make('anteprima')
+            ->recordActions([
+                Action::make('anteprima')
                     ->label('Anteprima')
                     ->icon('heroicon-o-eye')
                     ->color('gray')
@@ -245,12 +260,12 @@ class LiveCreativesRelationManager extends RelationManager
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Chiudi')
                     ->visible(fn (LiveCreative $record): bool => $record->getFirstMedia(LiveCreative::COLLEZIONE_CONTENUTO) !== null),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->with('media'))

@@ -4,7 +4,8 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Resources\StockMovementResource;
 use App\Models\StockMovement;
-use Filament\Tables;
+use Filament\Actions\Action;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 
@@ -31,17 +32,17 @@ class StockMovementTableWidget extends BaseWidget
             ->columns(StockMovementResource::getMovementColumns())
             ->filters(StockMovementResource::getMovementFilters())
             ->defaultSort('created_at', 'desc')
-            ->actions([
-                Tables\Actions\ViewAction::make()
+            ->recordActions([
+                ViewAction::make()
                     ->url(fn (StockMovement $record): string => StockMovementResource::getUrl('index')),
             ])
             ->headerActions([
-                Tables\Actions\Action::make('nuovo_movimento')
+                Action::make('nuovo_movimento')
                     ->label('Nuovo Movimento')
                     ->icon('heroicon-o-plus')
                     ->color('primary')
                     ->url(StockMovementResource::getUrl('create')),
-                Tables\Actions\Action::make('vedi_tutti')
+                Action::make('vedi_tutti')
                     ->label('Vedi storico completo')
                     ->icon('heroicon-o-arrow-top-right-on-square')
                     ->color('gray')

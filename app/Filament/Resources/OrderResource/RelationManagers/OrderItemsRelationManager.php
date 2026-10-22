@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources\OrderResource\RelationManagers;
 
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -15,30 +17,30 @@ class OrderItemsRelationManager extends RelationManager
 
     protected static ?string $title = 'Articoli Ordine';
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Select::make('product_id')
+        return $schema
+            ->components([
+                Select::make('product_id')
                     ->label('Prodotto')
                     ->relationship('product', 'name')
                     ->searchable()
                     ->preload()
                     ->required()
                     ->live(),
-                Forms\Components\Select::make('product_variant_id')
+                Select::make('product_variant_id')
                     ->label('Variante')
-                    ->relationship('variant', 'sku', fn (Builder $query, Forms\Get $get) => $query->where('product_id', $get('product_id'))
+                    ->relationship('variant', 'sku', fn (Builder $query, Get $get) => $query->where('product_id', $get('product_id'))
                     )
                     ->searchable()
                     ->preload(),
-                Forms\Components\TextInput::make('quantity')
+                TextInput::make('quantity')
                     ->label('Quantità')
                     ->required()
                     ->numeric()
                     ->minValue(1)
                     ->default(1),
-                Forms\Components\TextInput::make('price_at_time_of_purchase')
+                TextInput::make('price_at_time_of_purchase')
                     ->label('Prezzo Unitario (€)')
                     ->required()
                     ->numeric()
@@ -73,14 +75,14 @@ class OrderItemsRelationManager extends RelationManager
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['product', 'variant']))
             ->recordTitleAttribute('id')
             ->columns([
-                Tables\Columns\TextColumn::make('product.name')
+                TextColumn::make('product.name')
                     ->label('Prodotto')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('variant.sku')
+                TextColumn::make('variant.sku')
                     ->label('Variante SKU')
                     ->placeholder('—'),
                 // Chi prepara il pacco deve sapere che la maglia va firmata.
-                Tables\Columns\TextColumn::make('personalizzazione')
+                TextColumn::make('personalizzazione')
                     ->label('Personalizzazione')
                     ->state(fn ($record) => $record->personalizzazioneIn('it'))
                     ->description(fn ($record) => (float) $record->supplemento_personalizzazione > 0
@@ -92,17 +94,17 @@ class OrderItemsRelationManager extends RelationManager
                 // Lo stato dichiarato nella scheda al momento dell'acquisto
                 // (maglie indossate, autografi): e' cio' che e' stato venduto,
                 // anche se la scheda nel frattempo e' cambiata.
-                Tables\Columns\TextColumn::make('stato_articolo')
+                TextColumn::make('stato_articolo')
                     ->label('Stato dell\'articolo')
                     ->state(fn ($record) => $record->statoArticoloIn('it'))
                     ->wrap()
                     ->limit(160)
                     ->tooltip(fn ($record) => $record->statoArticoloIn('it'))
                     ->placeholder('—'),
-                Tables\Columns\TextColumn::make('quantity')
+                TextColumn::make('quantity')
                     ->label('Quantità')
                     ->numeric(),
-                Tables\Columns\TextColumn::make('price_at_time_of_purchase')
+                TextColumn::make('price_at_time_of_purchase')
                     ->label('Prezzo Unitario')
                     ->money('EUR'),
             ])
@@ -111,7 +113,7 @@ class OrderItemsRelationManager extends RelationManager
             ])
             // Nessuna azione: vedi isReadOnly().
             ->headerActions([])
-            ->actions([])
-            ->bulkActions([]);
+            ->recordActions([])
+            ->toolbarActions([]);
     }
 }

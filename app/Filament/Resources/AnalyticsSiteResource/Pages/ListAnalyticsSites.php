@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\AnalyticsSiteResource\Pages;
 
 use App\Filament\Resources\AnalyticsSiteResource;
-use Filament\Actions;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListAnalyticsSites extends ListRecords
@@ -13,7 +13,7 @@ class ListAnalyticsSites extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            CreateAction::make(),
         ];
     }
 }

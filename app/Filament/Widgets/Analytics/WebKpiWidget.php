@@ -17,7 +17,7 @@ class WebKpiWidget extends BaseWidget
 {
     use HasAnalyticsPeriod;
 
-    protected static ?string $pollingInterval = null;
+    protected ?string $pollingInterval = null;
 
     protected static bool $isDiscovered = false;
 

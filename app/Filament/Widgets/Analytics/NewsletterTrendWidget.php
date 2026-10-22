@@ -17,15 +17,15 @@ class NewsletterTrendWidget extends ChartWidget
 {
     use HasAnalyticsPeriod;
 
-    protected static ?string $heading = 'Nuove iscrizioni';
+    protected ?string $heading = 'Nuove iscrizioni';
 
-    protected static ?string $pollingInterval = null;
+    protected ?string $pollingInterval = null;
 
     protected static bool $isDiscovered = false;
 
     protected static ?int $sort = 2;
 
-    protected static ?string $maxHeight = '260px';
+    protected ?string $maxHeight = '260px';
 
     protected function getType(): string
     {

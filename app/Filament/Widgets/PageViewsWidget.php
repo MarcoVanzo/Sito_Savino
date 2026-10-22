@@ -10,15 +10,15 @@ use Livewire\Attributes\Reactive;
 
 class PageViewsWidget extends ChartWidget
 {
-    protected static ?string $heading = 'Prodotti Più Visti';
+    protected ?string $heading = 'Prodotti Più Visti';
 
-    protected static ?string $pollingInterval = null;
+    protected ?string $pollingInterval = null;
 
     protected static ?int $sort = 5;
 
     protected static bool $isDiscovered = false;
 
-    protected static ?string $maxHeight = '300px';
+    protected ?string $maxHeight = '300px';
 
     /**
      * Periodo in giorni, passato da ShopAnalyticsPage::getWidgetData(). #[Reactive]

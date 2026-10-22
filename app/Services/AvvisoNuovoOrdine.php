@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\SiteSetting;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 /**
  * L'email alla società per ogni acquisto. Parte dove parte la conferma al
@@ -32,7 +33,7 @@ class AvvisoNuovoOrdine
 
         try {
             Mail::to($destinatari)->queue(new NuovoOrdineAllaSocieta($order));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
             Log::error('Avviso del nuovo ordine alla società non accodato', [
                 'order_id' => $order->id,

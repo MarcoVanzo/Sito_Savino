@@ -336,6 +336,14 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
   file, video, documenti legali). Ogni rotta che pubblica una `Page` passa di lì.
 
 ### Pannello Filament
+- **Filament 4** con `lara-zeus/spatie-translatable` (al posto del plugin
+  ufficiale abbandonato). Il tema del pannello è su **Tailwind 4** (alias npm
+  `tailwindcss4`, `@tailwindcss/vite` limitato a `resources/css/filament/`), il
+  sito pubblico resta su **Tailwind 3** (`postcss.config.js` salta il tema).
+- `EditPage` cambia lingua sullo stato grezzo (come il plugin di Filament 3);
+  le altre risorse usano il cambio di lingua di lara-zeus, che passa da
+  `getState()`: un campo non deidratato (es. `stock` in modifica) non deve
+  essere `required` in quel contesto.
 - Repeater facoltativi: `defaultItems(0)`.
 - Un campo `hidden()` (anche `Select`) non viene deidratato: per valori fissi
   `Forms\Components\Hidden`.

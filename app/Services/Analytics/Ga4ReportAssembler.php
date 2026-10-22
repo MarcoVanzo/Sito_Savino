@@ -2,6 +2,9 @@
 
 namespace App\Services\Analytics;
 
+use DateTimeImmutable;
+use DateTimeZone;
+
 /**
  * Le richieste da mandare a GA4 e la traduzione delle risposte nel payload che
  * la pagina disegna.
@@ -163,11 +166,11 @@ class Ga4ReportAssembler
      * nel fuso della property: calcolare le chiavi della serie in UTC farebbe
      * risultare vuoto l'ultimo giorno per due ore ogni sera.
      */
-    public static function today(): \DateTimeImmutable
+    public static function today(): DateTimeImmutable
     {
         $zone = (string) config('services.ga4.timezone', 'Europe/Rome');
 
-        return new \DateTimeImmutable('today', new \DateTimeZone($zone));
+        return new DateTimeImmutable('today', new DateTimeZone($zone));
     }
 
     /** Variazione percentuale a un decimale; null quando il periodo precedente è a zero. */

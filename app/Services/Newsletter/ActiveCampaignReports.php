@@ -6,6 +6,7 @@ use App\Services\ActiveCampaignService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Lettura delle campagne da ActiveCampaign.
@@ -66,7 +67,7 @@ class ActiveCampaignReports
                     'limit' => $limit,
                     'orders[sdate]' => 'DESC',
                 ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::warning('ActiveCampaign: campagne non raggiungibili', ['error' => $e->getMessage()]);
 
             return ['ok' => false, 'campaigns' => [], 'message' => 'ActiveCampaign non raggiungibile.'];

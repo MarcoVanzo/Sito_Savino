@@ -4,7 +4,7 @@ namespace App\Filament\Resources\GalleryEventResource\Pages;
 
 use App\Filament\Resources\GalleryEventResource;
 use Filament\Resources\Pages\CreateRecord;
-use Filament\Resources\Pages\CreateRecord\Concerns\Translatable;
+use LaraZeus\SpatieTranslatable\Resources\Pages\CreateRecord\Concerns\Translatable;
 
 class CreateGalleryEvent extends CreateRecord
 {

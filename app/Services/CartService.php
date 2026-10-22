@@ -12,6 +12,8 @@ use App\Models\SiteSetting;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
+use OverflowException;
 
 class CartService
 {
@@ -63,8 +65,8 @@ class CartService
      * Restituisce l'item aggiornato, o null se nel frattempo è sparito
      * (la firma dichiarava CartItem ma fresh() può restituire null).
      *
-     * @throws \InvalidArgumentException
-     * @throws \OverflowException
+     * @throws InvalidArgumentException
+     * @throws OverflowException
      */
     public function addItem(int $productId, int $quantity = 1, ?int $variantId = null, bool $conPersonalizzazione = false): ?CartItem
     {
@@ -73,7 +75,7 @@ class CartService
             $this->verificaCheSiPossaAggiungere($product);
 
             if ($conPersonalizzazione && ! $product->offrePersonalizzazione()) {
-                throw new \InvalidArgumentException(__('messages.cart.personalization_unavailable'));
+                throw new InvalidArgumentException(__('messages.cart.personalization_unavailable'));
             }
 
             $variant = $this->varianteDelProdotto($product, $variantId);
@@ -114,7 +116,7 @@ class CartService
      * Aggiorna la quantità di un item nel carrello.
      * Se la quantità è 0, rimuove l'item e restituisce null.
      *
-     * @throws \OverflowException
+     * @throws OverflowException
      */
     public function updateItemQuantity(int $cartItemId, int $quantity): ?CartItem
     {
@@ -485,11 +487,11 @@ class CartService
     private function verificaCheSiPossaAggiungere(Product $product): void
     {
         if (! $product->is_active) {
-            throw new \InvalidArgumentException(__('messages.cart.product_unavailable'));
+            throw new InvalidArgumentException(__('messages.cart.product_unavailable'));
         }
 
         if ($product->type === ProductType::Auction) {
-            throw new \InvalidArgumentException(__('messages.cart.auction_not_allowed'));
+            throw new InvalidArgumentException(__('messages.cart.auction_not_allowed'));
         }
     }
 
@@ -503,7 +505,7 @@ class CartService
             // Un prodotto con taglie non si compra senza sceglierne una: la
             // giacenza sta sulle taglie e l'ordine non direbbe cosa spedire.
             if ($product->variants()->exists()) {
-                throw new \InvalidArgumentException(__('messages.cart.variant_required'));
+                throw new InvalidArgumentException(__('messages.cart.variant_required'));
             }
 
             return null;
@@ -512,7 +514,7 @@ class CartService
         $variant = ProductVariant::lockForUpdate()->findOrFail($variantId);
 
         if ($variant->product_id !== $product->id) {
-            throw new \InvalidArgumentException(__('messages.cart.invalid_variant'));
+            throw new InvalidArgumentException(__('messages.cart.invalid_variant'));
         }
 
         return $variant;
@@ -563,13 +565,13 @@ class CartService
         $maxQty = (int) SiteSetting::get('shop.max_qty_per_product', 10);
 
         if ($quantita > $maxQty) {
-            throw new \OverflowException(
+            throw new OverflowException(
                 __('messages.cart.max_qty', ['qty' => $maxQty])
             );
         }
 
         if ($quantita > $disponibili) {
-            throw new \OverflowException(
+            throw new OverflowException(
                 __('messages.cart.out_of_stock', ['stock' => $disponibili])
             );
         }

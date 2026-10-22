@@ -6,13 +6,14 @@ use App\Enums\PaymentGateway;
 use App\Filament\Resources\PageResource;
 use App\Models\SiteSetting;
 use App\Services\AvvisoNuovoOrdine;
+use Closure;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Form;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Illuminate\Support\HtmlString;
 
 /**
@@ -25,13 +26,13 @@ use Illuminate\Support\HtmlString;
  */
 class ShopSettingsPage extends BaseSettingsPage
 {
-    protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
 
     protected static ?string $navigationLabel = 'Impostazioni Shop & Aste';
 
     protected static ?string $title = 'Impostazioni Shop & Aste';
 
-    protected static ?string $navigationGroup = 'Shop Ufficiale';
+    protected static string|\UnitEnum|null $navigationGroup = 'Shop Ufficiale';
 
     protected static ?int $navigationSort = 10;
 
@@ -79,10 +80,10 @@ class ShopSettingsPage extends BaseSettingsPage
         return $predefiniti;
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Section::make('Stato Shop')
                     ->description('Attiva/disattiva lo shop e i messaggi mostrati ai clienti.')
                     ->icon('heroicon-o-power')
@@ -178,7 +179,7 @@ class ShopSettingsPage extends BaseSettingsPage
                             ->label('Indirizzi email')
                             ->placeholder('shop@savinodelbenevolley.it')
                             ->helperText('Uno o più indirizzi, separati da virgola. Vuoto: nessun avviso.')
-                            ->rule(fn () => function (string $attribute, mixed $value, \Closure $fail): void {
+                            ->rule(fn () => function (string $attribute, mixed $value, Closure $fail): void {
                                 foreach (array_filter(preg_split('/[\s,;]+/', (string) $value) ?: []) as $indirizzo) {
                                     if (filter_var($indirizzo, FILTER_VALIDATE_EMAIL) === false) {
                                         $fail("«{$indirizzo}» non è un indirizzo email valido.");

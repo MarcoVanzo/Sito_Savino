@@ -3,7 +3,13 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Pages\Concerns\RestrictsAccessByRole;
-use App\Filament\Widgets;
+use App\Filament\Widgets\CustomersWidget;
+use App\Filament\Widgets\OrdersByStatusWidget;
+use App\Filament\Widgets\PageViewsWidget;
+use App\Filament\Widgets\PaymentMethodsWidget;
+use App\Filament\Widgets\SalesTrendWidget;
+use App\Filament\Widgets\ShopKpiWidget;
+use App\Filament\Widgets\TopProductsWidget;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Page;
@@ -12,19 +18,19 @@ class ShopAnalyticsPage extends Page
 {
     use RestrictsAccessByRole;
 
-    protected static ?string $navigationIcon = 'heroicon-o-chart-bar-square';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chart-bar-square';
 
     protected static ?string $navigationLabel = 'Analytics Shop';
 
     protected static ?string $title = 'Analytics Shop';
 
-    protected static ?string $navigationGroup = 'Shop Ufficiale';
+    protected static string|\UnitEnum|null $navigationGroup = 'Shop Ufficiale';
 
     protected static ?int $navigationSort = 10;
 
     protected static ?string $slug = 'shop/analytics';
 
-    protected static string $view = 'filament.pages.shop-analytics';
+    protected string $view = 'filament.pages.shop-analytics';
 
     /**
      * Periodi selezionabili, in giorni. È anche la lista dei valori ammessi:
@@ -47,13 +53,13 @@ class ShopAnalyticsPage extends Page
     protected function getHeaderWidgets(): array
     {
         return [
-            Widgets\ShopKpiWidget::class,
-            Widgets\SalesTrendWidget::class,
-            Widgets\TopProductsWidget::class,
-            Widgets\OrdersByStatusWidget::class,
-            Widgets\PaymentMethodsWidget::class,
-            Widgets\PageViewsWidget::class,
-            Widgets\CustomersWidget::class,
+            ShopKpiWidget::class,
+            SalesTrendWidget::class,
+            TopProductsWidget::class,
+            OrdersByStatusWidget::class,
+            PaymentMethodsWidget::class,
+            PageViewsWidget::class,
+            CustomersWidget::class,
         ];
     }
 
@@ -68,7 +74,7 @@ class ShopAnalyticsPage extends Page
             Action::make('period')
                 ->label('Periodo')
                 ->icon('heroicon-m-calendar-days')
-                ->form([
+                ->schema([
                     Select::make('period')
                         ->label('Periodo')
                         ->options(self::PERIOD_OPTIONS)

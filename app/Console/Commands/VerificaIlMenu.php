@@ -8,6 +8,7 @@ use App\Models\Page;
 use Illuminate\Console\Command;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Throwable;
 
 /**
  * Controlla che ogni voce di menu porti davvero da qualche parte.
@@ -102,7 +103,7 @@ class VerificaIlMenu extends Command
 
         try {
             $rotta = app('router')->getRoutes()->match(Request::create($percorso, 'GET'));
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return 'nessuna rotta corrisponde a questo indirizzo';
         }
 

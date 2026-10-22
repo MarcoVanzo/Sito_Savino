@@ -2,7 +2,14 @@
 
 namespace App\Filament\Traits;
 
-use Filament\Tables;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\TextColumn;
 
 /**
  * Trait condiviso tra le risorse Filament per evitare duplicazione
@@ -13,16 +20,16 @@ trait HasStandardTableActions
     /**
      * Colonne created_at + updated_at nascoste per default.
      *
-     * @return array<Tables\Columns\TextColumn>
+     * @return array<TextColumn>
      */
     protected static function timestampColumns(): array
     {
         return [
-            Tables\Columns\TextColumn::make('created_at')
+            TextColumn::make('created_at')
                 ->dateTime()
                 ->sortable()
                 ->toggleable(isToggledHiddenByDefault: true),
-            Tables\Columns\TextColumn::make('updated_at')
+            TextColumn::make('updated_at')
                 ->dateTime()
                 ->sortable()
                 ->toggleable(isToggledHiddenByDefault: true),
@@ -32,13 +39,13 @@ trait HasStandardTableActions
     /**
      * Bulk actions standard (solo cancellazione).
      *
-     * @return array<Tables\Actions\BulkActionGroup>
+     * @return array<BulkActionGroup>
      */
     protected static function standardBulkActions(): array
     {
         return [
-            Tables\Actions\BulkActionGroup::make([
-                Tables\Actions\DeleteBulkAction::make(),
+            BulkActionGroup::make([
+                DeleteBulkAction::make(),
             ]),
         ];
     }
@@ -47,34 +54,34 @@ trait HasStandardTableActions
      * Bulk actions con soft-delete (cancella, ripristina, e opzionalmente forza cancellazione).
      *
      * @param  bool  $allowForceDelete  Se true, aggiunge ForceDeleteBulkAction (default: false)
-     * @return array<Tables\Actions\BulkActionGroup>
+     * @return array<BulkActionGroup>
      */
     protected static function softDeleteBulkActions(bool $allowForceDelete = false): array
     {
         $actions = [
-            Tables\Actions\DeleteBulkAction::make(),
-            Tables\Actions\RestoreBulkAction::make(),
+            DeleteBulkAction::make(),
+            RestoreBulkAction::make(),
         ];
 
         if ($allowForceDelete) {
-            $actions[] = Tables\Actions\ForceDeleteBulkAction::make();
+            $actions[] = ForceDeleteBulkAction::make();
         }
 
         return [
-            Tables\Actions\BulkActionGroup::make($actions),
+            BulkActionGroup::make($actions),
         ];
     }
 
     /**
      * Azioni riga standard: View + Edit.
      *
-     * @return array<Tables\Actions\Action>
+     * @return array<Action>
      */
     protected static function viewAndEditActions(): array
     {
         return [
-            Tables\Actions\ViewAction::make(),
-            Tables\Actions\EditAction::make(),
+            ViewAction::make(),
+            EditAction::make(),
         ];
     }
 }

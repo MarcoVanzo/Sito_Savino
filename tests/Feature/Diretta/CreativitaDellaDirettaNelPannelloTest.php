@@ -89,7 +89,7 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
                 'testo_alternativo' => 'Estra, energia per lo sport',
                 'link_url' => 'https://www.estra.it/',
             ])
-            ->set('mountedTableActionsData.0.contenuto.nuovo', $this->png(1920, 1080))
+            ->set('mountedActions.0.data.contenuto.nuovo', $this->png(1920, 1080))
             ->callMountedTableAction()
             ->assertHasNoTableActionErrors();
 
@@ -114,7 +114,7 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
                 'durata_secondi' => 10,
                 'testo_alternativo' => 'Sponsor',
             ])
-            ->set('mountedTableActionsData.0.contenuto.nuovo', $this->png(1280, 720))
+            ->set('mountedActions.0.data.contenuto.nuovo', $this->png(1280, 720))
             // Lo si dice appena caricato, non solo al «Salva».
             ->assertNotified('Questo file non si può salvare')
             ->callMountedTableAction()
@@ -140,8 +140,8 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
                 'uso' => UsoCreativita::Preroll->value,
                 'tipo' => TipoCreativita::Video->value,
             ])
-            ->set('mountedTableActionsData.0.contenuto.nuovo', $video)
-            ->assertSet('mountedTableActionsData.0.durata_secondi', 2)
+            ->set('mountedActions.0.data.contenuto.nuovo', $video)
+            ->assertSet('mountedActions.0.data.durata_secondi', 2)
             ->callMountedTableAction()
             ->assertHasNoTableActionErrors();
 
@@ -166,11 +166,11 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
                 'tipo' => TipoCreativita::Immagine->value,
                 'durata_secondi' => 10,
             ])
-            ->set('mountedTableActionsData.0.contenuto.nuovo', $video)
+            ->set('mountedActions.0.data.contenuto.nuovo', $video)
             ->assertNotified('È un video: scegli «Video» come tipo')
-            ->assertSet('mountedTableActionsData.0.durata_secondi', 10)
-            ->set('mountedTableActionsData.0.tipo', TipoCreativita::Video->value)
-            ->assertSet('mountedTableActionsData.0.durata_secondi', 2)
+            ->assertSet('mountedActions.0.data.durata_secondi', 10)
+            ->set('mountedActions.0.data.tipo', TipoCreativita::Video->value)
+            ->assertSet('mountedActions.0.data.durata_secondi', 2)
             ->callMountedTableAction()
             ->assertHasNoTableActionErrors();
 
@@ -186,7 +186,7 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
         $this->grafiche(Sponsor::factory()->create())
             ->mountTableAction('create')
             ->setTableActionData(['nome' => 'Spot', 'uso' => UsoCreativita::Preroll->value, 'tipo' => TipoCreativita::Video->value])
-            ->set('mountedTableActionsData.0.contenuto.nuovo', UploadedFile::fake()->create('spot.mp4', 9 * 1024, 'video/mp4'))
+            ->set('mountedActions.0.data.contenuto.nuovo', UploadedFile::fake()->create('spot.mp4', 9 * 1024, 'video/mp4'))
             ->assertNotified('Video pesante per il telefono');
     }
 
@@ -205,7 +205,7 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
                 'durata_secondi' => 10,
                 'testo_alternativo' => '',
             ])
-            ->set('mountedTableActionsData.0.contenuto.nuovo', $this->png(1920, 1080))
+            ->set('mountedActions.0.data.contenuto.nuovo', $this->png(1920, 1080))
             ->callMountedTableAction()
             ->assertHasTableActionErrors(['testo_alternativo' => 'required']);
     }
@@ -278,10 +278,10 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
 
         $this->grafiche($cornice->sponsor)
             ->mountTableAction('anteprima', $cornice)
-            ->assertSee('Computer')
-            ->assertSee('Telefono')
-            ->assertSee('adt-sotto', false)
-            ->assertSee($cornice->getFirstMediaUrl(LiveCreative::COLLEZIONE_CONTENUTO), false);
+            ->assertMountedActionModalSee('Computer')
+            ->assertMountedActionModalSee('Telefono')
+            ->assertMountedActionModalSeeHtml('adt-sotto')
+            ->assertMountedActionModalSee($cornice->getFirstMediaUrl(LiveCreative::COLLEZIONE_CONTENUTO), false);
     }
 
     #[Test]
@@ -294,9 +294,9 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
 
         $this->grafiche($spot->sponsor)
             ->mountTableAction('anteprima', $spot)
-            ->assertSee('Prima della diretta')
-            ->assertSee('Visita lo sponsor')
-            ->assertSee('Puoi saltare tra 5 s');
+            ->assertMountedActionModalSee('Prima della diretta')
+            ->assertMountedActionModalSee('Visita lo sponsor')
+            ->assertMountedActionModalSee('Puoi saltare tra 5 s');
     }
 
     #[Test]
@@ -306,14 +306,14 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
 
         $this->grafiche(Sponsor::factory()->create())
             ->mountTableAction('create')
-            ->assertSee('Cosa serve')
-            ->assertSee('1920 × 1080 px')
-            ->assertSee('2 MB')
-            ->assertDontSee('Colonna a destra')
+            ->assertMountedActionModalSee('Cosa serve')
+            ->assertMountedActionModalSee('1920 × 1080 px')
+            ->assertMountedActionModalSee('2 MB')
+            ->assertMountedActionModalDontSee('Colonna a destra')
             ->setTableActionData(['uso' => UsoCreativita::Cornice->value, 'tipo' => TipoCreativita::Video->value])
-            ->assertSee('Colonna a destra')
-            ->assertSee('20 MB')
-            ->assertSee('modello della cornice');
+            ->assertMountedActionModalSee('Colonna a destra')
+            ->assertMountedActionModalSee('20 MB')
+            ->assertMountedActionModalSee('modello della cornice');
     }
 
     #[Test]
