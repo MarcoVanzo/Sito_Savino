@@ -64,6 +64,11 @@ class SponsorResource extends Resource
                     ->helperText('Posizione dentro al proprio livello: numeri più bassi vengono prima.')
                     ->numeric()
                     ->default(0),
+                Forms\Components\Toggle::make('solo_diretta')
+                    ->label('Solo diretta')
+                    ->helperText('Non compare nella pagina Sponsor né nella striscia della home: serve solo per le grafiche della diretta (es. la cornice dello shop ufficiale).')
+                    ->default(false)
+                    ->columnSpanFull(),
                 SpatieMediaLibraryFileUpload::make('logo')
                     ->collection('sponsors')
                     ->image()
@@ -100,6 +105,9 @@ class SponsorResource extends Resource
                     }),
                 Tables\Columns\TextColumn::make('url')
                     ->label('Sito Web'),
+                Tables\Columns\IconColumn::make('solo_diretta')
+                    ->label('Solo diretta')
+                    ->boolean(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('tier')

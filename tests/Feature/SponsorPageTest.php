@@ -46,6 +46,17 @@ class SponsorPageTest extends TestCase
     }
 
     #[Test]
+    public function gli_sponsor_solo_diretta_non_compaiono_nella_pagina_pubblica(): void
+    {
+        Sponsor::factory()->create(['name' => 'Visibile', 'tier' => SponsorTier::Official]);
+        Sponsor::factory()->create(['name' => 'Shop ufficiale', 'tier' => SponsorTier::Official, 'solo_diretta' => true]);
+
+        $sponsors = app(SponsorDirectory::class)->tiers()[0]['sponsors'];
+
+        $this->assertSame(['Visibile'], array_column($sponsors, 'name'));
+    }
+
+    #[Test]
     public function dentro_al_livello_conta_lordine_impostato_nel_pannello(): void
     {
         Sponsor::factory()->create(['name' => 'Secondo', 'tier' => SponsorTier::Official, 'sort_order' => 2]);
