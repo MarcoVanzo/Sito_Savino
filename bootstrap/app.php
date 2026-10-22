@@ -140,7 +140,7 @@ return Application::configure(basePath: dirname(__DIR__))
             // la sessione nuova, quindi il secondo invio passa.
             if (in_array($response->getStatusCode(), [419, 429], true)
                 && $request->header('X-Inertia')
-                && ! $request->is('api/*', 'admin/*', 'filament/*', 'livewire/*')
+                && ! $request->is('api/*', 'admin/*', 'filament/*', 'livewire*')
             ) {
                 return back()->with('error', __($response->getStatusCode() === 419
                     ? 'messages.errori.pagina_scaduta'
@@ -149,7 +149,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // Renderizza errori HTTP come pagine Inertia con il design del sito
             if (in_array($response->getStatusCode(), [403, 404, 410, 419, 429, 500, 503])
-                && ! $request->is('api/*', 'admin/*', 'filament/*', 'livewire/*')
+                && ! $request->is('api/*', 'admin/*', 'filament/*', 'livewire*')
                 && ! app()->environment('local')
             ) {
                 // I meta della pagina richiesta (ServeSocialCrawlerMeta) non

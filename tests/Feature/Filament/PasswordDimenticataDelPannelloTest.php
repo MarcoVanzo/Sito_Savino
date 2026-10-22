@@ -12,7 +12,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
-use Livewire\Mechanisms\ComponentRegistry;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -41,7 +40,7 @@ class PasswordDimenticataDelPannelloTest extends TestCase
     {
         $this->get('/admin/password-reset/request')
             ->assertOk()
-            ->assertSee(app(ComponentRegistry::class)->getName(RequestPasswordReset::class), false)
+            ->assertSeeLivewire(RequestPasswordReset::class)
             ->assertDontSee('passwordConfirmation');
     }
 
@@ -71,7 +70,7 @@ class PasswordDimenticataDelPannelloTest extends TestCase
 
         $this->get($url)
             ->assertOk()
-            ->assertSee(app(ComponentRegistry::class)->getName(ResetPassword::class), false);
+            ->assertSeeLivewire(ResetPassword::class);
     }
 
     /**

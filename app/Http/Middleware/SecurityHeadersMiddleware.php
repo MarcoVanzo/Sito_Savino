@@ -41,7 +41,9 @@ class SecurityHeadersMiddleware
      * Senza `unsafe-eval` il pannello non si disegna, e senza `unsafe-inline`
      * non parte nessuno dei suoi script di avvio.
      */
-    private const PERCORSI_DEL_PANNELLO = ['admin', 'admin/*', 'filament/*', 'livewire/*'];
+    // Livewire 4 risponde su `livewire-{hash}/…` (hash dall'APP_KEY), non più
+    // su `livewire/…`: `livewire*` copre entrambi.
+    private const PERCORSI_DEL_PANNELLO = ['admin', 'admin/*', 'filament/*', 'livewire*'];
 
     /**
      * Aggiunge header di sicurezza a tutte le risposte HTTP.
@@ -142,7 +144,7 @@ class SecurityHeadersMiddleware
             // `blob:` e rilegge il risultato con `fetch` su `blob:`/`data:`.
             // Senza `worker-src` vale `script-src`, che `blob:` non lo ammette:
             // il worker veniva rifiutato senza errori in console, il file
-            // restava in "Caricamento" e `/livewire/upload-file` non partiva
+            // restava in "Caricamento" e `/livewire-{hash}/upload-file` non partiva
             // mai.
             $connessioni[] = 'blob:';
             $connessioni[] = 'data:';

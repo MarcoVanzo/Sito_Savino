@@ -195,7 +195,8 @@ class AnalyticsPeriodoWidgetTest extends TestCase
             $snapshot = json_decode(html_entity_decode($grezzo, ENT_QUOTES), true);
             $nome = $snapshot['memo']['name'] ?? '';
 
-            if (! str_contains($nome, 'widget')) {
+            // Livewire 4 chiama i componenti col nome della classe (`App\Filament\Widgets\…`).
+            if (! str_contains(strtolower($nome), 'widget')) {
                 continue;
             }
 
