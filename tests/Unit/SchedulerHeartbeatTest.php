@@ -26,6 +26,7 @@ class SchedulerHeartbeatTest extends TestCase
     #[Test]
     public function un_battito_appena_registrato_non_e_fermo(): void
     {
+        $this->freezeTime();
         SchedulerHeartbeat::beat();
 
         $this->assertSame(0, SchedulerHeartbeat::secondsSinceLastBeat());
