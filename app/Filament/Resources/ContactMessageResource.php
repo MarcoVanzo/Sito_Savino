@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ContactMessageResource\Pages\ManageContactMessages;
+use App\Filament\Traits\TabellaMessaggiModulo;
 use App\Http\Controllers\PressAccreditationController;
 use App\Models\ContactMessage;
 use Filament\Actions\Action;
@@ -10,7 +11,6 @@ use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -19,13 +19,13 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
 class ContactMessageResource extends Resource
 {
+    use TabellaMessaggiModulo;
+
     protected static ?string $model = ContactMessage::class;
 
     /**
@@ -113,61 +113,15 @@ class ContactMessageResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                TextColumn::make('name')
-                    ->label('Nome Mittente')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('email')
-                    ->label('Email')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('subject')
-                    ->label('Oggetto')
-                    ->searchable()
-                    ->limit(40),
-                TextColumn::make('status')
-                    ->label('Stato')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => self::STATUS_LABELS[$state] ?? $state)
-                    ->color(fn (string $state): string => match ($state) {
-                        'unread' => 'danger',
-                        'read' => 'warning',
-                        'replied' => 'success',
-                        default => 'gray',
-                    }),
-                TextColumn::make('created_at')
-                    ->label('Ricevuto il')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
-            ])
+            ->columns(self::colonneMessaggio('Nome Mittente'))
             ->defaultSort('created_at', 'desc')
             ->filters([
-                SelectFilter::make('status')
-                    ->label('Stato')
-                    ->options(self::STATUS_LABELS),
+                self::filtroStato(),
             ])
             ->recordActions([
                 ActionGroup::make([
-                    EditAction::make()
-                        // Il modulo ha il solo campo `extra_data.admin_notes`: senza
-                        // questa fusione il salvataggio riscriveva `extra_data` con
-                        // la sola nota e cancellava ciò che il sito aveva raccolto
-                        // (testata, ruolo, gara, telefono).
-                        ->mutateDataUsing(function (array $data, $record): array {
-                            $data['extra_data'] = array_merge(
-                                is_array($record->extra_data) ? $record->extra_data : [],
-                                is_array($data['extra_data'] ?? null) ? $data['extra_data'] : [],
-                            );
-
-                            return $data;
-                        }),
-                    Action::make('markAsRead')
-                        ->label('Segna come Letto')
-                        ->icon('heroicon-o-check-circle')
-                        ->color('warning')
-                        ->visible(fn ($record) => $record->status === 'unread')
-                        ->action(fn ($record) => $record->update(['status' => 'read'])),
+                    self::azioneModificaNote(),
+                    self::azioneSegnaLetto(),
                     Action::make('markAsReplied')
                         ->label('Segna come Risposto')
                         ->icon('heroicon-o-chat-bubble-left-right')
