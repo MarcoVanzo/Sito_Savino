@@ -12,8 +12,10 @@ use App\Models\Sponsor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -69,7 +71,7 @@ class SponsorResource extends Resource
                     ->helperText('Posizione dentro al proprio livello: numeri più bassi vengono prima.')
                     ->numeric()
                     ->default(0),
-                Forms\Components\Toggle::make('solo_diretta')
+                Toggle::make('solo_diretta')
                     ->label('Solo diretta')
                     ->helperText('Non compare nella pagina Sponsor né nella striscia della home: serve solo per le grafiche della diretta (es. la cornice dello shop ufficiale).')
                     ->default(false)
@@ -110,7 +112,7 @@ class SponsorResource extends Resource
                     }),
                 TextColumn::make('url')
                     ->label('Sito Web'),
-                Tables\Columns\IconColumn::make('solo_diretta')
+                IconColumn::make('solo_diretta')
                     ->label('Solo diretta')
                     ->boolean(),
             ])
