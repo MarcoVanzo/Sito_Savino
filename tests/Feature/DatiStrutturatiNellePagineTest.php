@@ -433,12 +433,31 @@ class DatiStrutturatiNellePagineTest extends TestCase
 
         $scheda = $this->delTipo($this->blocchi('/shop/prodotto/'.$prodotto->slug), 'Product');
 
-        $this->haICampi($scheda, ['name', 'image', 'sku', 'brand', 'offers', 'url']);
+        $this->haICampi($scheda, ['name', 'image', 'description', 'sku', 'brand', 'offers', 'url']);
         $this->assertSame('70.00', $scheda['offers']['price']);
         $this->assertSame('EUR', $scheda['offers']['priceCurrency']);
         $this->assertStringStartsWith('https://schema.org/', $scheda['offers']['availability']);
         $this->assertArrayNotHasKey('aggregateRating', $scheda);
         $this->assertArrayNotHasKey('review', $scheda);
+    }
+
+    #[Test]
+    public function il_prodotto_senza_descrizione_ne_dichiara_una_anche_sulle_taglie(): void
+    {
+        $prodotto = Product::factory()->create([
+            'name' => 'Felpa pre-match',
+            'slug' => 'felpa-pre-match',
+            'type' => ProductType::Variable,
+            'short_description' => null,
+            'description' => '<p>&nbsp;</p>',
+            'is_active' => true,
+        ]);
+        ProductVariant::factory()->create(['product_id' => $prodotto->id, 'size' => 'M', 'sku' => 'FELPA-M', 'stock' => 1]);
+
+        $gruppo = $this->delTipo($this->blocchi('/shop/prodotto/'.$prodotto->slug), 'ProductGroup');
+
+        $this->assertStringStartsWith('Felpa pre-match', $gruppo['description']);
+        $this->assertSame($gruppo['description'], $gruppo['hasVariant'][0]['description']);
     }
 
     #[Test]
