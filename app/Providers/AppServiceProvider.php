@@ -42,6 +42,7 @@ use App\Observers\TieneAggiornateLeDirette;
 use App\Observers\TraduceLeNotizieInInglese;
 use App\Observers\UserObserver;
 use App\Services\Analytics\WebAnalyticsService;
+use App\Services\GalleryArchive;
 use App\Services\Social\SocialAnalyticsService;
 use App\Services\Wikipedia\WikipediaClient;
 use App\Support\DatiInizialiDellaPagina;
@@ -142,6 +143,11 @@ class AppServiceProvider extends ServiceProvider
         // factory, non dal container): il servizio se lo crea da sé quando serve.
         $this->app->singleton(WebAnalyticsService::class, static fn (): WebAnalyticsService => new WebAnalyticsService);
         $this->app->singleton(SocialAnalyticsService::class);
+
+        // L'archivio della gallery si legge fino a tre volte per pagina
+        // (controller, meta dell'album, sitemap): un'istanza per richiesta o
+        // job, che lo tiene decompresso in memoria, invece di riscaricarlo.
+        $this->app->scoped(GalleryArchive::class);
 
         // Il client Wikipedia si costruisce dalla configurazione (lingua,
         // timeout, user agent): non è autowirable perché i parametri sono

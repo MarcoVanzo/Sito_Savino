@@ -118,7 +118,10 @@ class GalleryAlbumTest extends TestCase
     public function la_pagina_dell_album_legge_l_archivio_dalla_cache_una_volta_sola(): void
     {
         $giornata = $this->album('Giornata 1 - Serie A1', 2);
-        app(GalleryArchive::class)->riscalda();
+        (new GalleryArchive)->riscalda();
+        // Il job di ricostruzione, sincrono nei test, ha gia' riempito
+        // l'istanza per richiesta: la pagina deve partire da zero come in produzione.
+        $this->app->forgetScopedInstances();
 
         $letture = 0;
         Event::listen(RetrievingKey::class, function (RetrievingKey $evento) use (&$letture): void {
