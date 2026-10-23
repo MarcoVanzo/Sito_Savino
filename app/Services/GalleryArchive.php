@@ -36,17 +36,37 @@ class GalleryArchive
     /** Foto lette per volta: dodicimila modelli con le relazioni non stanno in memoria tutti insieme. */
     private const BLOCCO = 500;
 
+    /** Segna il valore compresso, per distinguerlo dalle copie scritte prima (array nudi). */
+    private const COMPRESSO = 'gz:';
+
     /**
-     * L'archivio pesa diversi megabyte in cache: una pagina d'album lo
-     * chiedeva tre volte (controller due, anteprima social per i crawler una),
-     * e ogni volta era la stessa riga enorme letta dal database e
-     * deserializzata. `memo()` la tiene in memoria per la richiesta.
+     * Archivi già letti in questa richiesta, per chiave. L'istanza è
+     * `scoped` (AppServiceProvider): una pagina d'album lo chiedeva tre volte
+     * (controller due, meta dell'anteprima una) e ognuna riscaricava la riga.
      *
+     * @var array<string, list<array<string, mixed>>>
+     */
+    private array $letti = [];
+
+    /**
      * @return list<array<string, mixed>>
      */
     public function media(?Player $filtro, string $locale): array
     {
-        return Cache::memo()->remember($this->chiave($filtro, $locale), $this->durata(), fn (): array => $this->costruisci($filtro, $locale));
+        $chiave = $this->chiave($filtro, $locale);
+
+        if (isset($this->letti[$chiave])) {
+            return $this->letti[$chiave];
+        }
+
+        $foto = $this->decomprimi(Cache::get($chiave));
+
+        if ($foto === null) {
+            $foto = $this->costruisci($filtro, $locale);
+            Cache::put($chiave, $this->comprimi($foto), $this->durata());
+        }
+
+        return $this->letti[$chiave] = $foto;
     }
 
     /**
@@ -55,8 +75,48 @@ class GalleryArchive
     public function riscalda(): void
     {
         foreach (config('app.supported_locales', ['it']) as $locale) {
-            Cache::memo()->put($this->chiave(null, $locale), $this->costruisci(null, $locale), $this->durata());
+            $chiave = $this->chiave(null, $locale);
+            $this->letti[$chiave] = $this->costruisci(null, $locale);
+            Cache::put($chiave, $this->comprimi($this->letti[$chiave]), $this->durata());
         }
+    }
+
+    /**
+     * L'archivio serializzato pesava 8 MB in una colonna `mediumtext` che ne
+     * tiene 16: con la gallery che cresce la scrittura sarebbe fallita
+     * (errore 1406) e, scaduta la copia, la pagina con lei. Scaricare quegli
+     * 8 MB era anche quasi tutto il secondo di `/gallery/data`. Compresso
+     * scende a una frazione; base64 perché la colonna è testo utf8mb4 e
+     * rifiuta i byte non validi.
+     *
+     * @param  list<array<string, mixed>>  $foto
+     */
+    private function comprimi(array $foto): string
+    {
+        return self::COMPRESSO.base64_encode((string) gzcompress(serialize($foto)));
+    }
+
+    /**
+     * Il valore in cache tornato array, o null se manca o non si legge
+     * (allora si ricostruisce). Le copie scritte prima della compressione
+     * sono array nudi e valgono finché il job orario non le sostituisce.
+     *
+     * @return list<array<string, mixed>>|null
+     */
+    private function decomprimi(mixed $valore): ?array
+    {
+        if (is_array($valore)) {
+            return array_values($valore);
+        }
+
+        if (! is_string($valore) || ! str_starts_with($valore, self::COMPRESSO)) {
+            return null;
+        }
+
+        $serializzato = @gzuncompress((string) base64_decode(substr($valore, strlen(self::COMPRESSO)), true));
+        $foto = $serializzato === false ? false : @unserialize($serializzato, ['allowed_classes' => false]);
+
+        return is_array($foto) ? array_values($foto) : null;
     }
 
     public function chiave(?Player $filtro, string $locale): string
