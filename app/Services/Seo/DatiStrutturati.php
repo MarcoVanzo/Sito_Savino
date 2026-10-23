@@ -301,19 +301,24 @@ class DatiStrutturati
             ->values()
             ->all();
 
+        $descrizione = trim(html_entity_decode($descrizione, ENT_QUOTES | ENT_HTML5, 'UTF-8'), " \n\r\t\v\0\u{A0}");
+
+        // Google la segnala se manca (Schede commercianti): senza testo della
+        // redazione vale la stessa frase di ripiego della meta description.
+        if ($descrizione === '') {
+            $descrizione = (string) __('site.social.prodotto.description', ['nome' => $nome], $locale);
+        }
+
         $scheda = [
             '@context' => 'https://schema.org',
             '@type' => 'Product',
             'name' => $nome,
             'url' => $indirizzo,
             'image' => $immagini !== [] ? $immagini : [$this->logo()],
+            'description' => Str::limit($descrizione, 500),
             'brand' => ['@type' => 'Brand', 'name' => self::NOME],
             'offers' => $this->offertaDelProdotto($prodotto, $indirizzo, $prodotto->effectivePrice(), $prodotto->availableStock()),
         ];
-
-        if ($descrizione !== '') {
-            $scheda['description'] = Str::limit($descrizione, 500);
-        }
 
         if (filled($prodotto->sku)) {
             $scheda['sku'] = (string) $prodotto->sku;
@@ -339,7 +344,7 @@ class DatiStrutturati
                 'image' => $scheda['image'],
                 // La descrizione e' quella del prodotto: Google la chiede anche
                 // sulla singola taglia (facoltativa, ma segnalata).
-                ...(isset($scheda['description']) ? ['description' => $scheda['description']] : []),
+                'description' => $scheda['description'],
                 'offers' => $this->offertaDelProdotto(
                     $prodotto,
                     $indirizzo,
