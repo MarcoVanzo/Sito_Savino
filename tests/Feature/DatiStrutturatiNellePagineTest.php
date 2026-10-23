@@ -458,6 +458,7 @@ class DatiStrutturatiNellePagineTest extends TestCase
 
         $this->assertStringStartsWith('Felpa pre-match', $gruppo['description']);
         $this->assertSame($gruppo['description'], $gruppo['hasVariant'][0]['description']);
+        $this->assertSame($gruppo['brand'], $gruppo['hasVariant'][0]['brand']);
     }
 
     #[Test]

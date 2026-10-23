@@ -345,6 +345,9 @@ class DatiStrutturati
                 // La descrizione e' quella del prodotto: Google la chiede anche
                 // sulla singola taglia (facoltativa, ma segnalata).
                 'description' => $scheda['description'],
+                // Anche il marchio: senza, Google segnala la taglia come priva
+                // di identificatore globale (gtin o brand).
+                'brand' => $scheda['brand'],
                 'offers' => $this->offertaDelProdotto(
                     $prodotto,
                     $indirizzo,
