@@ -59,7 +59,6 @@ return [
         'email' => 'Email',
         'password' => 'Password',
         'password_confirmation' => 'Confirm Password',
-        'accept_privacy_1' => 'I accept the',
         'accept_privacy_2' => 'Privacy Policy',
         'create_account' => 'Create Account',
         'already_have_account' => 'Already have an account?',

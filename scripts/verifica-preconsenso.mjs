@@ -88,17 +88,24 @@ async function unaSchedaProdotto() {
     return null;
 }
 
-const prodotto = await unaSchedaProdotto();
+// Senza sitemap si prova lo stesso il resto: la scheda prodotto e' una pagina
+// in piu', non il motivo della verifica.
+const prodotto = await unaSchedaProdotto().catch((errore) => {
+    console.warn(`! sitemap illeggibile (${errore.message}).`);
 
-// La pagina con video: `/double-face` ha i video della redazione, e il
-// palazzetto la mappa di Google. Si possono cambiare da riga di comando.
+    return null;
+});
+
+// La pagina con video: `double-face` ha i video della redazione, e il
+// palazzetto la mappa di Google. Gli indirizzi veri, non i vecchi che fanno
+// 301. La pagina con video si cambia da riga di comando.
 const PAGINE = [
     '/',
     '/shop',
     ...(prodotto ? [prodotto] : []),
     '/contatti',
-    '/palazzetto',
-    opzioni.video ?? '/double-face',
+    '/societa/palazzetto',
+    opzioni.video ?? '/comunicazione/double-face',
 ];
 
 if (! prodotto) {

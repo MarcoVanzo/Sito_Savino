@@ -92,7 +92,7 @@ class PdfConChrome
             $destinazione = $cartella.'/documento.pdf';
             $stile = sprintf(self::STILE, resource_path('fonts/pdf'), resource_path('fonts/pdf'));
 
-            File::put($sorgente, preg_match('/<head[^>]*>/i', $html) ? (string) preg_replace('/<head[^>]*>/i', '$0'.$stile, $html, 1) : $stile.$html);
+            File::put($sorgente, preg_match('/<head(\s[^>]*)?>/i', $html) ? (string) preg_replace('/<head(\s[^>]*)?>/i', '$0'.$stile, $html, 1) : $stile.$html);
 
             $comando = [
                 $binario,
