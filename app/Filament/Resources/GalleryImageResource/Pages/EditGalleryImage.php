@@ -4,7 +4,7 @@ namespace App\Filament\Resources\GalleryImageResource\Pages;
 
 use App\Filament\Resources\GalleryImageResource;
 use App\Models\GalleryImage;
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditGalleryImage extends EditRecord
@@ -14,7 +14,7 @@ class EditGalleryImage extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 

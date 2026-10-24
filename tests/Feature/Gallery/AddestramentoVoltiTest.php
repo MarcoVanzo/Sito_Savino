@@ -174,7 +174,7 @@ class AddestramentoVoltiTest extends TestCase
 
     private function ultimaNotifica(): ?string
     {
-        $notifiche = session()->get('filament.notifications', []);
+        $notifiche = $this->notificheDiFilament();
         $ultima = end($notifiche);
 
         if ($ultima === false) {

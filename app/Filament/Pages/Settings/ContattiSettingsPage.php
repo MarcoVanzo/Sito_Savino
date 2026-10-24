@@ -2,9 +2,9 @@
 
 namespace App\Filament\Pages\Settings;
 
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 
 /**
  * Recapiti e dati societari: sono le voci del gruppo `contact`, quelle che il
@@ -17,7 +17,7 @@ use Filament\Forms\Form;
  */
 class ContattiSettingsPage extends BaseSettingsPage
 {
-    protected static ?string $navigationIcon = 'heroicon-o-identification';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-identification';
 
     protected static ?string $navigationLabel = 'Contatti';
 
@@ -37,10 +37,10 @@ class ContattiSettingsPage extends BaseSettingsPage
         return ['office_hours', 'address_label'];
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Section::make('Recapiti generali')
                     ->description('Compaiono nel footer di ogni pagina e nella pagina Contatti.')
                     ->schema([

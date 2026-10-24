@@ -4,25 +4,51 @@ namespace App\Filament\Resources;
 
 use App\Enums\EtichettaProdotto;
 use App\Enums\ProductType;
-use App\Filament\Resources\ProductResource\Pages;
-use App\Filament\Resources\ProductResource\RelationManagers;
+use App\Filament\Resources\ProductResource\Pages\CreateProduct;
+use App\Filament\Resources\ProductResource\Pages\EditProduct;
+use App\Filament\Resources\ProductResource\Pages\ListProducts;
+use App\Filament\Resources\ProductResource\RelationManagers\VariantsRelationManager;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Support\EtichetteDelProdotto;
 use App\Support\GuidaTaglie;
-use Filament\Forms;
+use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\RestoreBulkAction;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Form;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
-use Filament\Resources\Concerns\Translatable;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
 
 class ProductResource extends Resource
 {
@@ -38,11 +64,11 @@ class ProductResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Prodotti';
 
-    protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-shopping-bag';
 
     protected static ?string $navigationLabel = 'Catalogo Prodotti';
 
-    protected static ?string $navigationGroup = 'Shop Ufficiale';
+    protected static string|\UnitEnum|null $navigationGroup = 'Shop Ufficiale';
 
     protected static ?int $navigationSort = 1;
 
@@ -86,7 +112,7 @@ class ProductResource extends Resource
      *
      * Da chiamare in beforeCreate/beforeSave delle pagine del prodotto.
      */
-    public static function verificaStatoDellArticolo(Pages\CreateProduct|Pages\EditProduct $pagina): void
+    public static function verificaStatoDellArticolo(CreateProduct|EditProduct $pagina): void
     {
         if (! ($pagina->data['usato_o_autografato'] ?? false)) {
             return;
@@ -111,24 +137,24 @@ class ProductResource extends Resource
         ]);
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Dettagli Principali')
+        return $schema
+            ->components([
+                Section::make('Dettagli Principali')
                     ->schema([
-                        Forms\Components\TextInput::make('name')
+                        TextInput::make('name')
                             ->label('Nome Prodotto')
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
-                        Forms\Components\TextInput::make('slug')
+                            ->afterStateUpdated(fn (string $operation, $state, Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
+                        TextInput::make('slug')
                             ->label('URL Slug')
                             ->required()
                             ->maxLength(255)
                             ->unique(ignoreRecord: true),
-                        Forms\Components\Select::make('product_category_id')
+                        Select::make('product_category_id')
                             ->label('Categoria')
                             ->relationship('category', 'name')
                             ->searchable()
@@ -136,38 +162,43 @@ class ProductResource extends Resource
                             ->required()
                             ->live()
                             ->createOptionForm([
-                                Forms\Components\TextInput::make('name')->label('Nome Categoria')->required(),
-                                Forms\Components\TextInput::make('slug')->label('Slug')->required(),
+                                TextInput::make('name')->label('Nome Categoria')->required(),
+                                TextInput::make('slug')->label('Slug')->required(),
                             ]),
-                        Forms\Components\Select::make('altreCategorie')
+                        Select::make('altreCategorie')
                             ->label('Anche in')
                             ->helperText('Le altre categorie in cui il prodotto compare: la maglia del libero sia in Home sia in Away, un capo anche in Outlet. Sulla card resta scritta la categoria principale.')
                             ->relationship(
                                 'altreCategorie',
                                 'name',
-                                fn (Builder $query, Forms\Get $get) => $query->when(
+                                fn (Builder $query, Get $get) => $query->when(
                                     $get('product_category_id'),
                                     fn (Builder $q, $principale) => $q->whereKeyNot($principale),
                                 ),
                             )
                             ->multiple()
+                            // La principale sparisce dalle voci ma puo' restare
+                            // scelta (appena promossa a principale): la toglie il
+                            // modello al salvataggio (StaInPiuCategorie). Filament
+                            // 4 la rifiuterebbe come valore fuori dalle opzioni.
+                            ->in(fn (): array => ProductCategory::query()->pluck('id')->all())
                             ->searchable()
                             ->preload(),
-                        Forms\Components\Toggle::make('is_active')
+                        Toggle::make('is_active')
                             ->label('Visibile nello Shop')
                             ->required()
                             ->default(true),
-                        Forms\Components\Select::make('type')
+                        Select::make('type')
                             ->label('Tipo Prodotto')
                             ->options(collect(ProductType::cases())->filter(fn ($t) => $t !== ProductType::Auction)->mapWithKeys(fn ($t) => [$t->value => $t->getLabel()]))
                             ->required()
                             ->default(ProductType::Simple),
-                        Forms\Components\Textarea::make('short_description')
+                        Textarea::make('short_description')
                             ->label('Descrizione Breve')
                             ->rows(2)
                             ->columnSpanFull()
                             ->helperText('Mostrata nella lista prodotti e nella card'),
-                        Forms\Components\RichEditor::make('description')
+                        RichEditor::make('description')
                             ->label('Descrizione Prodotto')
                             ->toolbarButtons([
                                 'bold',
@@ -186,17 +217,20 @@ class ProductResource extends Resource
                             ->columnSpanFull(),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Prezzo e Inventario')
+                Section::make('Prezzo e Inventario')
                     ->schema([
-                        Forms\Components\TextInput::make('price')
+                        TextInput::make('price')
                             ->label('Prezzo (€)')
                             ->required()
                             ->numeric()
                             ->minValue(0)
                             ->prefix('€'),
-                        Forms\Components\TextInput::make('stock')
+                        TextInput::make('stock')
                             ->label('Stock Attuale')
-                            ->required()
+                            // In modifica non si salva (vedi sotto): cambiando
+                            // lingua il plugin riempie il modulo con lo stato
+                            // deidratato e il campo resterebbe vuoto.
+                            ->required(fn (string $context): bool => $context !== 'edit')
                             ->numeric()
                             ->minValue(0)
                             ->default(0)
@@ -208,7 +242,7 @@ class ProductResource extends Resource
                             // ereditato da WooCommerce mentre il sito, che
                             // somma le varianti (Product::availableStock),
                             // ne contava 19.
-                            ->afterStateHydrated(function (Forms\Components\TextInput $component, ?Product $record): void {
+                            ->afterStateHydrated(function (TextInput $component, ?Product $record): void {
                                 if ($record?->type === ProductType::Variable) {
                                     $component->state($record->availableStock());
                                 }
@@ -218,11 +252,11 @@ class ProductResource extends Resource
                                 $record?->type === ProductType::Variable => 'Somma delle giacenze delle varianti. Si modifica dalla tab "Varianti" o dai Movimenti Magazzino.',
                                 default => 'Gestito dai Movimenti Magazzino. Modifica tramite la sezione dedicata.',
                             }),
-                        Forms\Components\TextInput::make('sku')
+                        TextInput::make('sku')
                             ->label('Codice (SKU)')
                             ->maxLength(255)
                             ->unique(ignoreRecord: true),
-                        Forms\Components\TextInput::make('sale_price')
+                        TextInput::make('sale_price')
                             ->label('Prezzo Scontato (€)')
                             ->numeric()
                             ->prefix('€')
@@ -235,17 +269,17 @@ class ProductResource extends Resource
                             // SKU, peso e date comprese).
                             ->lte('price')
                             ->helperText('Sul sito il prezzo barrato è il più basso praticato nei 30 giorni prima dello sconto (obbligo di legge), non il listino: un prodotto nato già scontato si vende al prezzo scontato senza barrato. Per codici promozionali al checkout, vai a Codici Promozionali nel menu Shop.'),
-                        Forms\Components\DateTimePicker::make('sale_start')
+                        DateTimePicker::make('sale_start')
                             ->label('Inizio Sconto'),
-                        Forms\Components\DateTimePicker::make('sale_end')
+                        DateTimePicker::make('sale_end')
                             ->label('Fine Sconto'),
-                        Forms\Components\TextInput::make('weight')
+                        TextInput::make('weight')
                             ->label('Peso (kg)')
                             ->numeric()
                             ->nullable()
                             ->suffix('kg')
                             ->helperText('Usato dalle fasce di peso della spedizione. Vuoto: vale il peso di ripiego delle Impostazioni Shop.'),
-                        Forms\Components\Select::make('size_guide')
+                        Select::make('size_guide')
                             ->label('Guida alle taglie')
                             // I PDF sono quelli caricati in "Guida Taglie &
                             // Contatti": qui si sceglie quale mostrare, non
@@ -255,22 +289,22 @@ class ProductResource extends Resource
                             ->helperText('La voce sotto le taglie, nella scheda del prodotto. Scegli "Nessuna guida" per i prodotti per cui non ne esiste una.'),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Etichette in vetrina')
+                Section::make('Etichette in vetrina')
                     ->description('Le scritte sulla foto del prodotto, nella griglia dello shop e nella scheda. Al massimo due: la prima va a sinistra, la seconda a destra.')
                     ->schema([
                         // Non e' una colonna: dice se `etichette` resta nulla
                         // (automatiche). Si traduce in ProductResource::etichetteDalModulo.
-                        Forms\Components\Toggle::make('etichette_automatiche')
+                        Toggle::make('etichette_automatiche')
                             ->label('Automatiche')
                             ->helperText('"Nuovo" nei primi 30 giorni e "In offerta" durante lo sconto. Spegnila per sceglierle tu.')
                             ->default(true)
                             ->live()
-                            ->afterStateHydrated(function (Forms\Components\Toggle $component, ?Product $record): void {
+                            ->afterStateHydrated(function (Toggle $component, ?Product $record): void {
                                 if ($record !== null) {
                                     $component->state($record->etichette === null);
                                 }
                             }),
-                        Forms\Components\CheckboxList::make('etichette')
+                        CheckboxList::make('etichette')
                             ->label('Etichette da mostrare')
                             ->options(collect(EtichettaProdotto::cases())->mapWithKeys(fn (EtichettaProdotto $e) => [$e->value => $e->getLabel()])->all())
                             ->descriptions(collect(EtichettaProdotto::cases())
@@ -283,18 +317,18 @@ class ProductResource extends Resource
                             // tratta come "Hot sales". Va detto qui, o chi lo spunta
                             // si aspetta che sparisca da solo come quello automatico.
                             ->helperText('Nessuna selezionata: il prodotto non mostra etichette. "Nuovo" scelto qui resta finché non lo togli: quello automatico, invece, sparisce da solo dopo 30 giorni.')
-                            ->hidden(fn (Forms\Get $get): bool => (bool) $get('etichette_automatiche')),
+                            ->hidden(fn (Get $get): bool => (bool) $get('etichette_automatiche')),
                     ]),
 
-                Forms\Components\Section::make('Firma su richiesta (la sceglie il cliente)')
+                Section::make('Firma su richiesta (la sceglie il cliente)')
                     ->description('Il cliente decide nella scheda se volere la maglia con la firma della giocatrice o senza, come sceglie la taglia. Non tocca le giacenze: il pezzo in magazzino resta lo stesso, e la firma si aggiunge dopo l\'ordine.')
                     ->schema([
-                        Forms\Components\TextInput::make('personalizzazione_nome')
+                        TextInput::make('personalizzazione_nome')
                             ->label('Nome dell\'aggiunta')
                             ->placeholder('Firma della giocatrice')
                             ->maxLength(120)
                             ->helperText('Vuoto: il prodotto non la offre. Si attiva dal nome in italiano; in inglese si traduce cambiando lingua in alto.'),
-                        Forms\Components\TextInput::make('personalizzazione_prezzo')
+                        TextInput::make('personalizzazione_prezzo')
                             ->label('Supplemento (€)')
                             ->numeric()
                             ->minValue(0)
@@ -306,10 +340,10 @@ class ProductResource extends Resource
                             ->helperText('Si somma al prezzo del pezzo. 0: inclusa nel prezzo.'),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Stato dell\'articolo')
+                Section::make('Stato dell\'articolo')
                     ->description('Solo per pezzi unici già autografati o indossati in gara, che si vendono così come sono. Per la firma a scelta del cliente usa la sezione "Firma su richiesta" qui sopra. Le condizioni di vendita li vendono «nello stato descritto nella scheda»: il testo compare accanto al prezzo e viene copiato nell\'ordine al momento dell\'acquisto.')
                     ->schema([
-                        Forms\Components\Toggle::make('usato_o_autografato')
+                        Toggle::make('usato_o_autografato')
                             ->label('Articolo indossato o autografato')
                             ->helperText('Accesa, lo stato è obbligatorio.')
                             ->default(false)
@@ -317,20 +351,20 @@ class ProductResource extends Resource
                         // Sempre visibile: un campo nascosto non viene
                         // deidratato (CLAUDE.md §14). L'obbligo lo verifica
                         // verificaStatoDellArticolo, non ->required(): vedi li'.
-                        Forms\Components\Textarea::make('stato_articolo')
+                        Textarea::make('stato_articolo')
                             ->label('Stato dell\'articolo')
                             ->rows(3)
                             ->maxLength(2000)
-                            ->markAsRequired(fn (Forms\Get $get): bool => (bool) $get('usato_o_autografato'))
+                            ->markAsRequired(fn (Get $get): bool => (bool) $get('usato_o_autografato'))
                             ->placeholder('es. indossata in gara il 12/10/2025 contro Conegliano, segni di gioco sul fronte, non lavata, autografo originale sul numero')
                             ->helperText('Descrivi com\'è davvero: quando è stata indossata, segni di gioco, se è lavata, autografo originale e dove. In inglese si traduce cambiando lingua in alto; finché manca, il sito mostra l\'italiano.')
                             ->columnSpanFull(),
                     ]),
 
-                Forms\Components\Section::make('Articoli collegati')
+                Section::make('Articoli collegati')
                     ->description('Compaiono in fondo alla scheda, sotto "Ti potrebbe interessare anche". Lasciando vuoto, il sito continua a proporre da sé quattro articoli della stessa categoria.')
                     ->schema([
-                        Forms\Components\Select::make('relatedProducts')
+                        Select::make('relatedProducts')
                             ->label('Prodotti da mostrare')
                             ->relationship(
                                 name: 'relatedProducts',
@@ -338,7 +372,7 @@ class ProductResource extends Resource
                                 // Niente aste (non sono in vendita) e niente
                                 // se stesso, che in vetrina si mostrerebbe
                                 // sotto la propria scheda.
-                                modifyQueryUsing: function (Builder $query, Forms\Components\Select $component): Builder {
+                                modifyQueryUsing: function (Builder $query, Select $component): Builder {
                                     $query->where('type', '!=', ProductType::Auction);
 
                                     $record = $component->getRecord();
@@ -357,7 +391,7 @@ class ProductResource extends Resource
                             ->columnSpanFull(),
                     ]),
 
-                Forms\Components\Section::make('Galleria Immagini')
+                Section::make('Galleria Immagini')
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('images')
                             ->label('Foto Prodotto')
@@ -367,23 +401,23 @@ class ProductResource extends Resource
                             ->columnSpanFull(),
                     ]),
 
-                Forms\Components\Section::make('Varianti (Opzionale)')
+                Section::make('Varianti (Opzionale)')
                     ->schema([
                         // In creazione: Repeater inline per setup iniziale (stock disabilitato, verrà gestito dai Movimenti Magazzino)
-                        Forms\Components\Repeater::make('variants')
+                        Repeater::make('variants')
                             ->defaultItems(0)
                             ->label('Aggiungi Varianti')
                             ->relationship()
                             ->schema([
-                                Forms\Components\TextInput::make('size')
+                                TextInput::make('size')
                                     ->label('Taglia (es. S, M, L)'),
-                                Forms\Components\TextInput::make('color')
+                                TextInput::make('color')
                                     ->label('Colore'),
-                                Forms\Components\TextInput::make('sku')
+                                TextInput::make('sku')
                                     ->label('SKU Variante')
                                     ->required()
                                     ->unique(table: 'product_variants', column: 'sku'),
-                                Forms\Components\TextInput::make('stock')
+                                TextInput::make('stock')
                                     ->label('Stock Iniziale')
                                     ->numeric()
                                     ->required()
@@ -392,7 +426,7 @@ class ProductResource extends Resource
                                     ->helperText('Imposta lo stock iniziale. Dopo la creazione, usa la tab "Varianti" per gestirlo.'),
                                 // Svuotati arrivano null su colonne NOT NULL: come nella
                                 // tab "Varianti" (SITO-SAVINO-J), obbligatori.
-                                Forms\Components\TextInput::make('price_modifier')
+                                TextInput::make('price_modifier')
                                     ->numeric()
                                     ->required()
                                     ->default(0)
@@ -403,7 +437,7 @@ class ProductResource extends Resource
                             ->visible(fn (string $operation): bool => $operation === 'create'),
 
                         // In modifica: messaggio che indica di usare il RelationManager
-                        Forms\Components\Placeholder::make('variants_info')
+                        Placeholder::make('variants_info')
                             ->label('')
                             ->content('Le varianti di questo prodotto sono gestite dalla tab "Varianti" in fondo alla pagina. Da lì puoi aggiungere, modificare ed eliminare varianti e gestire lo stock.')
                             ->visible(fn (string $operation): bool => $operation === 'edit'),
@@ -415,35 +449,35 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\SpatieMediaLibraryImageColumn::make('images')
+                SpatieMediaLibraryImageColumn::make('images')
                     ->checkFileExistence(false)
                     ->conversion('thumb')
                     ->label('')
                     ->collection('images')
                     ->square(),
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label('Nome Prodotto')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('category.name')
+                TextColumn::make('category.name')
                     ->label('Categoria')
                     ->sortable()
                     ->searchable()
                     ->placeholder('-'),
-                Tables\Columns\TextColumn::make('type')
+                TextColumn::make('type')
                     ->label('Tipo')
                     ->badge()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('price')
+                TextColumn::make('price')
                     ->label('Prezzo')
                     ->money('EUR')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('sale_price')
+                TextColumn::make('sale_price')
                     ->label('Scontato')
                     ->money('EUR')
                     ->sortable()
                     ->placeholder('-')
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('stock')
+                TextColumn::make('stock')
                     ->label('Giacenza')
                     // Come nel modulo: per i prodotti a varianti la colonna
                     // del prodotto non dice nulla, conta la somma delle
@@ -453,7 +487,7 @@ class ProductResource extends Resource
                     // prima mostrando la seconda confonde e basta.
                     ->state(fn (Product $record): int => $record->availableStock())
                     ->numeric(),
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label('Attivo')
                     ->boolean(),
             ])
@@ -463,28 +497,28 @@ class ProductResource extends Resource
             ->reorderable('sort_order')
             ->defaultSort(fn (Builder $query) => $query->inOrdineDiVetrina())
             ->filters([
-                Tables\Filters\TernaryFilter::make('is_active')
+                TernaryFilter::make('is_active')
                     ->label('Attivo'),
                 // Principale o aggiuntiva, come la vetrina: filtrando Home per
                 // riordinarla deve comparire anche la maglia del libero.
-                Tables\Filters\SelectFilter::make('product_category_id')
+                SelectFilter::make('product_category_id')
                     ->label('Categoria')
                     ->relationship('category', 'name')
                     ->query(fn (Builder $query, array $data) => filled($data['value'] ?? null)
                         ? $query->nelleCategorie([(int) $data['value']])
                         : $query),
-                Tables\Filters\Filter::make('on_sale')
+                Filter::make('on_sale')
                     ->label('In Saldo')
                     ->query(fn (Builder $query) => $query->whereNotNull('sale_price')->where('sale_price', '>', 0)),
-                Tables\Filters\TrashedFilter::make(),
+                TrashedFilter::make(),
             ])
-            ->actions([
-                Tables\Actions\Action::make('Anteprima')
+            ->recordActions([
+                Action::make('Anteprima')
                     ->url(fn ($record) => route('shop.product', ['product' => $record->slug]))
                     ->openUrlInNewTab()
                     ->icon('heroicon-o-eye'),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('duplicate')
+                EditAction::make(),
+                Action::make('duplicate')
                     ->label('Duplica')
                     ->icon('heroicon-o-document-duplicate')
                     ->color('gray')
@@ -532,19 +566,19 @@ class ProductResource extends Resource
                             ->send();
                     }),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                 ]),
-                Tables\Actions\BulkAction::make('apply_discount')
+                BulkAction::make('apply_discount')
                     ->label('Applica Sconto')
                     ->icon('heroicon-o-tag')
                     ->color('warning')
                     ->form([
-                        Forms\Components\TextInput::make('sale_price')->label('Prezzo Scontato (€)')->numeric()->required()->prefix('€'),
-                        Forms\Components\DateTimePicker::make('sale_start')->label('Inizio Sconto'),
-                        Forms\Components\DateTimePicker::make('sale_end')->label('Fine Sconto'),
+                        TextInput::make('sale_price')->label('Prezzo Scontato (€)')->numeric()->required()->prefix('€'),
+                        DateTimePicker::make('sale_start')->label('Inizio Sconto'),
+                        DateTimePicker::make('sale_end')->label('Fine Sconto'),
                     ])
                     ->action(function (Collection $records, array $data): void {
                         // Il prezzo scontato e' uno solo per tutta la selezione:
@@ -581,16 +615,16 @@ class ProductResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\VariantsRelationManager::class,
+            VariantsRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListProducts::route('/'),
-            'create' => Pages\CreateProduct::route('/create'),
-            'edit' => Pages\EditProduct::route('/{record}/edit'),
+            'index' => ListProducts::route('/'),
+            'create' => CreateProduct::route('/create'),
+            'edit' => EditProduct::route('/{record}/edit'),
         ];
     }
 

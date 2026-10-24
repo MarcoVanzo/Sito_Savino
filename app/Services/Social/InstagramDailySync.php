@@ -5,6 +5,8 @@ namespace App\Services\Social;
 use App\Models\SocialAccount;
 use App\Models\SocialInsightDaily;
 use Carbon\CarbonImmutable;
+use DateTimeImmutable;
+use DateTimeZone;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -228,9 +230,9 @@ class InstagramDailySync
         return $day <= $this->today()->modify("-{$delay} days")->format('Y-m-d');
     }
 
-    private function today(): \DateTimeImmutable
+    private function today(): DateTimeImmutable
     {
-        return new \DateTimeImmutable('today', new \DateTimeZone($this->timezone()));
+        return new DateTimeImmutable('today', new DateTimeZone($this->timezone()));
     }
 
     private function timezone(): string

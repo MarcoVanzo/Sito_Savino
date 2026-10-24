@@ -4,12 +4,17 @@ namespace App\Filament\Resources\ProductResource\RelationManagers;
 
 use App\Enums\StockMovementType;
 use App\Models\StockMovement;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
-use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class VariantsRelationManager extends RelationManager
@@ -18,27 +23,27 @@ class VariantsRelationManager extends RelationManager
 
     protected static ?string $title = 'Varianti';
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form->schema([
-            Forms\Components\TextInput::make('size')
+        return $schema->components([
+            TextInput::make('size')
                 ->label('Taglia')
                 ->placeholder('es. S, M, L, XL'),
-            Forms\Components\TextInput::make('color')
+            TextInput::make('color')
                 ->label('Colore')
                 ->placeholder('es. Bianco, Nero'),
-            Forms\Components\TextInput::make('sku')
+            TextInput::make('sku')
                 ->label('SKU')
                 ->required()
                 ->unique(ignoreRecord: true),
-            Forms\Components\TextInput::make('price_modifier')
+            TextInput::make('price_modifier')
                 ->label('Variazione Prezzo (€)')
                 ->numeric()
                 ->required()
                 ->default(0)
                 ->prefix('€')
                 ->helperText('Aggiunto al prezzo base del prodotto. Es: +5.00 per taglia XL.'),
-            Forms\Components\TextInput::make('stock')
+            TextInput::make('stock')
                 ->label('Stock')
                 ->numeric()
                 ->required()
@@ -52,18 +57,18 @@ class VariantsRelationManager extends RelationManager
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('sku')
+                TextColumn::make('sku')
                     ->label('SKU')
                     ->searchable()
                     ->copyable()
                     ->weight(FontWeight::Bold),
-                Tables\Columns\TextColumn::make('size')
+                TextColumn::make('size')
                     ->label('Taglia')
                     ->placeholder('-'),
-                Tables\Columns\TextColumn::make('color')
+                TextColumn::make('color')
                     ->label('Colore')
                     ->placeholder('-'),
-                Tables\Columns\TextColumn::make('price_modifier')
+                TextColumn::make('price_modifier')
                     ->label('Mod. Prezzo')
                     ->money('EUR')
                     ->color(function ($state) {
@@ -73,7 +78,7 @@ class VariantsRelationManager extends RelationManager
 
                         return $state < 0 ? 'danger' : null;
                     }),
-                Tables\Columns\TextColumn::make('stock')
+                TextColumn::make('stock')
                     ->label('Stock')
                     ->badge()
                     ->color(function (int $state): string {
@@ -85,17 +90,17 @@ class VariantsRelationManager extends RelationManager
                     }),
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make()
+                CreateAction::make()
                     ->label('Nuova Variante'),
             ])
-            ->actions([
+            ->recordActions([
                 // Azione rapida per aggiornare solo lo stock senza aprire il form completo
-                Tables\Actions\Action::make('update_stock')
+                Action::make('update_stock')
                     ->label('Stock')
                     ->icon('heroicon-o-cube')
                     ->color('warning')
-                    ->form([
-                        Forms\Components\TextInput::make('stock')
+                    ->schema([
+                        TextInput::make('stock')
                             ->label('Nuovo Stock')
                             ->numeric()
                             ->required()
@@ -124,11 +129,11 @@ class VariantsRelationManager extends RelationManager
                             ->success()
                             ->send();
                     }),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                DeleteBulkAction::make(),
             ]);
     }
 }

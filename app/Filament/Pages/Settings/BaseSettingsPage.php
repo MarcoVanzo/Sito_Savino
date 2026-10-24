@@ -15,7 +15,7 @@ abstract class BaseSettingsPage extends Page implements HasForms
 {
     use InteractsWithForms;
 
-    protected static ?string $navigationGroup = 'Pagine & Extra';
+    protected static string|\UnitEnum|null $navigationGroup = 'Pagine & Extra';
 
     public static function canAccess(): bool
     {
@@ -24,7 +24,7 @@ abstract class BaseSettingsPage extends Page implements HasForms
         return $user && $user->role === UserRole::SuperAdmin;
     }
 
-    protected static string $view = 'filament.pages.base-settings-page';
+    protected string $view = 'filament.pages.base-settings-page';
 
     public ?array $data = [];
 

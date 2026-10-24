@@ -7,6 +7,7 @@ use App\Services\ActiveCampaignService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Propaga ad ActiveCampaign la disiscrizione (o la cancellazione) decisa sul
@@ -46,7 +47,7 @@ class UnsubscribeNewsletterFromActiveCampaign implements ShouldQueue
         }
     }
 
-    public function failed(\Throwable $exception): void
+    public function failed(Throwable $exception): void
     {
         Log::critical('ActiveCampaign: disiscrizione fallita permanentemente', [
             'contact_id' => $this->contactId,

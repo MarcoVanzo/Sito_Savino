@@ -8,6 +8,7 @@ use App\Filament\Pages\Dashboard;
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\SecurityHeadersMiddleware;
 use App\Models\Page;
+use Closure;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -17,7 +18,6 @@ use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\SpatieLaravelTranslatablePlugin;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -26,6 +26,8 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use LaraZeus\SpatieTranslatable\SpatieTranslatablePlugin;
+use Throwable;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -41,9 +43,9 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->passwordReset(RequestPasswordReset::class, ResetPassword::class)
             ->colors([
-                'primary' => Color::Hex('#003063'), // Savino Blue
-                'danger' => Color::Hex('#DF338F'), // Savino Red
-                'warning' => Color::Hex('#bda871'), // Savino Gold
+                'primary' => Color::generateV3Palette('#003063'), // Savino Blue
+                'danger' => Color::generateV3Palette('#DF338F'), // Savino Red
+                'warning' => Color::generateV3Palette('#bda871'), // Savino Gold
             ])
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->font('Outfit')
@@ -90,7 +92,7 @@ class AdminPanelProvider extends PanelProvider
                 // Rimuoviamo i widget di default di Filament se non necessari, oppure li lasciamo vuoti.
             ])
             ->plugin(
-                SpatieLaravelTranslatablePlugin::make()
+                SpatieTranslatablePlugin::make()
                     ->defaultLocales(config('app.supported_locales'))
             )
             ->renderHook(
@@ -176,7 +178,7 @@ class AdminPanelProvider extends PanelProvider
      *
      * @param  array<string, string>  $slugMap
      */
-    private static function wipItemUrl(string $label, array $slugMap, string $underConstructionUrl): \Closure
+    private static function wipItemUrl(string $label, array $slugMap, string $underConstructionUrl): Closure
     {
         return function () use ($label, $slugMap, $underConstructionUrl) {
             try {
@@ -186,7 +188,7 @@ class AdminPanelProvider extends PanelProvider
                 if ($id) {
                     return "/admin/pages/{$id}/edit";
                 }
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // Fallback: database non raggiungibile o non ancora migrato.
             }
 

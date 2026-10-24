@@ -3,15 +3,22 @@
 namespace App\Filament\Resources;
 
 use App\Enums\SponsorTier;
-use App\Filament\Resources\SponsorResource\Pages;
-use App\Filament\Resources\SponsorResource\RelationManagers;
+use App\Filament\Resources\SponsorResource\Pages\CreateSponsor;
+use App\Filament\Resources\SponsorResource\Pages\EditSponsor;
+use App\Filament\Resources\SponsorResource\Pages\ListSponsors;
+use App\Filament\Resources\SponsorResource\RelationManagers\LiveCreativesRelationManager;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Sponsor;
-use Filament\Forms;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -34,42 +41,47 @@ class SponsorResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Sponsor';
 
-    protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-currency-dollar';
 
     protected static ?string $navigationLabel = 'I Nostri Sponsor';
 
-    protected static ?string $navigationGroup = 'Sponsor';
+    protected static string|\UnitEnum|null $navigationGroup = 'Sponsor';
 
     protected static ?int $navigationSort = 1;
 
     protected static ?string $slug = 'sponsor';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('name')
+        return $schema
+            ->components([
+                TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('url')
+                TextInput::make('url')
                     ->url()
                     ->maxLength(255),
-                Forms\Components\Select::make('tier')
+                Select::make('tier')
                     ->label('Livello')
                     ->options(SponsorTier::class)
                     ->default(SponsorTier::Official)
                     ->required(),
-                Forms\Components\TextInput::make('sort_order')
+                TextInput::make('sort_order')
                     ->label('Ordine')
                     ->helperText('Posizione dentro al proprio livello: numeri più bassi vengono prima.')
                     ->numeric()
                     ->default(0),
+                Toggle::make('solo_diretta')
+                    ->label('Solo diretta')
+                    ->helperText('Non compare nella pagina Sponsor né nella striscia della home: serve solo per le grafiche della diretta (es. la cornice dello shop ufficiale).')
+                    ->default(false)
+                    ->columnSpanFull(),
                 SpatieMediaLibraryFileUpload::make('logo')
                     ->collection('sponsors')
                     ->image()
                     ->maxSize(2048)
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('testo_alternativo')
+                TextInput::make('testo_alternativo')
                     ->label('Testo alternativo del logo')
                     ->helperText('Se resta vuoto si usa il nome dello sponsor, che di solito basta.')
                     ->maxLength(255)
@@ -81,15 +93,15 @@ class SponsorResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\SpatieMediaLibraryImageColumn::make('logo')
+                SpatieMediaLibraryImageColumn::make('logo')
                     ->checkFileExistence(false)
                     ->conversion('thumb')
                     ->label('Logo')
                     ->collection('sponsors')
                     ->circular(),
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('tier')
+                TextColumn::make('tier')
                     ->label('Livello')
                     ->badge()
                     ->color(fn ($state): string => match ($state instanceof SponsorTier ? $state->size() : 'small') {
@@ -98,31 +110,34 @@ class SponsorResource extends Resource
                         'medium' => 'info',
                         default => 'gray',
                     }),
-                Tables\Columns\TextColumn::make('url')
+                TextColumn::make('url')
                     ->label('Sito Web'),
+                IconColumn::make('solo_diretta')
+                    ->label('Solo diretta')
+                    ->boolean(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('tier')
+                SelectFilter::make('tier')
                     ->label('Livello')
                     ->options(SponsorTier::class),
             ])
-            ->actions(static::viewAndEditActions())
-            ->bulkActions(static::standardBulkActions());
+            ->recordActions(static::viewAndEditActions())
+            ->toolbarActions(static::standardBulkActions());
     }
 
     public static function getRelations(): array
     {
         return [
-            RelationManagers\LiveCreativesRelationManager::class,
+            LiveCreativesRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListSponsors::route('/'),
-            'create' => Pages\CreateSponsor::route('/create'),
-            'edit' => Pages\EditSponsor::route('/{record}/edit'),
+            'index' => ListSponsors::route('/'),
+            'create' => CreateSponsor::route('/create'),
+            'edit' => EditSponsor::route('/{record}/edit'),
         ];
     }
 

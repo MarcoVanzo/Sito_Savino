@@ -3,7 +3,7 @@
 namespace App\Filament\Actions;
 
 use App\Models\Roster;
-use Filament\Tables\Actions\Action;
+use Filament\Actions\Action;
 
 class SyncFaceAction
 {

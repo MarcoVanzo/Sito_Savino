@@ -7,16 +7,27 @@ use App\Filament\Actions\SyncFaceAction;
 use App\Filament\Clusters\SdbYouth;
 use App\Filament\Columns\AiScoreColumn;
 use App\Filament\Forms\CampoAtleta;
-use App\Filament\Resources\YouthRosterResource\Pages;
+use App\Filament\Resources\YouthRosterResource\Pages\CreateYouthRoster;
+use App\Filament\Resources\YouthRosterResource\Pages\EditYouthRoster;
+use App\Filament\Resources\YouthRosterResource\Pages\ListYouthRosters;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Roster;
 use App\Models\Team;
-use Filament\Forms;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Form;
-use Filament\Pages\SubNavigationPosition;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ViewField;
+use Filament\Pages\Enums\SubNavigationPosition;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
@@ -26,7 +37,7 @@ class YouthRosterResource extends Resource
 {
     use HasStandardTableActions;
 
-    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+    protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     protected static ?string $model = Roster::class;
 
@@ -43,7 +54,7 @@ class YouthRosterResource extends Resource
 
     protected static ?string $cluster = SdbYouth::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-user';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-user';
 
     protected static ?string $navigationLabel = 'Atlete';
 
@@ -51,15 +62,15 @@ class YouthRosterResource extends Resource
 
     protected static ?string $slug = 'youth-roster';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Associazione Stagionale')
+        return $schema
+            ->components([
+                Section::make('Associazione Stagionale')
                     ->schema([
                         CampoAtleta::make(vivaio: true)
                             ->required(),
-                        Forms\Components\Select::make('team_id')
+                        Select::make('team_id')
                             ->label('Squadra')
                             ->relationship(
                                 'team',
@@ -69,34 +80,34 @@ class YouthRosterResource extends Resource
                             ->searchable()
                             ->preload()
                             ->required(),
-                        Forms\Components\Select::make('season_id')
+                        Select::make('season_id')
                             ->label('Stagione')
                             ->relationship('season', 'name')
                             ->searchable()
                             ->preload()
                             ->required(),
                     ])->columns(3),
-                Forms\Components\Section::make('Dettagli Tecnici')
+                Section::make('Dettagli Tecnici')
                     ->schema([
-                        Forms\Components\TextInput::make('jersey_number')
+                        TextInput::make('jersey_number')
                             ->label('Numero di Maglia')
                             ->numeric()
                             ->minValue(0),
-                        Forms\Components\Select::make('role')
+                        Select::make('role')
                             ->label('Ruolo in Campo')
                             ->options(PlayerPosition::class)
                             ->required(),
-                        Forms\Components\TextInput::make('height_cm')
+                        TextInput::make('height_cm')
                             ->label('Altezza (cm)')
                             ->numeric()
                             ->minValue(0),
-                        Forms\Components\Toggle::make('is_captain')
+                        Toggle::make('is_captain')
                             ->label('Capitano della Squadra')
                             ->required(),
                     ])->columns(2),
-                Forms\Components\Section::make('Biografia e Foto')
+                Section::make('Biografia e Foto')
                     ->schema([
-                        Forms\Components\Textarea::make('bio')
+                        Textarea::make('bio')
                             ->label('Biografia Stagionale')
                             ->columnSpanFull(),
                         SpatieMediaLibraryFileUpload::make('official_photo')
@@ -129,12 +140,12 @@ class YouthRosterResource extends Resource
                             ->imageResizeUpscale(false)
                             ->helperText('Puoi caricare più foto contemporaneamente.'),
                     ])->columns(2),
-                Forms\Components\Section::make('Stato Addestramento AI')
+                Section::make('Stato Addestramento AI')
                     ->description('Mostra quali foto sono state accettate o scartate dall\'AI per il riconoscimento facciale.')
                     ->icon('heroicon-o-cpu-chip')
                     ->collapsed()
                     ->schema([
-                        Forms\Components\ViewField::make('ai_photo_status')
+                        ViewField::make('ai_photo_status')
                             ->label('')
                             ->dehydrated(false)
                             ->view('filament.components.ai-photo-status'),
@@ -146,40 +157,40 @@ class YouthRosterResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\SpatieMediaLibraryImageColumn::make('official_photo')
+                SpatieMediaLibraryImageColumn::make('official_photo')
                     ->conversion('thumb')
                     ->label('')
                     ->collection('rosters_official')
                     ->circular()
                     ->checkFileExistence(false),
-                Tables\Columns\TextColumn::make('player.last_name')
+                TextColumn::make('player.last_name')
                     ->label('Atleta')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('team.name')
+                TextColumn::make('team.name')
                     ->label('Squadra')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('team.category')
+                TextColumn::make('team.category')
                     ->label('Categoria')
                     ->badge()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('season.name')
+                TextColumn::make('season.name')
                     ->label('Stagione')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('jersey_number')
+                TextColumn::make('jersey_number')
                     ->label('Maglia'),
-                Tables\Columns\TextColumn::make('role')
+                TextColumn::make('role')
                     ->label('Ruolo'),
-                Tables\Columns\IconColumn::make('is_captain')
+                IconColumn::make('is_captain')
                     ->label('Capitano')
                     ->boolean(),
                 AiScoreColumn::make(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('season_id')
+                SelectFilter::make('season_id')
                     ->label('Stagione')
                     ->relationship('season', 'name'),
-                Tables\Filters\SelectFilter::make('team_category')
+                SelectFilter::make('team_category')
                     ->label('Categoria')
                     ->options([
                         'B1' => 'Serie B1',
@@ -195,18 +206,18 @@ class YouthRosterResource extends Resource
             // squadre diverse (B1/U19, Serie C/U17, Seconda Divisione/U15) e
             // in una lista unica non si capiva chi giocasse dove.
             ->groups([
-                Tables\Grouping\Group::make('team.name')
+                Group::make('team.name')
                     ->label('Squadra')
                     ->collapsible(),
-                Tables\Grouping\Group::make('season.name')
+                Group::make('season.name')
                     ->label('Stagione')
                     ->collapsible(),
             ])
             ->defaultGroup('team.name')
-            ->actions(array_merge([
+            ->recordActions(array_merge([
                 SyncFaceAction::make('syncFace'),
             ], static::viewAndEditActions()))
-            ->bulkActions(static::standardBulkActions());
+            ->toolbarActions(static::standardBulkActions());
     }
 
     public static function getRelations(): array
@@ -219,9 +230,9 @@ class YouthRosterResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListYouthRosters::route('/'),
-            'create' => Pages\CreateYouthRoster::route('/create'),
-            'edit' => Pages\EditYouthRoster::route('/{record}/edit'),
+            'index' => ListYouthRosters::route('/'),
+            'create' => CreateYouthRoster::route('/create'),
+            'edit' => EditYouthRoster::route('/{record}/edit'),
         ];
     }
 

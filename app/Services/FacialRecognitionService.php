@@ -13,7 +13,10 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use InvalidArgumentException;
+use RuntimeException;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Throwable;
 
 class FacialRecognitionService
 {
@@ -53,7 +56,7 @@ class FacialRecognitionService
         return Http::withHeaders(['x-api-key' => $this->apiKey])
             ->connectTimeout(5)
             ->timeout($timeout)
-            ->retry(2, 1000, fn (\Throwable $e): bool => ! $e instanceof ConnectionException, throw: false);
+            ->retry(2, 1000, fn (Throwable $e): bool => ! $e instanceof ConnectionException, throw: false);
     }
 
     /**
@@ -369,7 +372,7 @@ class FacialRecognitionService
 
         try {
             $copia = VoltiDiSfondo::copiaDiLavoro($imagePath, $byteMassimi);
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             throw new FacialRecognitionException($e->getMessage(), previous: $e);
         }
 
@@ -407,7 +410,7 @@ class FacialRecognitionService
         $response = Http::withHeaders(['x-api-key' => (string) config('services.compreface.detection_key')])
             ->connectTimeout(5)
             ->timeout(30)
-            ->retry(2, 1000, fn (\Throwable $e): bool => ! $e instanceof ConnectionException, throw: false)
+            ->retry(2, 1000, fn (Throwable $e): bool => ! $e instanceof ConnectionException, throw: false)
             ->attach('file', fopen($imagePath, 'r'), basename($imagePath))
             ->post(rtrim($this->host, '/').'/api/v1/detection/detect?limit=0&det_prob_threshold=0.8');
 
@@ -580,7 +583,7 @@ class FacialRecognitionService
             file_put_contents($tempPath, $disk->get($relativePath));
 
             return $tempPath;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('CompreFace: download media failed', ['error' => $e->getMessage()]);
 
             return null;
@@ -601,7 +604,7 @@ class FacialRecognitionService
             return 'staff_'.$person->id;
         }
 
-        throw new \InvalidArgumentException('Unsupported model type: '.get_class($person));
+        throw new InvalidArgumentException('Unsupported model type: '.get_class($person));
     }
 
     /**

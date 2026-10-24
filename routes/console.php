@@ -146,6 +146,10 @@ Schedule::command('diretta:chiudi-le-pause')->everyMinute()->withoutOverlapping(
 // "iscritta", con nome e IP.
 Schedule::command('newsletter:allinea-disiscritti')->dailyAt('05:15')->withoutOverlapping();
 
+// Gli identificativi di Meta salvati per la Conversions API (ordini con il
+// consenso di marketing) non restano oltre la finestra in cui servono.
+Schedule::command('meta:dimentica-gli-identificativi')->dailyAt('05:30')->withoutOverlapping();
+
 // Deve restare in fondo: copre gli eventi registrati sopra. `schedule:work`
 // manda l'output in /dev/null, quindi un comando che esce con errore non
 // lasciava traccia; così l'output si cattura e un fallimento arriva per email

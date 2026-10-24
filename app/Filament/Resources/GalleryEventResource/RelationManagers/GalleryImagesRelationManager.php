@@ -6,13 +6,23 @@ use App\Jobs\AnalyzeGalleryImageJob;
 use App\Models\GalleryImage;
 use App\Models\Player;
 use App\Models\StaffMember;
-use Filament\Forms;
+use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -27,14 +37,14 @@ class GalleryImagesRelationManager extends RelationManager
 
     protected static ?string $pluralModelLabel = 'Foto';
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('title')
+        return $schema
+            ->components([
+                TextInput::make('title')
                     ->label('Titolo')
                     ->maxLength(255),
-                Forms\Components\Select::make('players')
+                Select::make('players')
                     ->label('Atlete presenti')
                     ->multiple()
                     ->options(fn () => Player::orderBy('last_name')
@@ -42,12 +52,12 @@ class GalleryImagesRelationManager extends RelationManager
                         ->mapWithKeys(fn (Player $p) => [$p->id => "{$p->first_name} {$p->last_name}"]))
                     ->searchable()
                     ->preload()
-                    ->afterStateHydrated(function (Forms\Components\Select $component, ?GalleryImage $record) {
+                    ->afterStateHydrated(function (Select $component, ?GalleryImage $record) {
                         if ($record) {
                             $component->state($record->players->pluck('id')->toArray());
                         }
                     }),
-                Forms\Components\Select::make('staff_members')
+                Select::make('staff_members')
                     ->label('Staff presente')
                     ->multiple()
                     ->options(fn () => StaffMember::orderBy('last_name')
@@ -55,15 +65,15 @@ class GalleryImagesRelationManager extends RelationManager
                         ->mapWithKeys(fn (StaffMember $s) => [$s->id => "{$s->first_name} {$s->last_name} ({$s->role})"]))
                     ->searchable()
                     ->preload()
-                    ->afterStateHydrated(function (Forms\Components\Select $component, ?GalleryImage $record) {
+                    ->afterStateHydrated(function (Select $component, ?GalleryImage $record) {
                         if ($record) {
                             $component->state($record->staffMembers->pluck('id')->toArray());
                         }
                     }),
-                Forms\Components\Toggle::make('is_active')
+                Toggle::make('is_active')
                     ->label('Attiva')
                     ->default(true),
-                Forms\Components\Toggle::make('needs_review')
+                Toggle::make('needs_review')
                     ->label('Da revisionare'),
                 SpatieMediaLibraryFileUpload::make('gallery')
                     ->collection('gallery')
@@ -92,15 +102,15 @@ class GalleryImagesRelationManager extends RelationManager
                     ->circular(false)
                     ->width(80)
                     ->height(60),
-                Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->label('Titolo')
                     ->searchable()
                     ->limit(30),
-                Tables\Columns\TextColumn::make('players.last_name')
+                TextColumn::make('players.last_name')
                     ->label('Atlete')
                     ->badge()
                     ->separator(', '),
-                Tables\Columns\IconColumn::make('needs_review')
+                IconColumn::make('needs_review')
                     ->label('Da Rev.')
                     ->tooltip('Un volto grande somiglia a una persona in anagrafica senza raggiungere la soglia del tag: conferma o correggi con "Identifica".')
                     ->boolean()
@@ -108,18 +118,18 @@ class GalleryImagesRelationManager extends RelationManager
                     ->trueColor('warning')
                     ->falseIcon('heroicon-o-check-circle')
                     ->falseColor('success'),
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label('Attiva')
                     ->boolean(),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('needs_review')
+                TernaryFilter::make('needs_review')
                     ->label('Da Revisionare')
                     ->trueLabel('Sì, volto quasi riconosciuto')
                     ->falseLabel('No, OK'),
             ])
             ->headerActions([
-                Tables\Actions\Action::make('analyzeAll')
+                Action::make('analyzeAll')
                     ->label('Analizza tutte con AI')
                     ->icon('heroicon-o-sparkles')
                     ->color('info')
@@ -153,27 +163,27 @@ class GalleryImagesRelationManager extends RelationManager
                             ->send();
                     }),
             ])
-            ->actions([
-                Tables\Actions\Action::make('identifica')
+            ->recordActions([
+                Action::make('identifica')
                     ->label('Identifica')
                     ->icon('heroicon-o-user-plus')
                     ->color('warning')
                     ->visible(fn (GalleryImage $record) => $record->needs_review)
-                    ->mountUsing(function (Form $form, GalleryImage $record) {
-                        $form->fill([
+                    ->mountUsing(function (Schema $schema, GalleryImage $record) {
+                        $schema->fill([
                             'players' => $record->players->pluck('id')->toArray(),
                             'staff_members' => $record->staffMembers->pluck('id')->toArray(),
                         ]);
                     })
-                    ->form([
-                        Forms\Components\Select::make('players')
+                    ->schema([
+                        Select::make('players')
                             ->label('Atlete presenti')
                             ->multiple()
                             ->options(fn () => Player::orderBy('last_name')
                                 ->get()
                                 ->mapWithKeys(fn (Player $p) => [$p->id => "{$p->first_name} {$p->last_name}"]))
                             ->searchable(),
-                        Forms\Components\Select::make('staff_members')
+                        Select::make('staff_members')
                             ->label('Staff presente')
                             ->multiple()
                             ->options(fn () => StaffMember::orderBy('last_name')
@@ -188,25 +198,25 @@ class GalleryImagesRelationManager extends RelationManager
                         $record->save();
                         Notification::make()->title('Identificata')->success()->send();
                     }),
-                Tables\Actions\EditAction::make()
+                EditAction::make()
                     ->after(function (GalleryImage $record, array $data) {
                         $record->players()->sync($data['players'] ?? []);
                         $record->staffMembers()->sync($data['staff_members'] ?? []);
                     }),
-                Tables\Actions\DeleteAction::make()
+                DeleteAction::make()
                     ->before(function (GalleryImage $record) {
                         $record->clearMediaCollection('gallery');
                     }),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
                         ->before(function (Collection $records) {
                             foreach ($records as $record) {
                                 $record->clearMediaCollection('gallery');
                             }
                         }),
-                    Tables\Actions\BulkAction::make('analyzeBulk')
+                    BulkAction::make('analyzeBulk')
                         ->label('Analizza con AI')
                         ->icon('heroicon-o-sparkles')
                         ->requiresConfirmation()

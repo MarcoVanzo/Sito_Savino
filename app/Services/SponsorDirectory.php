@@ -25,7 +25,10 @@ class SponsorDirectory
         $locale = app()->getLocale();
 
         return Cache::remember(self::CACHE_KEY.":{$locale}", now()->addMinutes(30), function () {
+            // Gli sponsor «solo diretta» (es. lo shop ufficiale) portano solo
+            // grafiche della diretta: nella pagina pubblica non compaiono.
             $sponsors = Sponsor::with('media')
+                ->where('solo_diretta', false)
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get()

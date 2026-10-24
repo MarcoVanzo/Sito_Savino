@@ -10,14 +10,14 @@ use Illuminate\Support\Facades\Cache;
 
 class OrdersChartWidget extends ChartWidget
 {
-    protected static ?string $heading = 'Ordini ultimi 6 mesi';
+    protected ?string $heading = 'Ordini ultimi 6 mesi';
 
     protected static ?int $sort = 2;
 
-    protected static string $color = 'warning';
+    protected string $color = 'warning';
 
     // Disabilita il polling automatico
-    protected static ?string $pollingInterval = null;
+    protected ?string $pollingInterval = null;
 
     /**
      * Il widget è auto-discovered e finiva quindi nella dashboard di TUTTI i

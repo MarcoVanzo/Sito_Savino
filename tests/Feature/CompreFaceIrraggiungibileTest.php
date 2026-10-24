@@ -55,7 +55,7 @@ class CompreFaceIrraggiungibileTest extends TestCase
 
         TrainAiFacesAction::execute(Player::factory()->create(), ['training_images' => []]);
 
-        $notifiche = session('filament.notifications', []);
+        $notifiche = $this->notificheDiFilament();
 
         $this->assertCount(1, $notifiche);
         $this->assertSame('Servizio AI non raggiungibile', $notifiche[0]['title']);

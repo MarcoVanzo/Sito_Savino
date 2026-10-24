@@ -18,7 +18,7 @@ class Sponsor extends Model implements HasMedia
     use HasFactory, HasOptimizedMedia, HasTranslations, InteractsWithMedia, LogsActivity;
 
     protected $fillable = [
-        'name', 'url', 'tier', 'sort_order', 'testo_alternativo',
+        'name', 'url', 'tier', 'sort_order', 'solo_diretta', 'testo_alternativo',
     ];
 
     // La tabella `sponsors` non ha una colonna `description`.
@@ -31,6 +31,7 @@ class Sponsor extends Model implements HasMedia
     {
         return [
             'tier' => SponsorTier::class,
+            'solo_diretta' => 'boolean',
         ];
     }
 

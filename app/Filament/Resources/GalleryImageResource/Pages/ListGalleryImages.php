@@ -8,7 +8,8 @@ use App\Jobs\AnalyzeGalleryImageJob;
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
 use App\Services\GalleryUploadService;
-use Filament\Actions;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -18,6 +19,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class ListGalleryImages extends ListRecords
 {
@@ -28,12 +30,12 @@ class ListGalleryImages extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('create_event')
+            Action::make('create_event')
                 ->label('Crea Evento e Carica Foto')
                 ->icon('heroicon-o-folder-plus')
                 ->color('success')
                 ->modalSubmitActionLabel('Salva')
-                ->form([
+                ->schema([
                     TextInput::make('title')
                         ->label('Titolo Evento')
                         ->required()
@@ -70,7 +72,7 @@ class ListGalleryImages extends ListRecords
                         ->required(),
                 ])
                 ->action(fn (array $data) => $this->creaLEventoConLeFoto($data)),
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->label('Carica Singola Foto'),
         ];
     }
@@ -168,7 +170,7 @@ class ListGalleryImages extends ListRecords
                 ->body($body)
                 ->success()
                 ->send();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Gallery upload failed', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile().':'.$e->getLine(),

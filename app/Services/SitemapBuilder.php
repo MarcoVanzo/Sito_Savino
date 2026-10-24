@@ -17,6 +17,7 @@ use App\Services\Seo\DatiStrutturati;
 use App\Support\IndirizziPerLingua;
 use App\Support\RedirectGestiti;
 use Carbon\Carbon;
+use Closure;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Spatie\Sitemap\Sitemap;
@@ -142,6 +143,12 @@ class SitemapBuilder
             $indirizzi = [$predefinita => url('/'.ltrim($path, '/'))];
 
             foreach (IndirizziPerLingua::lingue() as $lingua) {
+                // `lingue`: quelle in cui la pagina e' scritta (un prodotto
+                // senza traduzione resta solo in italiano).
+                if (isset($config['lingue']) && ! in_array($lingua, $config['lingue'], true)) {
+                    continue;
+                }
+
                 if ($lingua !== $predefinita && ($indirizzo = IndirizziPerLingua::perPercorso($path, $lingua)) !== null) {
                     $indirizzi[$lingua] = $indirizzo;
                 }
@@ -225,7 +232,7 @@ class SitemapBuilder
     /**
      * Home, pagine fisse e pagine del CMS.
      */
-    private function pagine(\Closure $addLocalizedUrls): void
+    private function pagine(Closure $addLocalizedUrls): void
     {
         $addLocalizedUrls('/', [
             'freq' => Url::CHANGE_FREQUENCY_DAILY,
@@ -272,7 +279,7 @@ class SitemapBuilder
      * Le schede dei prodotti in vendita e disponibili, con le foto. Un
      * prodotto esaurito resta fuori: la scheda esiste, ma non è da proporre.
      */
-    private function prodotti(\Closure $addLocalizedUrls): void
+    private function prodotti(Closure $addLocalizedUrls): void
     {
         Product::shoppable()
             ->with('media')
@@ -293,6 +300,7 @@ class SitemapBuilder
                 $addLocalizedUrls(route('shop.product', ['product' => $prodotto->slug], false), [
                     'freq' => Url::CHANGE_FREQUENCY_WEEKLY,
                     'priority' => 0.6,
+                    'lingue' => array_values(array_filter(IndirizziPerLingua::lingue(), fn (string $lingua) => $prodotto->tradottoIn($lingua))),
                 ], $prodotto->updated_at, $immagini);
             });
     }

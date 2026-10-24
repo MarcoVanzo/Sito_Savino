@@ -44,6 +44,10 @@ export function useFormFinto(iniziali) {
         post(url, opzioni = {}) {
             invii.push({ url, dati: { ...form }, opzioni });
         },
+        reset() {
+            Object.assign(form, iniziali);
+            return this;
+        },
     });
 
     return form;

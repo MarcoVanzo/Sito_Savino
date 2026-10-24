@@ -35,7 +35,7 @@ Ripetute qui perché le sessioni cloud (telefono) vedono solo il repository.
 
 ## 1. Contesto
 
-- **Laravel 13** (Filament CMS, Inertia + Vue, **SSR non attivo**), **MySQL 8.4
+- **Laravel 13** (Filament CMS, Inertia + Vue, **SSR attivo**), **MySQL 8.4
   gestito su DigitalOcean** (App Platform `fra1`: web + worker + scheduler).
 - In produzione su **`savinodelbenevolley.it` dal 1/10/2026**.
 - File chiave: `.do/app.yaml`, `docker-compose.yml`, `docs/INFRASTRUCTURE.md`,
@@ -92,7 +92,26 @@ Ripetute qui perché le sessioni cloud (telefono) vedono solo il repository.
 - App Platform, spec **autorevole** in `.do/app.yaml` (cosa si aggiunge dal
   pannello DO viene cancellato al deploy successivo). Deploy automatico da
   `main`, gated dalla CI. File su **Spaces** `fra1`.
-- **SSR non attivo** (`INERTIA_SSR_ENABLED=false`, nessun `ssr.js` né bundle).
+- **SSR attivo** (`INERTIA_SSR_ENABLED=true` sul web): `start.sh` avvia
+  `node bootstrap/ssr/ssr.js` nello stesso container (127.0.0.1:13714, si
+  riavvia da solo; caduto, Laravel serve la pagina senza SSR). Bundle da
+  `npm run build` (`vite build --ssr`), rendering in `resources/js/paginaSsr.js`.
+  - Nei componenti `window`, `document`, `localStorage` solo in `onMounted` o
+    dietro `typeof window`; niente classi o attributi diversi fra server e
+    browser (in produzione Vue non li riallinea). `<Teleport>` solo dopo il
+    montaggio (`CartDrawer`). Verifica: `VUE_HYDRATION_DETAILS=1 npm run build`
+    e la console.
+  - `route()` del server: configurazione di Ziggy per richiesta in un
+    `AsyncLocalStorage` (prop `ziggy.routes` solo ai caricamenti interi), mai
+    una globale riassegnata.
+  - `useSanitize` sul server usa DOMPurify con il DOM di **jsdom** (fra le
+    `dependencies`, esterno al bundle).
+  - Titolo, description e og: li stampa solo `app.blade.php` (con
+    `data-inertia`, Inertia 3)
+    (`TestaDellSsr` toglie i doppioni dall'head dell'SSR); il JSON della
+    pagina passa da `DatiInizialiDellaPagina::corpoDellSsr`.
+  - Test: `HtmlInizialeConLSsrTest` (`--group ssr`, server vero, passo
+    dedicato in CI).
 - **Node 22**, fissato in `.nvmrc` (workflow) e in `engines` di `package.json`
   (build di App Platform): devono coincidere.
 - **Dominio** (dal 1/10/2026, `docs/GO_LIVE.md`): `domains:` nella spec con
@@ -318,6 +337,16 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
   file, video, documenti legali). Ogni rotta che pubblica una `Page` passa di lì.
 
 ### Pannello Filament
+- **Filament 5** (Livewire 4) con `lara-zeus/spatie-translatable` (al posto del plugin
+  ufficiale abbandonato). Il tema del pannello è su **Tailwind 4** (alias npm
+  `tailwindcss4`, `@tailwindcss/vite` limitato a `resources/css/filament/`), il
+  sito pubblico resta su **Tailwind 3** (`postcss.config.js` salta il tema).
+- Livewire 4 risponde su `livewire-{hash}/…` (hash dall'`APP_KEY`): nei
+  filtri sui percorsi usare `livewire*`, mai `livewire/*`.
+- `EditPage` cambia lingua sullo stato grezzo (come il plugin di Filament 3);
+  le altre risorse usano il cambio di lingua di lara-zeus, che passa da
+  `getState()`: un campo non deidratato (es. `stock` in modifica) non deve
+  essere `required` in quel contesto.
 - Repeater facoltativi: `defaultItems(0)`.
 - Un campo `hidden()` (anche `Select`) non viene deidratato: per valori fissi
   `Forms\Components\Hidden`.
@@ -412,7 +441,7 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
   Nomi e ordine delle sezioni li decide la redazione (Sponsor → «Nomi e ordine
   delle sezioni», `CHIAVE_DEI_NOMI` e `CHIAVE_DELL_ORDINE`): nome vuoto =
   `nomePredefinito()`, livello assente dall'ordine salvato = in fondo, nell'ordine
-  dei case (quello chiesto dalla società). In pagina passare da `ordered()`. Le richieste vanno a `marketing@savinodelbenevolley.it`.
+  dei case (quello chiesto dalla società). In pagina passare da `ordered()`. Gli sponsor `solo_diretta` (es. la cornice dello shop) stanno solo nella diretta: `SponsorDirectory` li esclude. Le richieste vanno a `marketing@savinodelbenevolley.it`.
 
 ## 16. Diretta streaming
 
@@ -477,7 +506,8 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
 `ServeSocialCrawlerMeta` risponde ai crawler (`CRAWLER_PATTERNS`) con un HTML
 minimale; per tutti gli altri mette gli stessi meta nell'attributo
 `ATTRIBUTO_META`, che `app.blade.php` stampa (titolo, descrizione, `og:`) con
-l'attributo `inertia` (Google senza SSR). Le visite Inertia non li calcolano.
+l'attributo `inertia` (e titolo e meta dell'head dell'SSR li riempiono solo dove
+il server non ne ha). Le visite Inertia non li calcolano.
 - Pagina riconosciuta dal **nome della rotta** (uguale in tutte le lingue); le
   pagine CMS dal controller `PageController@show`.
 - Ciò che non sa descrivere passa a `$next` (301 e 404 restano tali).
@@ -654,6 +684,8 @@ framework si insegna allo script, non si silenzia. `--html=mappa.html` per la ma
   (valido solo il giorno in cui si sceglie). Pop-up e «Biglietti» solo per gare
   in casa e prima del fischio d'inizio; il pop-up aspetta il banner cookie.
   Conto alla rovescia al minuto (`conteggioAllaPartita.js`, WCAG 2.2.2).
+- **Match Day, diretta in home, `/diretta` e regia: solo la prima squadra (A1)**,
+  mai il vivaio (anche lui `is_internal`): `Game::dellaPrimaSquadra()`.
 - **Striscia sponsor** a colori, ferma col pulsante di pausa; sotto sei non scorre.
 - **Eventi** (`App\Models\Evento`): i prossimi tre pubblicati e non finiti.
 - Test: `HomepageGoLiveTest`, `EventiEMatchDayNelPannelloTest`,

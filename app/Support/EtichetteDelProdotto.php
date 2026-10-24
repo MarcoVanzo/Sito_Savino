@@ -6,6 +6,7 @@ use App\Enums\EtichettaProdotto;
 use App\Enums\ProductType;
 use App\Models\Product;
 use App\Services\StoricoPrezzi;
+use Closure;
 
 /**
  * Quali etichette mostrare sulla foto di un prodotto.
@@ -67,9 +68,9 @@ final class EtichetteDelProdotto
     }
 
     /**
-     * @param  bool|\Closure(): bool  $scontoAnnunciabile
+     * @param  bool|Closure():bool  $scontoAnnunciabile
      */
-    private static function eVera(EtichettaProdotto $etichetta, Product $prodotto, bool $esaurito, bool|\Closure $scontoAnnunciabile): bool
+    private static function eVera(EtichettaProdotto $etichetta, Product $prodotto, bool $esaurito, bool|Closure $scontoAnnunciabile): bool
     {
         if ($esaurito && $etichetta !== EtichettaProdotto::Nuovo) {
             return false;

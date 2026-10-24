@@ -7,17 +7,22 @@ use App\Filament\Pages\Concerns\RestrictsAccessByRole;
 use App\Filament\Widgets\StockMovementTableWidget;
 use App\Models\Product;
 use App\Models\StockMovement;
-use Filament\Forms;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Tables;
-use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\Column;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\BaseFilter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -27,9 +32,9 @@ class MagazzinoPage extends Page implements HasForms, HasTable
     use InteractsWithTable;
     use RestrictsAccessByRole;
 
-    protected static ?string $navigationIcon = 'heroicon-o-archive-box';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-archive-box';
 
-    protected static ?string $navigationGroup = 'Shop Ufficiale';
+    protected static string|\UnitEnum|null $navigationGroup = 'Shop Ufficiale';
 
     protected static ?string $navigationLabel = 'Magazzino';
 
@@ -39,7 +44,7 @@ class MagazzinoPage extends Page implements HasForms, HasTable
 
     protected static ?string $slug = 'shop/magazzino';
 
-    protected static string $view = 'filament.pages.magazzino-page';
+    protected string $view = 'filament.pages.magazzino-page';
 
     /**
      * Tab attiva: 'inventario' o 'movimenti'.
@@ -60,8 +65,8 @@ class MagazzinoPage extends Page implements HasForms, HasTable
             ->columns($this->colonne())
             ->defaultSort('stock', 'asc')
             ->filters($this->filtri())
-            ->actions($this->azioni())
-            ->bulkActions([])
+            ->recordActions($this->azioni())
+            ->toolbarActions([])
             ->emptyStateHeading('Nessun prodotto trovato')
             ->emptyStateDescription('Non ci sono prodotti attivi nel catalogo.')
             ->poll('30s');
@@ -73,29 +78,29 @@ class MagazzinoPage extends Page implements HasForms, HasTable
     private function colonne(): array
     {
         return [
-            Tables\Columns\SpatieMediaLibraryImageColumn::make('images')
+            SpatieMediaLibraryImageColumn::make('images')
                 ->checkFileExistence(false)
                 ->conversion('thumb')
                 ->label('')
                 ->collection('images')
                 ->square(),
 
-            Tables\Columns\TextColumn::make('name')
+            TextColumn::make('name')
                 ->label('Prodotto')
                 ->searchable()
                 ->sortable(),
 
-            Tables\Columns\TextColumn::make('category.name')
+            TextColumn::make('category.name')
                 ->label('Categoria')
                 ->sortable()
                 ->placeholder('-'),
 
-            Tables\Columns\TextColumn::make('sku')
+            TextColumn::make('sku')
                 ->label('SKU')
                 ->searchable()
                 ->placeholder('-'),
 
-            Tables\Columns\TextColumn::make('stock')
+            TextColumn::make('stock')
                 ->label('Stock')
                 ->numeric()
                 ->sortable()
@@ -110,7 +115,7 @@ class MagazzinoPage extends Page implements HasForms, HasTable
                         ->join(' | ');
                 }),
 
-            Tables\Columns\TextColumn::make('stock_status')
+            TextColumn::make('stock_status')
                 ->label('Stato')
                 ->badge()
                 ->state(function (Product $record): string {
@@ -141,7 +146,7 @@ class MagazzinoPage extends Page implements HasForms, HasTable
                     default => 'heroicon-o-question-mark-circle',
                 }),
 
-            Tables\Columns\TextColumn::make('price')
+            TextColumn::make('price')
                 ->label('Prezzo')
                 ->money('EUR')
                 ->sortable(),
@@ -154,7 +159,7 @@ class MagazzinoPage extends Page implements HasForms, HasTable
     private function filtri(): array
     {
         return [
-            Tables\Filters\SelectFilter::make('stock_status')
+            SelectFilter::make('stock_status')
                 ->label('Stato Stock')
                 ->options([
                     'esaurito' => '🔴 Esaurito',
@@ -171,14 +176,14 @@ class MagazzinoPage extends Page implements HasForms, HasTable
                 }),
 
             // Principale o aggiuntiva, come la vetrina e l'elenco Prodotti.
-            Tables\Filters\SelectFilter::make('product_category_id')
+            SelectFilter::make('product_category_id')
                 ->label('Categoria')
                 ->relationship('category', 'name')
                 ->query(fn (Builder $query, array $data) => filled($data['value'] ?? null)
                     ? $query->nelleCategorie([(int) $data['value']])
                     : $query),
 
-            Tables\Filters\TernaryFilter::make('is_active')
+            TernaryFilter::make('is_active')
                 ->label('Attivo')
                 ->default(true),
         ];
@@ -198,12 +203,12 @@ class MagazzinoPage extends Page implements HasForms, HasTable
                 ->color('success')
                 ->modalHeading(fn (Product $record): string => "Carica stock: {$record->name}")
                 ->modalSubmitActionLabel('Conferma carico')
-                ->form(function (Product $record): array {
+                ->schema(function (Product $record): array {
                     $schema = [];
 
                     // Se il prodotto ha varianti, mostra il selettore
                     if ($record->variants->isNotEmpty()) {
-                        $schema[] = Forms\Components\Select::make('product_variant_id')
+                        $schema[] = Select::make('product_variant_id')
                             ->label('Variante')
                             ->options(
                                 $record->variants->mapWithKeys(fn ($v) => [
@@ -215,7 +220,7 @@ class MagazzinoPage extends Page implements HasForms, HasTable
                             ->required();
                     }
 
-                    $schema[] = Forms\Components\TextInput::make('quantity')
+                    $schema[] = TextInput::make('quantity')
                         ->label('Quantità da caricare')
                         ->numeric()
                         ->required()
@@ -224,7 +229,7 @@ class MagazzinoPage extends Page implements HasForms, HasTable
                         ->default(1)
                         ->helperText('Inserisci la quantità di pezzi da aggiungere al magazzino.');
 
-                    $schema[] = Forms\Components\Textarea::make('notes')
+                    $schema[] = Textarea::make('notes')
                         ->label('Note (opzionale)')
                         ->placeholder('Es. Arrivo merce fornitore, inventario...');
 

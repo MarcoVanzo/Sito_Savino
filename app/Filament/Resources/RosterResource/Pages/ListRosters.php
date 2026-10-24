@@ -5,7 +5,7 @@ namespace App\Filament\Resources\RosterResource\Pages;
 use App\Filament\Resources\RosterResource;
 use App\Filament\Traits\HasFaceSyncMethods;
 use App\Filament\Traits\InvalidaLaCacheDopoIlRiordino;
-use Filament\Actions;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListRosters extends ListRecords
@@ -18,7 +18,7 @@ class ListRosters extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            CreateAction::make(),
         ];
     }
 }

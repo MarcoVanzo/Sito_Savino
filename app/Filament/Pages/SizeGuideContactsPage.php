@@ -5,12 +5,15 @@ namespace App\Filament\Pages;
 use App\Filament\Pages\Concerns\RestrictsAccessByRole;
 use App\Models\SiteSetting;
 use Filament\Actions\Action;
-use Filament\Forms;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Cache;
 
 class SizeGuideContactsPage extends Page implements HasForms
@@ -18,19 +21,19 @@ class SizeGuideContactsPage extends Page implements HasForms
     use InteractsWithForms;
     use RestrictsAccessByRole;
 
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
 
     protected static ?string $navigationLabel = 'Guida Taglie & Contatti';
 
     protected static ?string $title = 'Guida Taglie & Contatti Shop';
 
-    protected static ?string $navigationGroup = 'Shop Ufficiale';
+    protected static string|\UnitEnum|null $navigationGroup = 'Shop Ufficiale';
 
     protected static ?int $navigationSort = 9;
 
     protected static ?string $slug = 'shop/guida-taglie-contatti';
 
-    protected static string $view = 'filament.pages.size-guide-contacts';
+    protected string $view = 'filament.pages.size-guide-contacts';
 
     public ?array $data = [];
 
@@ -50,15 +53,15 @@ class SizeGuideContactsPage extends Page implements HasForms
         ]);
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Documenti Guida Taglie')
+        return $schema
+            ->components([
+                Section::make('Documenti Guida Taglie')
                     ->description('Carica i documenti PDF della guida taglie Errea. Saranno visibili nella pagina pubblica dello shop.')
                     ->icon('heroicon-o-document-arrow-up')
                     ->schema([
-                        Forms\Components\FileUpload::make('size_guides')
+                        FileUpload::make('size_guides')
                             ->label('File PDF Guida Taglie')
                             ->multiple()
                             ->acceptedFileTypes(['application/pdf'])
@@ -72,23 +75,23 @@ class SizeGuideContactsPage extends Page implements HasForms
                             ->downloadable()
                             ->columnSpanFull(),
                     ]),
-                Forms\Components\Section::make('Contatti Assistenza Shop')
+                Section::make('Contatti Assistenza Shop')
                     ->description('Informazioni di contatto per il servizio assistenza clienti dello shop.')
                     ->icon('heroicon-o-phone')
                     ->schema([
-                        Forms\Components\TextInput::make('support_email')
+                        TextInput::make('support_email')
                             ->label('Email Assistenza')
                             ->email()
                             ->maxLength(255),
-                        Forms\Components\TextInput::make('support_phone')
+                        TextInput::make('support_phone')
                             ->label('Telefono Assistenza')
                             ->tel()
                             ->maxLength(30),
-                        Forms\Components\TextInput::make('support_hours')
+                        TextInput::make('support_hours')
                             ->label('Orari di Disponibilità')
                             ->maxLength(255)
                             ->placeholder('Es: Lun-Ven 9:00-18:00'),
-                        Forms\Components\Textarea::make('support_notes')
+                        Textarea::make('support_notes')
                             ->label('Note Aggiuntive')
                             ->rows(3)
                             ->columnSpanFull(),

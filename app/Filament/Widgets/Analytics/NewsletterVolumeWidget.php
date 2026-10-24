@@ -17,15 +17,15 @@ class NewsletterVolumeWidget extends ChartWidget
 {
     use HasAnalyticsPeriod;
 
-    protected static ?string $heading = 'Volumi di invio';
+    protected ?string $heading = 'Volumi di invio';
 
-    protected static ?string $pollingInterval = null;
+    protected ?string $pollingInterval = null;
 
     protected static bool $isDiscovered = false;
 
     protected static ?int $sort = 3;
 
-    protected static ?string $maxHeight = '260px';
+    protected ?string $maxHeight = '260px';
 
     protected int|string|array $columnSpan = 1;
 

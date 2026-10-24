@@ -3,7 +3,15 @@
 namespace App\Filament\Forms\Templates;
 
 use App\Filament\Forms\EtichetteDeiCampi;
-use Filament\Forms;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Fieldset;
 
 /**
  * Il form delle pagine Biglietteria e Campagna Abbonamenti.
@@ -20,14 +28,14 @@ class TicketingTemplateForm
     private const DIRECTORY = 'ticketing';
 
     /**
-     * @return array<int, Forms\Components\Component>
+     * @return array<int, Component>
      */
     public static function schema(): array
     {
         return [
-            Forms\Components\TextInput::make('content_data.hero_label')
+            TextInput::make('content_data.hero_label')
                 ->label(EtichetteDeiCampi::HERO_BADGE),
-            Forms\Components\Textarea::make('content_data.hero_subtitle')
+            Textarea::make('content_data.hero_subtitle')
                 ->label(EtichetteDeiCampi::HERO_SUBTITLE),
             self::biglietteriaOnline(),
             self::spazioInEvidenza(),
@@ -39,20 +47,20 @@ class TicketingTemplateForm
         ];
     }
 
-    private static function biglietteriaOnline(): Forms\Components\Fieldset
+    private static function biglietteriaOnline(): Fieldset
     {
-        return Forms\Components\Fieldset::make('Biglietteria online (Vivaticket)')
+        return Fieldset::make('Biglietteria online (Vivaticket)')
             ->schema([
-                Forms\Components\TextInput::make('content_data.tickets_url')
+                TextInput::make('content_data.tickets_url')
                     ->label('Link alla biglietteria')
                     ->url()
                     ->placeholder('https://www.vivaticket.com/it/...')
                     ->helperText('Indirizzo della pagina di vendita. Se vuoto, il pulsante non viene mostrato.')
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('content_data.tickets_button_text')
+                TextInput::make('content_data.tickets_button_text')
                     ->label(EtichetteDeiCampi::BUTTON_TEXT)
                     ->placeholder('es. Acquista su Vivaticket'),
-                Forms\Components\TextInput::make('content_data.tickets_note')
+                TextInput::make('content_data.tickets_note')
                     ->label('Nota sotto al pulsante')
                     ->placeholder('es. Vendita gestita da Vivaticket'),
             ])
@@ -64,28 +72,28 @@ class TicketingTemplateForm
      * biglietteria mostra al posto del listino, e dove la campagna
      * abbonamenti mette la grafica della stagione.
      */
-    private static function spazioInEvidenza(): Forms\Components\Fieldset
+    private static function spazioInEvidenza(): Fieldset
     {
-        return Forms\Components\Fieldset::make('Spazio in evidenza (testo, grafica e pulsante)')
+        return Fieldset::make('Spazio in evidenza (testo, grafica e pulsante)')
             ->schema([
-                Forms\Components\TextInput::make('content_data.feature_title')
+                TextInput::make('content_data.feature_title')
                     ->label('Titolo')
                     ->placeholder('es. Biglietti per le gare casalinghe'),
-                Forms\Components\FileUpload::make('content_data.feature_image')
+                FileUpload::make('content_data.feature_image')
                     ->label('Grafica')
                     ->image()
                     ->directory(self::DIRECTORY)
                     ->maxSize(4096)
                     ->helperText('Consigliata almeno 1600 px di larghezza; con il testo accanto occupa meta\' riga, da sola tutta la larghezza.'),
-                Forms\Components\Textarea::make('content_data.feature_text')
+                Textarea::make('content_data.feature_text')
                     ->label('Testo')
                     ->rows(5)
                     ->helperText('Un a capo vuoto separa i paragrafi.')
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('content_data.feature_button_text')
+                TextInput::make('content_data.feature_button_text')
                     ->label(EtichetteDeiCampi::BUTTON_TEXT)
                     ->placeholder('es. Acquista i biglietti'),
-                Forms\Components\TextInput::make('content_data.feature_button_url')
+                TextInput::make('content_data.feature_button_url')
                     ->label('Link del pulsante')
                     ->url()
                     ->placeholder('es. https://savinodelbenevolley.vivaticket.it/...')
@@ -94,22 +102,22 @@ class TicketingTemplateForm
             ->columns(2);
     }
 
-    private static function vantaggi(): Forms\Components\Fieldset
+    private static function vantaggi(): Fieldset
     {
-        return Forms\Components\Fieldset::make('Vantaggi per gli abbonati')
+        return Fieldset::make('Vantaggi per gli abbonati')
             ->schema([
-                Forms\Components\TextInput::make('content_data.benefits_heading')
+                TextInput::make('content_data.benefits_heading')
                     ->label('Titolo della sezione')
                     ->placeholder('es. Vantaggi')
                     ->columnSpanFull(),
-                Forms\Components\Repeater::make('content_data.benefits')
+                Repeater::make('content_data.benefits')
                     ->label('Elenco dei vantaggi')
                     ->schema([
                         // Editor e non area di testo: la redazione evidenzia in
                         // grassetto una parte della frase (l'importo, la data,
                         // il nome del partner), e in una Textarea ne' Ctrl+B ne'
                         // il copia-incolla da un documento lasciano formattazione.
-                        Forms\Components\RichEditor::make('text')
+                        RichEditor::make('text')
                             ->label('Vantaggio')
                             ->required()
                             ->toolbarButtons(['bold', 'italic', 'link', 'undo', 'redo'])
@@ -131,25 +139,25 @@ class TicketingTemplateForm
      * Prelazione per gli ex abbonati, cambio posto, nuovi abbonati: le fasi
      * della campagna con le loro date. Vuote, la sezione non compare.
      */
-    private static function fasiDellaCampagna(): Forms\Components\Fieldset
+    private static function fasiDellaCampagna(): Fieldset
     {
-        return Forms\Components\Fieldset::make('Fasi della campagna (conferme e prelazioni)')
+        return Fieldset::make('Fasi della campagna (conferme e prelazioni)')
             ->schema([
-                Forms\Components\TextInput::make('content_data.phases_heading')
+                TextInput::make('content_data.phases_heading')
                     ->label('Titolo della sezione')
                     ->placeholder('es. Le fasi della campagna')
                     ->columnSpanFull(),
-                Forms\Components\Repeater::make('content_data.phases')
+                Repeater::make('content_data.phases')
                     ->label('Fasi')
                     ->schema([
-                        Forms\Components\TextInput::make('title')
+                        TextInput::make('title')
                             ->label('Titolo')
                             ->required()
                             ->placeholder('es. Prelazione ex abbonati'),
-                        Forms\Components\TextInput::make('period')
+                        TextInput::make('period')
                             ->label('Periodo')
                             ->placeholder('es. Dal 28 luglio al 18 agosto'),
-                        Forms\Components\Textarea::make('description')
+                        Textarea::make('description')
                             ->label('Descrizione')
                             ->rows(4)
                             ->placeholder('es. Sara\' possibile confermare il proprio posto al Pala BigMat scrivendo a ticketing@...')
@@ -165,28 +173,28 @@ class TicketingTemplateForm
             ]);
     }
 
-    private static function giftCard(): Forms\Components\Fieldset
+    private static function giftCard(): Fieldset
     {
-        return Forms\Components\Fieldset::make('Gift Card')
+        return Fieldset::make('Gift Card')
             ->schema([
-                Forms\Components\TextInput::make('content_data.gift_card_title')
+                TextInput::make('content_data.gift_card_title')
                     ->label('Titolo')
                     ->placeholder('es. Gift Card'),
-                Forms\Components\FileUpload::make('content_data.gift_card_image')
+                FileUpload::make('content_data.gift_card_image')
                     ->label('Grafica (390 × 390 px)')
                     ->image()
                     ->directory(self::DIRECTORY)
                     ->maxSize(2048)
                     ->helperText('Quadrata, 390 × 390 px.'),
-                Forms\Components\Textarea::make('content_data.gift_card_text')
+                Textarea::make('content_data.gift_card_text')
                     ->label('Come funziona')
                     ->rows(4)
                     ->placeholder('es. Scegli l\'importo, ricevi il codice via email e usalo su Vivaticket per biglietti e abbonamenti.')
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('content_data.gift_card_button_text')
+                TextInput::make('content_data.gift_card_button_text')
                     ->label(EtichetteDeiCampi::BUTTON_TEXT)
                     ->placeholder('es. Acquista la Gift Card'),
-                Forms\Components\TextInput::make('content_data.gift_card_url')
+                TextInput::make('content_data.gift_card_url')
                     ->label('Link di acquisto')
                     ->url()
                     ->placeholder('es. https://savinodelbenevolley.vivaticket.it/it/vivacard/prices'),
@@ -194,34 +202,34 @@ class TicketingTemplateForm
             ->columns(2);
     }
 
-    private static function listino(): Forms\Components\Fieldset
+    private static function listino(): Fieldset
     {
-        return Forms\Components\Fieldset::make('Listino abbonamenti')
+        return Fieldset::make('Listino abbonamenti')
             ->schema([
-                Forms\Components\TextInput::make('content_data.plans_heading')
+                TextInput::make('content_data.plans_heading')
                     ->label('Titolo della sezione'),
-                Forms\Components\TextInput::make('content_data.popular_badge')
+                TextInput::make('content_data.popular_badge')
                     ->label('Testo Badge "Più Popolare"'),
-                Forms\Components\Textarea::make('content_data.plans_empty')
+                Textarea::make('content_data.plans_empty')
                     ->label('Testo quando non ci sono listini pubblicati')
                     ->helperText('Vuoto, la sezione sparisce del tutto quando non ci sono piani.')
                     ->rows(2)
                     ->columnSpanFull(),
-                Forms\Components\Repeater::make('content_data.plans')
+                Repeater::make('content_data.plans')
                     ->label('Piani e Abbonamenti')
                     ->schema([
-                        Forms\Components\TextInput::make('name')->label('Nome Piano')->required(),
-                        Forms\Components\TextInput::make('price')->label('Prezzo intero (€)')->required(),
-                        Forms\Components\TextInput::make('period')->label('Periodo (es. a partita, stagione)')->required(),
+                        TextInput::make('name')->label('Nome Piano')->required(),
+                        TextInput::make('price')->label('Prezzo intero (€)')->required(),
+                        TextInput::make('period')->label('Periodo (es. a partita, stagione)')->required(),
                         // Lo stesso posto ha piu' tariffe: senza questi campi il listino
                         // della societa' non ci stava dentro. Lasciandoli vuoti la scheda
                         // mostra il solo prezzo intero.
-                        Forms\Components\TextInput::make('price_returning')->label('Tariffa riconferma (€)'),
-                        Forms\Components\TextInput::make('price_under16')->label('Tariffa Under 16 (€)'),
-                        Forms\Components\TagsInput::make('features')->label('Vantaggi (Premi invio)'),
-                        Forms\Components\Toggle::make('highlight')->label('Evidenziato (Più Popolare)'),
-                        Forms\Components\TextInput::make('cta')->label('Testo Pulsante (es. Acquista)'),
-                        Forms\Components\TextInput::make('cta_url')
+                        TextInput::make('price_returning')->label('Tariffa riconferma (€)'),
+                        TextInput::make('price_under16')->label('Tariffa Under 16 (€)'),
+                        TagsInput::make('features')->label('Vantaggi (Premi invio)'),
+                        Toggle::make('highlight')->label('Evidenziato (Più Popolare)'),
+                        TextInput::make('cta')->label('Testo Pulsante (es. Acquista)'),
+                        TextInput::make('cta_url')
                             ->label('Link Pulsante (URL acquisto/abbonamento)')
                             ->url()
                             ->placeholder('es. https://www.vivaticket.com/...'),
@@ -250,21 +258,21 @@ class TicketingTemplateForm
         return $testo !== '' ? $testo : null;
     }
 
-    private static function informazioni(): Forms\Components\Fieldset
+    private static function informazioni(): Fieldset
     {
-        return Forms\Components\Fieldset::make('Informazioni sull\'acquisto')
+        return Fieldset::make('Informazioni sull\'acquisto')
             ->schema([
-                Forms\Components\TextInput::make('content_data.info_heading')
+                TextInput::make('content_data.info_heading')
                     ->label('Titolo della sezione')
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('content_data.online_title')
+                TextInput::make('content_data.online_title')
                     ->label('Titolo Info Online'),
-                Forms\Components\TextInput::make('content_data.boxoffice_title')
+                TextInput::make('content_data.boxoffice_title')
                     ->label('Titolo Info Botteghino')
                     ->helperText('Lasciando vuoti titolo e descrizione il riquadro del botteghino non compare.'),
-                Forms\Components\Textarea::make('content_data.online_description')
+                Textarea::make('content_data.online_description')
                     ->label('Descrizione Info Online'),
-                Forms\Components\Textarea::make('content_data.boxoffice_description')
+                Textarea::make('content_data.boxoffice_description')
                     ->label('Descrizione Info Botteghino'),
             ])
             ->columns(2);

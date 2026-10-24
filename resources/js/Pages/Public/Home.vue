@@ -147,8 +147,25 @@ const slideBackground = (slide) => {
 // 300-450 KB il telefono scaricava 3-4 MB prima di mostrare la prima foto
 // (Lighthouse mobile: LCP 20 s). Si assegna lo sfondo solo alla slide in
 // scena e alla successiva, cosi' la dissolvenza la trova gia' pronta.
-const slidePronte = ref(new Set([0, 1]));
-const sfondoDellaSlide = (slide, index) => (slidePronte.value.has(index) ? slideBackground(slide) : {});
+//
+// La prima e' un <img> con le due misure (`hero_mobile` 1200 px in WebP e
+// `hero` 1920 px), la stessa serie precaricata dall'HTML servito
+// (PublicController::primaSlideDaPrecaricare). Gli sfondi si assegnano solo
+// dopo il montaggio, quando si sa quanto e' largo lo schermo: sul telefono
+// prendono la misura piccola.
+const slidePronte = ref(new Set([0]));
+const schermoPiccolo = ref(false);
+const versioneMobile = (index) => props.heroSlides?.[index]?.image_mobile || null;
+const srcsetDellaSlide = (index) => {
+    const mobile = versioneMobile(index);
+
+    return mobile ? `${mobile} 1200w, ${slides.value[index]} 1920w` : undefined;
+};
+const sfondoDellaSlide = (slide, index) => {
+    if (!slidePronte.value.has(index)) return {};
+
+    return slideBackground(schermoPiccolo.value && versioneMobile(index) ? versioneMobile(index) : slide);
+};
 
 // Stats section dal backend con fallback
 const statsTitle = computed(() => homeSettings.value.stats_title || $t('home.stats_title'));
@@ -435,6 +452,11 @@ const getCachedTiltHandlers = (index) => {
 // === LIFECYCLE ===
 onMounted(async () => {
     movimentoFermo.value = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    // Fino a 1200 px fisici basta la misura per telefono (`hero_mobile`).
+    schermoPiccolo.value = window.innerWidth * (window.devicePixelRatio || 1) <= 1200;
+    if (slides.value.length > 1) {
+        slidePronte.value.add(1);
+    }
 
     // Slideshow — transitionend per cleanup senza scatti
     if (!heroVideoUrl.value) {
@@ -528,7 +550,6 @@ const ogMeta = useOgMeta({
         <meta property="og:image" :content="ogMeta.image" />
         <meta property="og:url" :content="ogMeta.url" />
         <meta property="og:type" :content="ogMeta.type" />
-        <link v-if="slides.length" rel="preload" as="image" :href="slides[0]" fetchpriority="high" />
     </Head>
     <PublicLayout :class="{ 'movimento-fermo': movimentoFermo }">
         <!-- HERO SECTION -->
@@ -559,6 +580,10 @@ const ogMeta = useOgMeta({
                         <img 
                             v-if="index === 0"
                             :src="slide"
+                            :srcset="srcsetDellaSlide(index)"
+                            sizes="100vw"
+                            width="1920"
+                            height="1080"
                             :alt="testoDellaSlide(index)"
                             fetchpriority="high"
                             decoding="sync"
@@ -609,14 +634,15 @@ const ogMeta = useOgMeta({
 
             <!-- Slide Indicators -->
             <div v-if="!heroVideoUrl" class="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-3">
-                <button type="button" 
+                <button
                     v-for="(slide, index) in slides"
                     :key="'indicator-' + index"
-                    @click="goToSlide(index)"
+                    type="button"
                     class="group relative h-1 rounded-full transition-all duration-700 overflow-hidden py-5 -my-5"
                     :class="currentSlide === index ? 'w-12 bg-white/30' : 'w-6 bg-white/20 hover:bg-white/30'"
                     :aria-label="$t('accessibilita.go_to_slide', { n: index + 1, total: slides.length })"
                     :aria-current="currentSlide === index ? 'true' : undefined"
+                    @click="goToSlide(index)"
                 >
                     <span 
                         v-if="currentSlide === index"
@@ -667,6 +693,20 @@ const ogMeta = useOgMeta({
                         class="hero-text-reveal hero-text-delay-3 flex flex-col sm:flex-row gap-4 justify-end"
                         :class="{ 'revealed': heroRevealed }"
                     >
+                        <component
+                            :is="partita?.stream_embed_url ? 'button' : 'a'"
+                            v-if="matchDay?.direttaVicina && partita?.stream_url"
+                            :type="partita.stream_embed_url ? 'button' : undefined"
+                            :href="partita.stream_embed_url ? undefined : partita.stream_url"
+                            :target="partita.stream_embed_url ? undefined : '_blank'"
+                            :rel="partita.stream_embed_url ? undefined : 'noopener noreferrer'"
+                            class="inline-flex items-center justify-center gap-3 px-8 py-4 border-2 border-white bg-white text-savino-blue hover:bg-savino-fucsia hover:border-savino-fucsia hover:text-white text-sm font-bold uppercase tracking-widest transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                            data-hero-diretta
+                            @click="openNextGameStream"
+                        >
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+                            {{ $t('stream.watch') }}
+                        </component>
                         <!-- Gli indirizzi arrivano dalle impostazioni: uno esterno
                              (Vivaticket) con <Link> partirebbe come XHR e il
                              pulsante non porterebbe da nessuna parte. -->
@@ -709,6 +749,23 @@ const ogMeta = useOgMeta({
                     class="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2 text-savino-blue text-xs font-bold uppercase tracking-wider hover:bg-savino-blue hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
                     {{ $t('home.match_day_tickets') }}
+                </component>
+                <!-- Da un'ora prima del fischio d'inizio la diretta sta qui, in
+                     cima: il pulsante della sezione della partita, da telefono,
+                     va cercato scorrendo. Stessa regola del pulsante nell'hero. -->
+                <component
+                    :is="partita.stream_embed_url ? 'button' : 'a'"
+                    v-if="matchDay.direttaVicina && partita?.stream_url"
+                    :type="partita.stream_embed_url ? 'button' : undefined"
+                    :href="partita.stream_embed_url ? undefined : partita.stream_url"
+                    :target="partita.stream_embed_url ? undefined : '_blank'"
+                    :rel="partita.stream_embed_url ? undefined : 'noopener noreferrer'"
+                    class="inline-flex items-center gap-2 rounded-lg bg-savino-blue px-5 py-2 text-white text-xs font-bold uppercase tracking-wider hover:bg-white hover:text-savino-blue transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    data-fascia-diretta
+                    @click="openNextGameStream"
+                >
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+                    {{ $t('stream.watch') }}
                 </component>
             </div>
         </div>
@@ -865,13 +922,20 @@ const ogMeta = useOgMeta({
                 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     <!-- News reali dal backend -->
                     <template v-if="latestNews.length > 0">
-                        <div 
-                            v-for="(post, index) in latestNews" 
-                            :key="post.id" 
+                        <!-- L'inclinazione è solo decorativa (spenta su touch e con
+                             movimento ridotto): la scheda si usa dal link qui dentro,
+                             raggiungibile da tastiera. Gli eventi stanno sul contenitore,
+                             che non si inclina: misurare la scheda inclinata la farebbe
+                             tremare. Lasciata col tasto Tab, torna dritta. -->
+                        <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -->
+                        <div
+                            v-for="(post, index) in latestNews"
+                            :key="post.id"
                             class="tilt-card-wrapper"
                             data-reveal
                             @mousemove="getCachedTiltHandlers(index).onMousemove($event)"
-                            @mouseleave="getCachedTiltHandlers(index).onMouseleave($event)"
+                            @mouseleave="getCachedTiltHandlers(index).onMouseleave()"
+                            @focusout="getCachedTiltHandlers(index).onMouseleave()"
                         >
                             <Link 
                                 :href="route('news.show', post.slug)" 
@@ -987,7 +1051,12 @@ const ogMeta = useOgMeta({
 
 
         <LiveStreamModal :stream="activeStream" @close="closeStream" />
-        <PopupMatchDay v-if="matchDayAttivo && matchDay.popup" :popup="matchDay.popup" />
+        <PopupMatchDay
+            v-if="matchDayAttivo && (matchDay.popup || matchDay.popupDiretta)"
+            :popup="matchDay.popup"
+            :diretta="Boolean(matchDay.popupDiretta)"
+            @guarda="openNextGameStream"
+        />
     </PublicLayout>
 </template>
 
@@ -1138,37 +1207,63 @@ const ogMeta = useOgMeta({
 }
 
 /* === CTA GLOW EFFECT === */
-.cta-glow-gold {
-    position: relative;
-    animation: ctaGlowGold 2.5s ease-in-out infinite;
-}
-
-@keyframes ctaGlowGold {
-    0%, 100% { box-shadow: 0 0 15px rgba(201, 168, 76, 0.2), 0 0 30px rgba(201, 168, 76, 0.1); }
-    50% { box-shadow: 0 0 25px rgba(201, 168, 76, 0.4), 0 0 50px rgba(201, 168, 76, 0.2); }
-}
-
+/* Il bagliore e' un'ombra ferma su un livello a parte, che pulsa solo di
+   opacita': animare `box-shadow` ridisegnava il pulsante a ogni fotogramma
+   (Lighthouse, «animazioni non composite», audit del 20/10/2026). */
+.cta-glow-gold,
 .cta-glow-red {
     position: relative;
-    animation: ctaGlowRed 2.5s ease-in-out infinite;
 }
 
-@keyframes ctaGlowRed {
-    0%, 100% { box-shadow: 0 0 15px rgba(223, 51, 143, 0.2), 0 0 30px rgba(223, 51, 143, 0.1); }
-    50% { box-shadow: 0 0 25px rgba(223, 51, 143, 0.4), 0 0 50px rgba(223, 51, 143, 0.2); }
+.cta-glow-gold::after,
+.cta-glow-red::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0.5;
+    animation: ctaGlow 2.5s ease-in-out infinite;
+}
+
+.cta-glow-gold::after {
+    box-shadow: 0 0 25px rgba(201, 168, 76, 0.4), 0 0 50px rgba(201, 168, 76, 0.2);
+}
+
+.cta-glow-red::after {
+    box-shadow: 0 0 25px rgba(223, 51, 143, 0.4), 0 0 50px rgba(223, 51, 143, 0.2);
+}
+
+@keyframes ctaGlow {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
 }
 
 /* === MATCH CARD GRADIENT SHIFT === */
+/* Il gradiente scorre con `transform` su un livello largo tre volte la card,
+   non con `background-position`, che non si compone. */
 .match-card-gradient {
-    background: linear-gradient(135deg, #003063, #0B1521, #003063, #0B1521);
-    background-size: 300% 300%;
+    position: relative;
+    isolation: isolate;
+    background: #003063;
+}
+
+.match-card-gradient::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 300%;
+    height: 100%;
+    z-index: -1;
+    background: linear-gradient(90deg, #003063, #0B1521, #003063, #0B1521, #003063);
     animation: gradientShift 8s ease infinite;
+    pointer-events: none;
 }
 
 @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(-66.666%); }
 }
 
 /* === NEWS CARD ELEVATION === */
@@ -1261,9 +1356,9 @@ const ogMeta = useOgMeta({
 /* === PAUSA DEL MOVIMENTO (pulsante) === */
 .movimento-fermo .badge-glow,
 .movimento-fermo .badge-icon,
-.movimento-fermo .cta-glow-gold,
-.movimento-fermo .cta-glow-red,
-.movimento-fermo .match-card-gradient,
+.movimento-fermo .cta-glow-gold::after,
+.movimento-fermo .cta-glow-red::after,
+.movimento-fermo .match-card-gradient::before,
 .movimento-fermo .marquee-track,
 .movimento-fermo .hero-slide-inner,
 .movimento-fermo .slide-progress {
@@ -1295,11 +1390,9 @@ const ogMeta = useOgMeta({
     .badge-icon {
         animation: none !important;
     }
-    .cta-glow-gold,
-    .cta-glow-red {
-        animation: none !important;
-    }
-    .match-card-gradient {
+    .cta-glow-gold::after,
+    .cta-glow-red::after,
+    .match-card-gradient::before {
         animation: none !important;
     }
     .marquee-track {

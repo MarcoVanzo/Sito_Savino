@@ -2,24 +2,36 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\GalleryEventResource\Pages;
-use App\Filament\Resources\GalleryEventResource\RelationManagers;
+use App\Filament\Resources\GalleryEventResource\Pages\CreateGalleryEvent;
+use App\Filament\Resources\GalleryEventResource\Pages\EditGalleryEvent;
+use App\Filament\Resources\GalleryEventResource\Pages\ListGalleryEvents;
+use App\Filament\Resources\GalleryEventResource\RelationManagers\GalleryImagesRelationManager;
 use App\Jobs\AnalyzeGalleryImageJob;
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
 use App\Services\GalleryUploadService;
-use Filament\Forms;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Form;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
-use Filament\Resources\Concerns\Translatable;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Actions\Action;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
+use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
 
 class GalleryEventResource extends Resource
 {
@@ -27,7 +39,7 @@ class GalleryEventResource extends Resource
 
     protected static ?string $model = GalleryEvent::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-photo';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-photo';
 
     protected static ?string $navigationLabel = 'Foto Gallery';
 
@@ -35,28 +47,28 @@ class GalleryEventResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Eventi Galleria';
 
-    protected static ?string $navigationGroup = 'Stagione';
+    protected static string|\UnitEnum|null $navigationGroup = 'Stagione';
 
     protected static ?int $navigationSort = 6;
 
     protected static ?string $slug = 'gallery';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Dettagli Evento')
+        return $schema
+            ->components([
+                Section::make('Dettagli Evento')
                     ->schema([
-                        Forms\Components\TextInput::make('title')
+                        TextInput::make('title')
                             ->label('Titolo')
                             ->required()
                             ->maxLength(255),
                         // Obbligatoria: la gallery pubblica ordina gli album per
                         // data, e uno senza finisce in fondo all'elenco.
-                        Forms\Components\DatePicker::make('event_date')
+                        DatePicker::make('event_date')
                             ->label('Data Evento')
                             ->required(),
-                        Forms\Components\Select::make('category')
+                        Select::make('category')
                             ->label('Categoria')
                             ->required()
                             ->options([
@@ -67,15 +79,15 @@ class GalleryEventResource extends Resource
                                 'Backstage' => 'Backstage',
                             ])
                             ->default('Partite'),
-                        Forms\Components\Toggle::make('is_active')
+                        Toggle::make('is_active')
                             ->label('Attivo')
                             ->default(true),
-                        Forms\Components\Textarea::make('description')
+                        Textarea::make('description')
                             ->label('Descrizione')
                             ->columnSpanFull(),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Caricamento Foto')
+                Section::make('Caricamento Foto')
                     ->description('Le foto caricate qui verranno salvate, associate all\'evento e analizzate dall\'Intelligenza Artificiale automaticamente.')
                     ->schema([
                         FileUpload::make('uploaded_photos')
@@ -145,24 +157,24 @@ class GalleryEventResource extends Resource
                 'galleryImages as ai_analyzed_images_count' => fn ($q) => $q->whereNotNull('ai_analyzed_at'),
             ]))
             ->columns([
-                Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->label('Titolo')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('event_date')
+                TextColumn::make('event_date')
                     ->label('Data Evento')
                     ->date()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('category')
+                TextColumn::make('category')
                     ->label('Categoria')
                     ->badge()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('gallery_images_count')
+                TextColumn::make('gallery_images_count')
                     ->label('Numero Foto')
                     ->counts('galleryImages'),
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label('Attivo')
                     ->boolean(),
-                Tables\Columns\TextColumn::make('ai_status')
+                TextColumn::make('ai_status')
                     ->label('Analisi AI')
                     ->state(fn (GalleryEvent $record): string => self::statoDellAnalisi($record))
                     ->badge()
@@ -183,8 +195,8 @@ class GalleryEventResource extends Resource
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
                 Action::make('analyzeEvent')
                     ->label('Analizza AI')
                     ->icon('heroicon-o-sparkles')
@@ -227,7 +239,7 @@ class GalleryEventResource extends Resource
                             ->success()
                             ->send();
                     }),
-                Tables\Actions\DeleteAction::make()
+                DeleteAction::make()
                     ->requiresConfirmation()
                     ->modalDescription('Attenzione: verranno eliminate anche tutte le foto associate a questo evento. L\'operazione è irreversibile.')
                     ->before(function (GalleryEvent $record) {
@@ -238,9 +250,9 @@ class GalleryEventResource extends Resource
                         }
                     }),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
                         ->before(function (Collection $records) {
                             foreach ($records as $event) {
                                 $event->loadMissing('galleryImages');
@@ -258,16 +270,16 @@ class GalleryEventResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\GalleryImagesRelationManager::class,
+            GalleryImagesRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListGalleryEvents::route('/'),
-            'create' => Pages\CreateGalleryEvent::route('/create'),
-            'edit' => Pages\EditGalleryEvent::route('/{record}/edit'),
+            'index' => ListGalleryEvents::route('/'),
+            'create' => CreateGalleryEvent::route('/create'),
+            'edit' => EditGalleryEvent::route('/{record}/edit'),
         ];
     }
 }

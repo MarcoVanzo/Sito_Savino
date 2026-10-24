@@ -70,7 +70,9 @@
         "match_day_tickets": "Tickets",
         "events_subtitle": "Don’t miss",
         "events_title": "Events",
-        "event_details": "Find out more"
+        "event_details": "Find out more",
+        "popup_diretta_titolo": "Not at the arena?",
+        "popup_diretta_testo": "Watch the match live right here on the website."
     },
     "footer": {
         "privacy_policy": "Privacy Policy",

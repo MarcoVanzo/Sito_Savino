@@ -11,6 +11,7 @@ use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Throwable;
 
 class GalleryUploadService
 {
@@ -115,7 +116,7 @@ class GalleryUploadService
             $image->addMedia($tempPath)
                 ->usingFileName($file->getClientOriginalName())
                 ->toMediaCollection('gallery');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if (file_exists($tempPath)) {
                 @unlink($tempPath);
             }
@@ -146,7 +147,7 @@ class GalleryUploadService
                     return hash_file('sha256', $fullPath);
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::warning('Gallery: impossibile calcolare hash del file', ['error' => $e->getMessage()]);
         }
 

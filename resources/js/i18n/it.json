@@ -70,7 +70,9 @@
         "match_day_tickets": "Biglietti",
         "events_subtitle": "Da non perdere",
         "events_title": "Eventi",
-        "event_details": "Scopri di più"
+        "event_details": "Scopri di più",
+        "popup_diretta_titolo": "Non sei al palazzetto?",
+        "popup_diretta_testo": "Guarda la partita in diretta qui sul sito."
     },
     "footer": {
         "privacy_policy": "Privacy Policy",

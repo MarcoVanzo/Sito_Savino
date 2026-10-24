@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use GdImage;
+
 /**
  * Toglie il margine uniforme attorno a un'immagine.
  *
@@ -77,7 +79,7 @@ class RitaglioDelMargine
     /**
      * Riquadro del contenuto vero, o null se non c'è un fondo riconoscibile.
      *
-     * @param  \GdImage  $immagine
+     * @param  GdImage  $immagine
      * @return array{0: int, 1: int, 2: int, 3: int}|null
      */
     private static function riquadroDelContenuto($immagine): ?array
@@ -115,7 +117,7 @@ class RitaglioDelMargine
      * Se non ne trova nessuno restituisce estremi incrociati (destra prima di
      * sinistra), che e' come chi chiama riconosce l'immagine monocroma.
      *
-     * @param  \GdImage  $immagine
+     * @param  GdImage  $immagine
      * @param  array{r: int, g: int, b: int, a: int}  $fondo
      * @return array{int, int, int, int} sinistra, alto, destra, basso
      */
@@ -145,7 +147,7 @@ class RitaglioDelMargine
     /**
      * Il colore di fondo, se i quattro angoli sono d'accordo.
      *
-     * @param  \GdImage  $immagine
+     * @param  GdImage  $immagine
      * @return array{r: int, g: int, b: int, a: int}|null
      */
     private static function coloreDiFondo($immagine, int $larghezza, int $altezza): ?array
@@ -169,7 +171,7 @@ class RitaglioDelMargine
     }
 
     /**
-     * @param  \GdImage  $immagine
+     * @param  GdImage  $immagine
      * @return array{r: int, g: int, b: int, a: int}
      */
     private static function pixel($immagine, int $x, int $y): array
@@ -204,7 +206,7 @@ class RitaglioDelMargine
     }
 
     /**
-     * @param  \GdImage  $immagine
+     * @param  GdImage  $immagine
      * @param  array{r: int, g: int, b: int, a: int}  $fondo
      */
     private static function eFondo($immagine, int $x, int $y, array $fondo): bool
@@ -213,7 +215,7 @@ class RitaglioDelMargine
     }
 
     /**
-     * @param  \GdImage  $immagine
+     * @param  GdImage  $immagine
      */
     private static function disegnaIlRitaglio($immagine, int $sinistra, int $alto, int $destra, int $basso): ?string
     {

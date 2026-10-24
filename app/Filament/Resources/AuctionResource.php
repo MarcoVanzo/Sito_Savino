@@ -3,18 +3,31 @@
 namespace App\Filament\Resources;
 
 use App\Enums\AuctionStatus;
-use App\Filament\Resources\AuctionResource\Pages;
-use App\Filament\Resources\AuctionResource\RelationManagers;
+use App\Filament\Resources\AuctionResource\Pages\CreateAuction;
+use App\Filament\Resources\AuctionResource\Pages\EditAuction;
+use App\Filament\Resources\AuctionResource\Pages\ListAuctions;
+use App\Filament\Resources\AuctionResource\RelationManagers\BidsRelationManager;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Auction;
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Concerns\Translatable;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
 
 class AuctionResource extends Resource
 {
@@ -23,11 +36,11 @@ class AuctionResource extends Resource
 
     protected static ?string $model = Auction::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-fire';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-fire';
 
     protected static ?string $navigationLabel = 'Aste';
 
-    protected static ?string $navigationGroup = 'Shop Ufficiale';
+    protected static string|\UnitEnum|null $navigationGroup = 'Shop Ufficiale';
 
     protected static ?int $navigationSort = 4;
 
@@ -39,31 +52,31 @@ class AuctionResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'title';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Tabs::make('Asta')
+        return $schema
+            ->components([
+                Tabs::make('Asta')
                     ->tabs([
-                        Forms\Components\Tabs\Tab::make('Dettagli')
+                        Tab::make('Dettagli')
                             ->schema([
-                                Forms\Components\Select::make('product_id')
+                                Select::make('product_id')
                                     ->label('Prodotto')
                                     ->relationship('product', 'name')
                                     ->required()
                                     ->searchable()
                                     ->preload(),
-                                Forms\Components\TextInput::make('size')
+                                TextInput::make('size')
                                     ->label('Taglia (opzionale)')
                                     ->maxLength(50),
-                                Forms\Components\TextInput::make('title')
+                                TextInput::make('title')
                                     ->label('Titolo')
                                     ->required(),
-                                Forms\Components\Textarea::make('description')
+                                Textarea::make('description')
                                     ->label('Descrizione')
                                     ->rows(3)
                                     ->columnSpanFull(),
-                                Forms\Components\Select::make('status')
+                                Select::make('status')
                                     ->label('Stato')
                                     // Le transizioni ammesse stanno sul model
                                     // (Auction::TRANSIZIONI_AMMESSE): qui si
@@ -76,39 +89,39 @@ class AuctionResource extends Resource
                                     ->helperText(fn (?Auction $record): string => $record
                                         ? 'Sul sito compaiono solo le aste Attive, Programmate e Concluse: una bozza resta invisibile.'
                                         : 'L’asta nasce in bozza e non è ancora visibile sul sito. Dopo il salvataggio riaprila e portala su “Attiva” o “Programmata”.'),
-                                Forms\Components\Toggle::make('is_charity')
+                                Toggle::make('is_charity')
                                     ->label('Asta Benefica'),
-                                Forms\Components\Textarea::make('charity_description')
+                                Textarea::make('charity_description')
                                     ->label('Descrizione Beneficenza')
-                                    ->visible(fn (Forms\Get $get): bool => (bool) $get('is_charity'))
+                                    ->visible(fn (Get $get): bool => (bool) $get('is_charity'))
                                     ->columnSpanFull(),
                             ])->columns(2),
 
-                        Forms\Components\Tabs\Tab::make('Prezzi e Offerte')
+                        Tab::make('Prezzi e Offerte')
                             ->schema([
-                                Forms\Components\TextInput::make('starting_price')
+                                TextInput::make('starting_price')
                                     ->label('Prezzo di Partenza')
                                     ->numeric()
                                     ->prefix('€')
                                     ->required(),
-                                Forms\Components\TextInput::make('reserve_price')
+                                TextInput::make('reserve_price')
                                     ->label('Prezzo di Riserva')
                                     ->numeric()
                                     ->prefix('€')
                                     // Vedi ProductResource: la regola scritta a mano
                                     // non risolve il percorso `data.` e fallisce sempre.
                                     ->gte('starting_price'),
-                                Forms\Components\TextInput::make('bid_increment')
+                                TextInput::make('bid_increment')
                                     ->label('Incremento Offerta')
                                     ->numeric()
                                     ->default(5)
                                     ->prefix('€'),
-                                Forms\Components\TextInput::make('max_bid_jump')
+                                TextInput::make('max_bid_jump')
                                     ->label('Salto Massimo Offerta')
                                     ->numeric()
                                     ->default(300)
                                     ->prefix('€'),
-                                Forms\Components\TextInput::make('current_bid')
+                                TextInput::make('current_bid')
                                     ->label('Offerta Attuale')
                                     ->numeric()
                                     ->disabled()
@@ -116,27 +129,27 @@ class AuctionResource extends Resource
                                     ->placeholder('Nessuna offerta'),
                             ])->columns(2),
 
-                        Forms\Components\Tabs\Tab::make('Programmazione')
+                        Tab::make('Programmazione')
                             ->schema([
-                                Forms\Components\DateTimePicker::make('start_date')
+                                DateTimePicker::make('start_date')
                                     ->label('Data Inizio')
                                     ->required(),
-                                Forms\Components\DateTimePicker::make('end_date')
+                                DateTimePicker::make('end_date')
                                     ->label('Data Fine')
                                     ->required()
                                     ->after('start_date'),
                             ])->columns(2),
 
-                        Forms\Components\Tabs\Tab::make('Vincitore')
+                        Tab::make('Vincitore')
                             ->schema([
-                                Forms\Components\Select::make('winner_user_id')
+                                Select::make('winner_user_id')
                                     ->label('Vincitore')
                                     ->relationship('winner', 'name')
                                     ->disabled(),
-                                Forms\Components\TextInput::make('current_winner_attempt')
+                                TextInput::make('current_winner_attempt')
                                     ->label('Tentativo Vincitore')
                                     ->disabled(),
-                                Forms\Components\DateTimePicker::make('winner_checkout_deadline')
+                                DateTimePicker::make('winner_checkout_deadline')
                                     ->label('Scadenza Checkout Vincitore')
                                     ->disabled(),
                             ])->columns(2)
@@ -149,61 +162,61 @@ class AuctionResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->label('Titolo')
                     ->limit(30)
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label('Stato')
                     ->badge()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('starting_price')
+                TextColumn::make('starting_price')
                     ->label('Prezzo Partenza')
                     ->money('EUR'),
-                Tables\Columns\TextColumn::make('current_bid')
+                TextColumn::make('current_bid')
                     ->label('Offerta Attuale')
                     ->money('EUR')
                     ->placeholder('-'),
-                Tables\Columns\TextColumn::make('bids_count')
+                TextColumn::make('bids_count')
                     ->label('Offerte')
                     ->counts('bids')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('end_date')
+                TextColumn::make('end_date')
                     ->label('Scadenza')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
-                Tables\Columns\IconColumn::make('is_charity')
+                IconColumn::make('is_charity')
                     ->label('Benefica')
                     ->boolean(),
                 ...static::timestampColumns(),
             ])
             ->defaultSort('end_date', 'desc')
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->label('Stato')
                     ->options(AuctionStatus::class),
-                Tables\Filters\TernaryFilter::make('is_charity')
+                TernaryFilter::make('is_charity')
                     ->label('Asta Benefica'),
-                Tables\Filters\TrashedFilter::make(),
+                TrashedFilter::make(),
             ])
-            ->actions(static::viewAndEditActions())
-            ->bulkActions(static::softDeleteBulkActions());
+            ->recordActions(static::viewAndEditActions())
+            ->toolbarActions(static::softDeleteBulkActions());
     }
 
     public static function getRelations(): array
     {
         return [
-            RelationManagers\BidsRelationManager::class,
+            BidsRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListAuctions::route('/'),
-            'create' => Pages\CreateAuction::route('/create'),
-            'edit' => Pages\EditAuction::route('/{record}/edit'),
+            'index' => ListAuctions::route('/'),
+            'create' => CreateAuction::route('/create'),
+            'edit' => EditAuction::route('/{record}/edit'),
         ];
     }
 

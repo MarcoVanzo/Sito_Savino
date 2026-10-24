@@ -3,15 +3,18 @@
 namespace App\Filament\Resources;
 
 use App\Enums\CompetitionType;
-use App\Filament\Resources\StandingResource\Pages;
+use App\Filament\Resources\StandingResource\Pages\ListStandings;
 use App\Models\Season;
 use App\Models\Standing;
-use Filament\Forms\Form;
-use Filament\Infolists;
-use Filament\Infolists\Infolist;
+use Filament\Actions\ViewAction;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
-use Filament\Tables;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -32,12 +35,12 @@ class StandingResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Classifica';
 
-    protected static ?string $navigationIcon = 'heroicon-o-list-bullet';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-list-bullet';
 
     protected static ?string $navigationLabel = 'Classifica';
 
     // Stesso gruppo di GameResource, subito dopo calendario e risultati.
-    protected static ?string $navigationGroup = 'Stagione';
+    protected static string|\UnitEnum|null $navigationGroup = 'Stagione';
 
     protected static ?int $navigationSort = 4;
 
@@ -50,28 +53,28 @@ class StandingResource extends Resource
     /**
      * Nessun form: la risorsa non ha pagine di creazione o modifica.
      */
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form->schema([]);
+        return $schema->components([]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('position')
+                TextColumn::make('position')
                     ->label('Pos.')
                     ->alignCenter()
                     ->weight(FontWeight::Bold)
                     ->sortable(),
 
-                Tables\Columns\ImageColumn::make('team_logo')
+                ImageColumn::make('team_logo')
                     ->label('')
                     ->checkFileExistence(false)
                     ->height(28)
                     ->getStateUsing(fn (Standing $record) => $record->team?->logoUrl()),
 
-                Tables\Columns\TextColumn::make('team.name')
+                TextColumn::make('team.name')
                     ->label('Squadra')
                     ->searchable()
                     ->sortable()
@@ -84,90 +87,90 @@ class StandingResource extends Resource
                     ->icon(fn (Standing $record) => $record->team?->is_internal ? 'heroicon-m-star' : null)
                     ->tooltip(fn (Standing $record) => $record->team?->is_internal ? 'Squadra della società' : null),
 
-                Tables\Columns\TextColumn::make('points')
+                TextColumn::make('points')
                     ->label('Punti')
                     ->alignCenter()
                     ->weight(FontWeight::Bold)
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('played')
+                TextColumn::make('played')
                     ->label('G')
                     ->tooltip('Partite giocate')
                     ->alignCenter(),
 
-                Tables\Columns\TextColumn::make('won')
+                TextColumn::make('won')
                     ->label('V')
                     ->tooltip('Vinte')
                     ->alignCenter()
                     ->color('success'),
 
-                Tables\Columns\TextColumn::make('lost')
+                TextColumn::make('lost')
                     ->label('P')
                     ->tooltip('Perse')
                     ->alignCenter()
                     ->color('danger'),
 
-                Tables\Columns\TextColumn::make('won_3_0')
+                TextColumn::make('won_3_0')
                     ->label('3-0')
                     ->alignCenter()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('won_3_1')
+                TextColumn::make('won_3_1')
                     ->label('3-1')
                     ->alignCenter()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('won_3_2')
+                TextColumn::make('won_3_2')
                     ->label('3-2')
                     ->alignCenter()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('lost_2_3')
+                TextColumn::make('lost_2_3')
                     ->label('2-3')
                     ->alignCenter()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('lost_1_3')
+                TextColumn::make('lost_1_3')
                     ->label('1-3')
                     ->alignCenter()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('lost_0_3')
+                TextColumn::make('lost_0_3')
                     ->label('0-3')
                     ->alignCenter()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('sets_won')
+                TextColumn::make('sets_won')
                     ->label('Set')
                     ->alignCenter()
                     ->formatStateUsing(fn (Standing $record) => "{$record->sets_won}-{$record->sets_lost}")
                     ->tooltip('Set vinti - set persi'),
 
-                Tables\Columns\TextColumn::make('set_ratio')
+                TextColumn::make('set_ratio')
                     ->label('Q. set')
                     ->alignCenter()
                     ->numeric(decimalPlaces: 3)
                     ->tooltip('Quoziente set')
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('points_for')
+                TextColumn::make('points_for')
                     ->label('Punti fatti/subiti')
                     ->alignCenter()
                     ->formatStateUsing(fn (Standing $record) => "{$record->points_for}-{$record->points_against}")
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('point_ratio')
+                TextColumn::make('point_ratio')
                     ->label('Q. punti')
                     ->alignCenter()
                     ->numeric(decimalPlaces: 3)
                     ->tooltip('Quoziente punti')
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('competition_type')
+                TextColumn::make('competition_type')
                     ->label('Competizione')
                     ->badge()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('season.name')
+                TextColumn::make('season.name')
                     ->label('Stagione')
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('synced_at')
+                TextColumn::make('synced_at')
                     ->label('Aggiornata il')
                     ->dateTime('d/m/Y H:i')
                     ->placeholder('mai')
@@ -182,20 +185,20 @@ class StandingResource extends Resource
                 ? 'bg-primary-50 dark:bg-primary-500/10'
                 : null)
             ->filters([
-                Tables\Filters\SelectFilter::make('season_id')
+                SelectFilter::make('season_id')
                     ->label('Stagione')
                     ->relationship('season', 'name')
                     ->default(Season::query()->where('is_current', true)->value('id')),
-                Tables\Filters\SelectFilter::make('competition_type')
+                SelectFilter::make('competition_type')
                     ->label('Competizione')
                     ->options(CompetitionType::class),
             ])
             ->persistFiltersInSession()
-            ->actions([
-                Tables\Actions\ViewAction::make(),
+            ->recordActions([
+                ViewAction::make(),
             ])
             // Nessuna bulk action: i dati sono rigenerati dalla sincronizzazione.
-            ->bulkActions([])
+            ->toolbarActions([])
             ->emptyStateIcon('heroicon-o-list-bullet')
             ->emptyStateHeading('Nessuna classifica per questi filtri')
             ->emptyStateDescription(
@@ -205,52 +208,52 @@ class StandingResource extends Resource
             );
     }
 
-    public static function infolist(Infolist $infolist): Infolist
+    public static function infolist(Schema $schema): Schema
     {
-        return $infolist
-            ->schema([
-                Infolists\Components\Section::make('Squadra')
+        return $schema
+            ->components([
+                Section::make('Squadra')
                     ->schema([
-                        Infolists\Components\TextEntry::make('position')->label('Posizione'),
-                        Infolists\Components\TextEntry::make('team.name')->label('Squadra'),
-                        Infolists\Components\TextEntry::make('season.name')->label('Stagione'),
-                        Infolists\Components\TextEntry::make('competition_type')
+                        TextEntry::make('position')->label('Posizione'),
+                        TextEntry::make('team.name')->label('Squadra'),
+                        TextEntry::make('season.name')->label('Stagione'),
+                        TextEntry::make('competition_type')
                             ->label('Competizione')
                             ->badge(),
                     ])->columns(4),
 
-                Infolists\Components\Section::make('Rendimento')
+                Section::make('Rendimento')
                     ->schema([
-                        Infolists\Components\TextEntry::make('points')->label('Punti'),
-                        Infolists\Components\TextEntry::make('played')->label('Giocate'),
-                        Infolists\Components\TextEntry::make('won')->label('Vinte'),
-                        Infolists\Components\TextEntry::make('lost')->label('Perse'),
-                        Infolists\Components\TextEntry::make('won_3_0')->label('Vinte 3-0'),
-                        Infolists\Components\TextEntry::make('won_3_1')->label('Vinte 3-1'),
-                        Infolists\Components\TextEntry::make('won_3_2')->label('Vinte 3-2'),
-                        Infolists\Components\TextEntry::make('lost_2_3')->label('Perse 2-3'),
-                        Infolists\Components\TextEntry::make('lost_1_3')->label('Perse 1-3'),
-                        Infolists\Components\TextEntry::make('lost_0_3')->label('Perse 0-3'),
+                        TextEntry::make('points')->label('Punti'),
+                        TextEntry::make('played')->label('Giocate'),
+                        TextEntry::make('won')->label('Vinte'),
+                        TextEntry::make('lost')->label('Perse'),
+                        TextEntry::make('won_3_0')->label('Vinte 3-0'),
+                        TextEntry::make('won_3_1')->label('Vinte 3-1'),
+                        TextEntry::make('won_3_2')->label('Vinte 3-2'),
+                        TextEntry::make('lost_2_3')->label('Perse 2-3'),
+                        TextEntry::make('lost_1_3')->label('Perse 1-3'),
+                        TextEntry::make('lost_0_3')->label('Perse 0-3'),
                     ])->columns(5),
 
-                Infolists\Components\Section::make('Set e punti')
+                Section::make('Set e punti')
                     ->schema([
-                        Infolists\Components\TextEntry::make('sets_won')->label('Set vinti'),
-                        Infolists\Components\TextEntry::make('sets_lost')->label('Set persi'),
-                        Infolists\Components\TextEntry::make('set_ratio')
+                        TextEntry::make('sets_won')->label('Set vinti'),
+                        TextEntry::make('sets_lost')->label('Set persi'),
+                        TextEntry::make('set_ratio')
                             ->label('Quoziente set')
                             ->numeric(decimalPlaces: 3),
-                        Infolists\Components\TextEntry::make('points_for')->label('Punti fatti'),
-                        Infolists\Components\TextEntry::make('points_against')->label('Punti subiti'),
-                        Infolists\Components\TextEntry::make('point_ratio')
+                        TextEntry::make('points_for')->label('Punti fatti'),
+                        TextEntry::make('points_against')->label('Punti subiti'),
+                        TextEntry::make('point_ratio')
                             ->label('Quoziente punti')
                             ->numeric(decimalPlaces: 3),
                     ])->columns(3),
 
-                Infolists\Components\Section::make('Sincronizzazione')
+                Section::make('Sincronizzazione')
                     ->description('Riga generata dall\'import dal sito della Lega: non è modificabile dal CMS.')
                     ->schema([
-                        Infolists\Components\TextEntry::make('synced_at')
+                        TextEntry::make('synced_at')
                             ->label('Ultimo aggiornamento')
                             ->dateTime('d/m/Y H:i:s')
                             ->placeholder('mai'),
@@ -262,7 +265,7 @@ class StandingResource extends Resource
     {
         // Solo l'elenco: niente create/edit, i dati arrivano dalla Lega.
         return [
-            'index' => Pages\ListStandings::route('/'),
+            'index' => ListStandings::route('/'),
         ];
     }
 

@@ -136,8 +136,9 @@ class LegalSettingsTest extends TestCase
         $this->documentoInArchivio('legal.modello_organizzativo', 'legal/modello.pdf');
 
         Livewire::test(LegalSettingsPage::class)
-            ->call('getFormUploadedFiles', 'data.legal.modello_organizzativo')
-            ->assertHasNoErrors();
+            ->call('callSchemaComponentMethod', 'form.legal.modello_organizzativo', 'getUploadedFiles')
+            ->assertHasNoErrors()
+            ->assertReturned(fn (?array $file): bool => count($file ?? []) === 1);
     }
 
     /** E il salvataggio riscrive il percorso, non la mappa. */

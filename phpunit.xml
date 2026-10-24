@@ -43,6 +43,8 @@
         <env name="DB_PASSWORD" value="secret"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
+        <!-- I test non parlano col server SSR: i fake di Http risponderebbero al suo posto. -->
+        <env name="INERTIA_SSR_ENABLED" value="false"/>
         <env name="TRADUZIONE_AUTOMATICA" value="false"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>

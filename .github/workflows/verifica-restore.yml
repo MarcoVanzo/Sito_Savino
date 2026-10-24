@@ -246,7 +246,7 @@ jobs:
       issues: write
     steps:
       - name: Apri una issue
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const title = `🚨 Il backup del database non si ripristina — ${new Date().toISOString().split('T')[0]}`;

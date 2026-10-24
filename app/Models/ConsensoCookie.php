@@ -37,8 +37,9 @@ class ConsensoCookie extends Model
      * Fino al 20 ottobre 2026 era una costante a parte, alzata a mano: la
      * Cookie Policy del 2 ottobre è uscita con la costante ferma al 26
      * settembre e il banner non è tornato. Le versioni passate erano
-     * 2026-09-23 (mappa e video dichiarati) e 2026-09-26 (mappa e video sotto
-     * il consenso di marketing).
+     * 2026-09-23 (mappa e video dichiarati), 2026-09-26 (mappa e video sotto
+     * il consenso di marketing) e 2026-10-21 (Conversions API e segnali di
+     * Google Consent Mode sotto il consenso di marketing).
      */
     public static function versione(): string
     {

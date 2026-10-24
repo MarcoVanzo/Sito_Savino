@@ -12,6 +12,7 @@ use App\Http\Middleware\SecurityHeadersMiddleware;
 use App\Http\Middleware\ServeSocialCrawlerMeta;
 use App\Http\Middleware\UsaLIpDelClienteDiDigitalOcean;
 use App\Support\HostFidati;
+use App\Support\IndirizziPerLingua;
 use App\Support\RedirectGestiti;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -139,7 +140,7 @@ return Application::configure(basePath: dirname(__DIR__))
             // la sessione nuova, quindi il secondo invio passa.
             if (in_array($response->getStatusCode(), [419, 429], true)
                 && $request->header('X-Inertia')
-                && ! $request->is('api/*', 'admin/*', 'filament/*', 'livewire/*')
+                && ! $request->is('api/*', 'admin/*', 'filament/*', 'livewire*')
             ) {
                 return back()->with('error', __($response->getStatusCode() === 419
                     ? 'messages.errori.pagina_scaduta'
@@ -148,13 +149,30 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // Renderizza errori HTTP come pagine Inertia con il design del sito
             if (in_array($response->getStatusCode(), [403, 404, 410, 419, 429, 500, 503])
-                && ! $request->is('api/*', 'admin/*', 'filament/*', 'livewire/*')
+                && ! $request->is('api/*', 'admin/*', 'filament/*', 'livewire*')
                 && ! app()->environment('local')
             ) {
                 // I meta della pagina richiesta (ServeSocialCrawlerMeta) non
                 // valgono per la pagina d'errore: un 404 non deve presentarsi
                 // col titolo di ciò che non esiste o non è pubblico.
                 $request->attributes->remove(ServeSocialCrawlerMeta::ATTRIBUTO_META);
+
+                // Il 404 ha un titolo suo nell'HTML servito (audit SEO del
+                // 20/10/2026: era quello generico del sito). Su un indirizzo
+                // che nessuna rotta riconosce SetLocale non e' passato: la
+                // lingua si legge dal prefisso.
+                if ($response->getStatusCode() === 404) {
+                    $lingua = in_array($request->segment(1), IndirizziPerLingua::lingue(), true)
+                        ? (string) $request->segment(1)
+                        : app()->getLocale();
+
+                    $request->attributes->set(ServeSocialCrawlerMeta::ATTRIBUTO_META, [
+                        'title' => __('site.pagina_non_trovata', [], $lingua),
+                        'description' => __('site.default_description', [], $lingua),
+                        'image' => null,
+                        'type' => 'website',
+                    ]);
+                }
 
                 return Inertia::render('Error', [
                     'status' => $response->getStatusCode(),

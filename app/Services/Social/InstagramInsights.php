@@ -121,7 +121,8 @@ class InstagramInsights
             return $out;
         }
 
-        throw $lastError ?? new MetaException('unavailable', 'Insights Instagram non disponibili');
+        // Arrivati qui entrambi i tentativi sono falliti: l'ultimo errore c'è sempre.
+        throw $lastError;
     }
 
     /**

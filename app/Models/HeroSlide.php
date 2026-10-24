@@ -68,5 +68,34 @@ class HeroSlide extends Model implements HasMedia
         $this->addMediaConversion('hero')
             ->width(1920)
             ->quality(85);
+
+        // Per i telefoni: la `hero` da 1920 px in JPEG pesava 300-450 KB ed era
+        // la prima immagine della home anche su uno schermo da 412 px (audit
+        // del 20/10/2026). Nuova accanto a `hero`, non al suo posto: cambiare
+        // il formato di `hero` avrebbe puntato a file mai generati.
+        $this->addMediaConversion('hero_mobile')
+            ->width(1200)
+            ->format('webp')
+            ->quality(75);
+    }
+
+    /**
+     * Le due misure dell'immagine dell'hero: `mobile` e' null finche' la
+     * conversione non e' stata generata (si usa allora solo la grande).
+     *
+     * @return array{grande: string, mobile: string|null}
+     */
+    public function immaginiDellHero(): array
+    {
+        $media = $this->getFirstMedia('hero-slides');
+
+        if ($media === null) {
+            return ['grande' => '/images/hero1.jpg', 'mobile' => null];
+        }
+
+        return [
+            'grande' => $media->hasGeneratedConversion('hero') ? $media->getUrl('hero') : $media->getUrl(),
+            'mobile' => $media->hasGeneratedConversion('hero_mobile') ? $media->getUrl('hero_mobile') : null,
+        ];
     }
 }

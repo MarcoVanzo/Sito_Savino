@@ -15,8 +15,10 @@ use App\Services\AdminNotificationService;
 use App\Services\AvvisoNuovoOrdine;
 use App\Services\CartService;
 use App\Services\CheckoutService;
+use App\Services\MetaConversioni\ConsensoDiMarketingDellOrdine;
 use App\Services\Payments\PayPalPaymentService;
 use App\Services\Payments\StripePaymentService;
+use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -26,6 +28,7 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+use Throwable;
 
 class CheckoutController extends Controller
 {
@@ -45,6 +48,7 @@ class CheckoutController extends Controller
         protected CartService $cartService,
         protected CheckoutService $checkoutService,
         protected AdminNotificationService $adminNotificationService,
+        protected ConsensoDiMarketingDellOrdine $consensoDiMarketing,
     ) {}
 
     /**
@@ -131,6 +135,14 @@ class CheckoutController extends Controller
                 auth()->user(),
             );
 
+            $this->consensoDiMarketing->registra(
+                $order,
+                $request->validated('consenso_riferimento'),
+                $request->validated('meta_fbp'),
+                $request->validated('meta_fbc'),
+                $request->userAgent(),
+            );
+
             // Track begin_checkout event
             ShopEvent::create([
                 'event_type' => 'begin_checkout',
@@ -155,7 +167,7 @@ class CheckoutController extends Controller
             };
         } catch (ValidationException $e) {
             throw $e;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Errore durante il checkout', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -239,7 +251,7 @@ class CheckoutController extends Controller
             $this->handlePaymentCompleted($esito);
 
             return true;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Il cliente deve vedere comunque la sua pagina di conferma: se la
             // cattura non riesce resta il webhook, e se manca anche quello
             // l'ordine si annulla da solo senza aver incassato nulla. Ma un
@@ -333,7 +345,7 @@ class CheckoutController extends Controller
                 default => redirect()->route('shop.checkout.cancel', ['orderToken' => $orderToken])
                     ->with('error', __('messages.checkout.retry_not_available')),
             };
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Errore retry pagamento', [
                 'order_id' => $order->id,
                 'message' => $e->getMessage(),

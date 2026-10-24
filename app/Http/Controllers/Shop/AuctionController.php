@@ -13,6 +13,7 @@ use App\Support\PagineLegaliDelloShop;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use InvalidArgumentException;
 
 class AuctionController extends Controller
 {
@@ -100,7 +101,7 @@ class AuctionController extends Controller
 
             return back()->with('success', __('messages.auction.bid_placed'));
 
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,

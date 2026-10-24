@@ -9,6 +9,7 @@ use App\Models\StockMovement;
 use App\Services\AdminNotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class StockMovementObserver
 {
@@ -53,7 +54,6 @@ class StockMovementObserver
      * La cancellazione è impedita a livello UI (StockMovementResource).
      * Il ripristino stock è gestito da OrderObserver::restoreStock().
      */
-
     /**
      * Aggiorna lo stock con guard atomico contro valori negativi.
      * Usa un UPDATE condizionale (WHERE stock >= abs(quantity)) per evitare
@@ -62,7 +62,7 @@ class StockMovementObserver
      *
      * @param  class-string<Product|ProductVariant>  $modelClass
      *
-     * @throws \RuntimeException Se lo stock risultante sarebbe negativo.
+     * @throws RuntimeException Se lo stock risultante sarebbe negativo.
      */
     private function updateStock(string $modelClass, int $id, int $quantity): void
     {

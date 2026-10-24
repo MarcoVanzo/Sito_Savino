@@ -2,6 +2,8 @@
 
 namespace App\Services\Analytics;
 
+use RuntimeException;
+
 /**
  * Errore della GA4 Data API tradotto in una causa che si può mostrare.
  *
@@ -15,7 +17,7 @@ namespace App\Services\Analytics;
  *   quota           quota della Data API esaurita
  *   unavailable     rete, timeout o 5xx
  */
-class Ga4Exception extends \RuntimeException
+class Ga4Exception extends RuntimeException
 {
     public function __construct(
         public readonly string $reason,

@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\EventoResource\Pages;
 
 use App\Filament\Resources\EventoResource;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
-use Filament\Resources\Pages\CreateRecord\Concerns\Translatable;
+use LaraZeus\SpatieTranslatable\Actions\LocaleSwitcher;
+use LaraZeus\SpatieTranslatable\Resources\Pages\CreateRecord\Concerns\Translatable;
 
 class CreateEvento extends CreateRecord
 {
@@ -16,7 +16,7 @@ class CreateEvento extends CreateRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\LocaleSwitcher::make(),
+            LocaleSwitcher::make(),
         ];
     }
 

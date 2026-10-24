@@ -4,6 +4,7 @@ namespace App\Services\Social;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Trasporto verso la Graph API.
@@ -32,7 +33,7 @@ class MetaClient
             $response = Http::acceptJson()
                 ->timeout((int) config('services.meta.timeout', 30))
                 ->get($url, $params);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::warning('Meta: Graph API non raggiungibile', ['path' => $path, 'error' => $e->getMessage()]);
 
             throw new MetaException('unavailable', 'Graph API non raggiungibile: '.$e->getMessage());

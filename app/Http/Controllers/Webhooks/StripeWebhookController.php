@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Stripe\Exception\SignatureVerificationException;
+use Throwable;
 
 class StripeWebhookController
 {
@@ -39,7 +40,7 @@ class StripeWebhookController
             ]);
 
             return response()->json(['error' => 'Firma non valida'], 400);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Stripe webhook: errore verifica', [
                 'error' => $e->getMessage(),
             ]);

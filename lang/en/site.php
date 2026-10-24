@@ -26,6 +26,9 @@ return [
      * page to take title and description from. See the Italian file: these
      * strings live here so that an English URL gets an English preview.
      */
+    // Il titolo dell'HTML servito con un 404 (bootstrap/app.php).
+    'pagina_non_trovata' => 'Page not found | Savino Del Bene Volley',
+
     'social' => [
         'home' => [
             'title' => 'Savino Del Bene Volley — Official Website',

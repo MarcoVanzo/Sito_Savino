@@ -4,8 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
+use App\Services\GalleryArchive;
+use Illuminate\Cache\Events\RetrievingKey;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
 use Inertia\Testing\AssertableInertia;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -109,5 +112,28 @@ class GalleryAlbumTest extends TestCase
         $this->withHeaders(['User-Agent' => 'WhatsApp/2.23'])
             ->get('/gallery/album/niente')
             ->assertNotFound();
+    }
+
+    #[Test]
+    public function la_pagina_dell_album_legge_l_archivio_dalla_cache_una_volta_sola(): void
+    {
+        $giornata = $this->album('Giornata 1 - Serie A1', 2);
+        (new GalleryArchive)->riscalda();
+        // Il job di ricostruzione, sincrono nei test, ha gia' riempito
+        // l'istanza per richiesta: la pagina deve partire da zero come in produzione.
+        $this->app->forgetScopedInstances();
+
+        $letture = 0;
+        Event::listen(RetrievingKey::class, function (RetrievingKey $evento) use (&$letture): void {
+            if ($evento->key === GalleryArchive::CHIAVE.':it') {
+                $letture++;
+            }
+        });
+
+        // L'archivio pesa megabyte: rileggerlo e deserializzarlo per ogni
+        // chiamata rendeva la pagina una «Slow DB Query» su Sentry.
+        $this->get("/gallery/album/{$giornata->id}-giornata-1-serie-a1")->assertOk();
+
+        $this->assertSame(1, $letture);
     }
 }

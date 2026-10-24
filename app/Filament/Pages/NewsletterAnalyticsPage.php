@@ -14,7 +14,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Support\Enums\MaxWidth;
+use Filament\Support\Enums\Width;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
@@ -37,19 +37,19 @@ class NewsletterAnalyticsPage extends Page implements HasTable
     use InteractsWithTable;
     use RestrictsAccessByRole;
 
-    protected static ?string $navigationIcon = 'heroicon-o-envelope-open';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-envelope-open';
 
     protected static ?string $navigationLabel = 'Analytics Newsletter';
 
     protected static ?string $title = 'Analytics Newsletter';
 
-    protected static ?string $navigationGroup = 'Marketing';
+    protected static string|\UnitEnum|null $navigationGroup = 'Marketing';
 
     protected static ?int $navigationSort = 12;
 
     protected static ?string $slug = 'analytics/newsletter';
 
-    protected static string $view = 'filament.pages.newsletter-analytics';
+    protected string $view = 'filament.pages.newsletter-analytics';
 
     public int $days = 28;
 
@@ -71,9 +71,9 @@ class NewsletterAnalyticsPage extends Page implements HasTable
         return 2;
     }
 
-    public function getMaxContentWidth(): MaxWidth|string|null
+    public function getMaxContentWidth(): Width|string|null
     {
-        return MaxWidth::Full;
+        return Width::Full;
     }
 
     /**
@@ -98,7 +98,7 @@ class NewsletterAnalyticsPage extends Page implements HasTable
             Action::make('period')
                 ->label('Periodo')
                 ->icon('heroicon-m-calendar-days')
-                ->form([
+                ->schema([
                     Select::make('days')
                         ->label('Periodo')
                         ->options([

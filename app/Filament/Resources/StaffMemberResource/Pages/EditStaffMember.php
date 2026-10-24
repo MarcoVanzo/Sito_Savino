@@ -4,9 +4,10 @@ namespace App\Filament\Resources\StaffMemberResource\Pages;
 
 use App\Filament\Actions\RevocaRiconoscimentoVoltiAction;
 use App\Filament\Resources\StaffMemberResource;
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
-use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
+use LaraZeus\SpatieTranslatable\Actions\LocaleSwitcher;
+use LaraZeus\SpatieTranslatable\Resources\Pages\EditRecord\Concerns\Translatable;
 
 class EditStaffMember extends EditRecord
 {
@@ -17,9 +18,9 @@ class EditStaffMember extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\LocaleSwitcher::make(),
+            LocaleSwitcher::make(),
             RevocaRiconoscimentoVoltiAction::perLaScheda(),
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 }

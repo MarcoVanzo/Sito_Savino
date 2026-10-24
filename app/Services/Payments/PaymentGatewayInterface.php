@@ -3,6 +3,7 @@
 namespace App\Services\Payments;
 
 use App\Models\Order;
+use Exception;
 
 interface PaymentGatewayInterface
 {
@@ -25,7 +26,7 @@ interface PaymentGatewayInterface
      *
      * @return bool True on success
      *
-     * @throws \Exception on failure
+     * @throws Exception on failure
      */
     public function refund(Order $order, ?float $amount = null): bool;
 }

@@ -7,6 +7,7 @@ use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Throwable;
 
 /**
  * Migra i file media dal disco 'public' (locale) al disco 's3' (DigitalOcean Spaces).
@@ -143,7 +144,7 @@ class MigrateMediaToS3 extends Command
             $this->info('    ✅ Migrato con successo.');
 
             return self::ESITO_MIGRATO;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->error("    ❌ Errore: {$e->getMessage()}");
 
             return self::ESITO_ERRORE;

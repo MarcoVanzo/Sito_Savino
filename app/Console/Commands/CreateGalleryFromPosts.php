@@ -8,6 +8,7 @@ use App\Models\Post;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class CreateGalleryFromPosts extends Command
 {
@@ -269,7 +270,7 @@ class CreateGalleryFromPosts extends Command
                 ->toMediaCollection('gallery', $coverMedia->disk);
 
             return true;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->warn("  ⚠ Errore copia media per post {$postId}: ".$e->getMessage());
 
             return false;

@@ -4,6 +4,8 @@ namespace App\Services\Analytics;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
+use Throwable;
 
 /**
  * Chiamate alla Google Analytics Data API (v1beta).
@@ -54,7 +56,7 @@ class Ga4Client
         }
 
         if (count($requests) > self::MAX_BATCH) {
-            throw new \InvalidArgumentException('batchRunReports accetta al massimo '.self::MAX_BATCH.' report');
+            throw new InvalidArgumentException('batchRunReports accetta al massimo '.self::MAX_BATCH.' report');
         }
 
         $json = $this->call($propertyId, 'batchRunReports', ['requests' => $requests]);
@@ -168,7 +170,7 @@ class Ga4Client
                 ->acceptJson()
                 ->timeout((int) config('services.ga4.timeout', 30))
                 ->post(self::BASE_URL.$propertyId.':'.$method, $body);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::warning('GA4: Data API non raggiungibile', ['method' => $method, 'error' => $e->getMessage()]);
 
             throw new Ga4Exception('unavailable', 'GA4 non raggiungibile: '.$e->getMessage());

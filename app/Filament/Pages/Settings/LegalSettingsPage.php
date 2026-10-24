@@ -4,12 +4,12 @@ namespace App\Filament\Pages\Settings;
 
 use App\Support\DocumentiLegali;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Form;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 
 class LegalSettingsPage extends BaseSettingsPage
 {
-    protected static ?string $navigationIcon = 'heroicon-o-shield-check';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-shield-check';
 
     protected static ?string $navigationLabel = 'Documenti Legali';
 
@@ -19,10 +19,10 @@ class LegalSettingsPage extends BaseSettingsPage
 
     protected static ?string $slug = 'settings/legal';
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Section::make('Corporate Governance')
                     ->description('Questi PDF li pubblicano il footer e la pagina Safeguarding: sostituendo un file qui si aggiornano entrambi.')
                     ->schema(array_map(

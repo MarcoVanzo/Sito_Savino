@@ -88,7 +88,7 @@ class NomiDelleSezioniSponsorTest extends TestCase
         // Riaprendo il pannello le sezioni sono nell'ordine salvato.
         $voci = Livewire::test(ListSponsors::class)
             ->mountAction('nomiDelleSezioni')
-            ->get('mountedActionsData.0.sezioni');
+            ->get('mountedActions.0.data.sezioni');
 
         $this->assertSame('media', array_values($voci)[0]['tier']);
     }
@@ -125,7 +125,7 @@ class NomiDelleSezioniSponsorTest extends TestCase
      */
     private function compila(Testable $pannello, array $nomi = [], ?string $primo = null): Testable
     {
-        $voci = $pannello->get('mountedActionsData.0.sezioni');
+        $voci = $pannello->get('mountedActions.0.data.sezioni');
 
         foreach ($voci as $uuid => $voce) {
             $voci[$uuid] = [...$voce, ...($nomi[$voce['tier']] ?? [])];
@@ -135,7 +135,7 @@ class NomiDelleSezioniSponsorTest extends TestCase
             uasort($voci, fn (array $a, array $b): int => ($b['tier'] === $primo) <=> ($a['tier'] === $primo));
         }
 
-        return $pannello->set('mountedActionsData.0.sezioni', $voci);
+        return $pannello->set('mountedActions.0.data.sezioni', $voci);
     }
 
     /**

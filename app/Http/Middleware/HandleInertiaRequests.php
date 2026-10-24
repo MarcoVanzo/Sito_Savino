@@ -10,7 +10,10 @@ use App\Models\User;
 use App\Support\IndirizziPerLingua;
 use App\Support\SentryDsn;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Inertia\Middleware;
+use Throwable;
+use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -39,7 +42,14 @@ class HandleInertiaRequests extends Middleware
             // Le pagine usano `ziggy.url`/`ziggy.location` per i dati strutturati
             // e i meta Open Graph, che richiedono URL assoluti. La direttiva
             // @routes espone solo l'helper JS, non questa prop.
+            //
+            // Il server SSR non ha la direttiva @routes: al primo caricamento
+            // (non nelle visite Inertia) riceve qui l'elenco chiuso delle rotte
+            // (config/ziggy.php), per i `route()` dei componenti (paginaSsr.js).
             'ziggy' => fn () => [
+                ...($this->serveIlServerSsr($request)
+                    ? Arr::only((new Ziggy)->toArray(), ['routes', 'port', 'defaults'])
+                    : []),
                 'url' => $request->getSchemeAndHttpHost(),
                 'location' => $request->url(),
             ],
@@ -74,6 +84,15 @@ class HandleInertiaRequests extends Middleware
                 'environment' => config('sentry.environment') ?? app()->environment(),
             ],
         ];
+    }
+
+    /**
+     * Se questa risposta passa dal server SSR: solo i caricamenti interi, con
+     * l'SSR acceso (INERTIA_SSR_ENABLED).
+     */
+    private function serveIlServerSsr(Request $request): bool
+    {
+        return (bool) config('inertia.ssr.enabled') && ! $request->header('X-Inertia');
     }
 
     /**
@@ -179,6 +198,10 @@ class HandleInertiaRequests extends Middleware
         $settings['analytics']['meta_pixel_requires_consent'] =
             (bool) config('services.meta.pixel_requires_consent');
 
+        // Google Ads, come il pixel, da variabile d'ambiente: vuoto = spento.
+        $settings['analytics']['google_ads_id'] = ((string) config('services.google_ads.id')) ?: null;
+        $settings['analytics']['google_ads_purchase_label'] = ((string) config('services.google_ads.purchase_label')) ?: null;
+
         $contactOverrides = $this->contactPageOverrides();
 
         if ($contactOverrides !== []) {
@@ -232,7 +255,7 @@ class HandleInertiaRequests extends Middleware
                     && ! str_starts_with((string) $chiave, 'hero_'),
                 ARRAY_FILTER_USE_BOTH,
             );
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // La tabella o la pagina possono non esistere ancora: il sito deve
             // reggere lo stesso.
             return [];

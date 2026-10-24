@@ -108,7 +108,10 @@ const togli = (item) => {
     conAttesa(item.id, (callbacks) => removeItem(item.id, callbacks));
 };
 
+const montato = ref(false);
+
 onMounted(() => {
+    montato.value = true;
     document.addEventListener('keydown', handleKeydown, true);
     if (!hasFetched.value) {
         fetchCart();
@@ -124,7 +127,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <Teleport to="body">
+    <!-- Il carrello si sposta nel body solo dopo il montaggio: l'SSR non scrive
+         il contenuto dei Teleport, e idratarlo dava un mismatch su ogni pagina. -->
+    <Teleport v-if="montato" to="body">
         <!-- Overlay -->
         <Transition
             enter-active-class="ease-out duration-300"

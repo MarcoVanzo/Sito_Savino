@@ -76,9 +76,9 @@ class SocialCrawlerMetaTest extends TestCase
 
         $html = $this->get("/shop/prodotto/{$product->slug}")->assertOk()->getContent();
 
-        $this->assertStringContainsString('<title inertia>Maglia gara 2026 | Savino Del Bene Volley</title>', $html);
-        $this->assertStringContainsString('<meta property="og:title" content="Maglia gara 2026 | Savino Del Bene Volley" inertia="og:title">', $html);
-        $this->assertStringContainsString('content="La maglia ufficiale della stagione." inertia="description"', $html);
+        $this->assertStringContainsString('<title data-inertia>Maglia gara 2026 | Savino Del Bene Volley</title>', $html);
+        $this->assertStringContainsString('<meta property="og:title" content="Maglia gara 2026 | Savino Del Bene Volley" data-inertia="og:title">', $html);
+        $this->assertStringContainsString('content="La maglia ufficiale della stagione." data-inertia="description"', $html);
         $this->assertStringContainsString('og:type" content="product"', $html);
     }
 
@@ -97,7 +97,10 @@ class SocialCrawlerMetaTest extends TestCase
 
         $html = $this->get('/prova/errore/dei/meta')->assertNotFound()->getContent();
 
-        $this->assertStringContainsString('<meta property="og:title" content="Savino Del Bene Volley" inertia="og:title">', $html);
+        // Il titolo e' quello del 404 (audit SEO del 20/10/2026), non quello
+        // della pagina richiesta.
+        $this->assertStringContainsString('<meta property="og:title" content="Pagina non trovata | Savino Del Bene Volley" data-inertia="og:title">', $html);
+        $this->assertStringContainsString('og:type" content="website"', $html);
     }
 
     /**

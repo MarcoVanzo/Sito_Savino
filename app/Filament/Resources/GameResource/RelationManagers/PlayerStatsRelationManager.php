@@ -4,10 +4,11 @@ namespace App\Filament\Resources\GameResource\RelationManagers;
 
 use App\Filament\Resources\PlayerResource;
 use App\Models\GamePlayerStat;
-use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
-use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -28,7 +29,7 @@ class PlayerStatsRelationManager extends RelationManager
 
     protected static ?string $title = 'Tabellino';
 
-    protected static ?string $icon = 'heroicon-o-table-cells';
+    protected static string|\BackedEnum|null $icon = 'heroicon-o-table-cells';
 
     protected static ?string $recordTitleAttribute = 'player_name';
 
@@ -56,9 +57,9 @@ class PlayerStatsRelationManager extends RelationManager
     /**
      * Nessun form: le righe non si creano né si modificano dal CMS.
      */
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form->schema([]);
+        return $schema->components([]);
     }
 
     public function table(Table $table): Table
@@ -66,13 +67,13 @@ class PlayerStatsRelationManager extends RelationManager
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['team', 'player']))
             ->columns([
-                Tables\Columns\TextColumn::make('jersey_number')
+                TextColumn::make('jersey_number')
                     ->label('N°')
                     ->alignCenter()
                     ->placeholder('—')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('player_name')
+                TextColumn::make('player_name')
                     ->label('Atleta')
                     ->searchable()
                     ->sortable()
@@ -84,7 +85,7 @@ class PlayerStatsRelationManager extends RelationManager
                         : null)
                     ->openUrlInNewTab(),
 
-                Tables\Columns\TextColumn::make('role_flags')
+                TextColumn::make('role_flags')
                     ->label('Ruolo')
                     ->badge()
                     ->getStateUsing(fn (GamePlayerStat $record) => array_values(array_filter([
@@ -93,37 +94,37 @@ class PlayerStatsRelationManager extends RelationManager
                     ])))
                     ->color(fn (string $state): string => $state === 'Capitano' ? 'warning' : 'info'),
 
-                Tables\Columns\TextColumn::make('team.name')
+                TextColumn::make('team.name')
                     ->label('Squadra')
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('sets_played')
+                TextColumn::make('sets_played')
                     ->label('Set')
                     ->alignCenter()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('points_total')
+                TextColumn::make('points_total')
                     ->label('Punti')
                     ->alignCenter()
                     ->weight(FontWeight::Bold)
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('attack_points')
+                TextColumn::make('attack_points')
                     ->label('Attacco')
                     ->alignCenter()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('block_points')
+                TextColumn::make('block_points')
                     ->label('Muri')
                     ->alignCenter()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('serve_points')
+                TextColumn::make('serve_points')
                     ->label('Ace')
                     ->alignCenter()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('errors_total')
+                TextColumn::make('errors_total')
                     ->label('Errori')
                     ->alignCenter()
                     ->color('danger')
@@ -132,53 +133,53 @@ class PlayerStatsRelationManager extends RelationManager
                         + $record->attack_errors
                         + $record->reception_errors),
 
-                Tables\Columns\TextColumn::make('serve_errors')
+                TextColumn::make('serve_errors')
                     ->label('Err. batt.')
                     ->alignCenter()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('attack_errors')
+                TextColumn::make('attack_errors')
                     ->label('Err. att.')
                     ->alignCenter()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('attack_blocked')
+                TextColumn::make('attack_blocked')
                     ->label('Att. murati')
                     ->alignCenter()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('attack_total')
+                TextColumn::make('attack_total')
                     ->label('Att. tot.')
                     ->alignCenter()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('attack_pct')
+                TextColumn::make('attack_pct')
                     ->label('Att. %')
                     ->alignCenter()
                     ->suffix('%')
                     ->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('reception_errors')
+                TextColumn::make('reception_errors')
                     ->label('Err. ric.')
                     ->alignCenter()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('reception_total')
+                TextColumn::make('reception_total')
                     ->label('Ric. tot.')
                     ->alignCenter()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('reception_positive_pct')
+                TextColumn::make('reception_positive_pct')
                     ->label('Ric. pos. %')
                     ->alignCenter()
                     ->suffix('%')
                     ->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('reception_perfect_pct')
+                TextColumn::make('reception_perfect_pct')
                     ->label('Ric. perf. %')
                     ->alignCenter()
                     ->suffix('%')
                     ->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('points_break')
+                TextColumn::make('points_break')
                     ->label('Break point')
                     ->alignCenter()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('points_win_loss')
+                TextColumn::make('points_win_loss')
                     ->label('W-L')
                     ->alignCenter()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -186,7 +187,7 @@ class PlayerStatsRelationManager extends RelationManager
             // Le due squadre restano separate: senza raggruppamento il
             // tabellino sarebbe un elenco unico di 28 nomi.
             ->groups([
-                Tables\Grouping\Group::make('team.name')
+                Group::make('team.name')
                     ->label('Squadra')
                     ->collapsible(),
             ])
@@ -195,8 +196,8 @@ class PlayerStatsRelationManager extends RelationManager
             // Un tabellino sta in una schermata: la paginazione spezzerebbe i gruppi.
             ->paginated(false)
             ->headerActions([])
-            ->actions([])
-            ->bulkActions([])
+            ->recordActions([])
+            ->toolbarActions([])
             ->emptyStateHeading('Tabellino non disponibile')
             ->emptyStateDescription(
                 'Le statistiche arrivano dal referto pubblicato dalla Lega e non si '

@@ -55,12 +55,20 @@ class IndirizzoFissoDellaDirettaTest extends TestCase
     }
 
     #[Test]
-    public function salta_le_gare_senza_link_rinviate_finite_o_di_altre_squadre(): void
+    public function salta_le_gare_senza_link_rinviate_finite_del_vivaio_o_di_altre_squadre(): void
     {
         $this->gara(['stream_url' => null, 'match_date' => now()->addHour()]);
         $this->gara(['status' => GameStatus::Postponed, 'match_date' => now()->addHours(2)]);
         $this->gara(['match_date' => now()->subHours(4)]);
         $this->gara(['match_date' => now()->addHours(3)], dellaSocieta: false);
+        // Il vivaio è interno anche lui, ma la diretta è solo della prima squadra.
+        Game::factory()->create([
+            'home_team_id' => Team::factory()->create(['is_internal' => true, 'category' => 'B1'])->id,
+            'away_team_id' => Team::factory()->create(['is_internal' => false])->id,
+            'match_date' => now()->addHours(4),
+            'status' => GameStatus::Scheduled,
+            'stream_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        ]);
         $giusta = $this->gara(['match_date' => now()->addDays(5)]);
 
         $this->get(route('diretta'))

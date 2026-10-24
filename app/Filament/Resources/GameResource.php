@@ -4,18 +4,30 @@ namespace App\Filament\Resources;
 
 use App\Enums\CompetitionType;
 use App\Enums\GameStatus;
-use App\Filament\Resources\GameResource\Pages;
-use App\Filament\Resources\GameResource\RelationManagers;
+use App\Filament\Resources\GameResource\Pages\CreateGame;
+use App\Filament\Resources\GameResource\Pages\EditGame;
+use App\Filament\Resources\GameResource\Pages\ListGames;
+use App\Filament\Resources\GameResource\Pages\ViewGame;
+use App\Filament\Resources\GameResource\RelationManagers\PlayerStatsRelationManager;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Game;
 use App\Models\Team;
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Infolists;
-use Filament\Infolists\Infolist;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
-use Filament\Tables;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
@@ -37,13 +49,13 @@ class GameResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Partite';
 
-    protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';
 
     // La classifica ha ora una voce propria (StandingResource): qui restano
     // calendario e risultati, altrimenti due voci si chiamerebbero "Classifica".
     protected static ?string $navigationLabel = 'Calendario e Risultati';
 
-    protected static ?string $navigationGroup = 'Stagione';
+    protected static string|\UnitEnum|null $navigationGroup = 'Stagione';
 
     protected static ?int $navigationSort = 3;
 
@@ -64,16 +76,16 @@ class GameResource extends Resource
         return ($record->homeTeam->name ?? '?').' - '.($record->awayTeam->name ?? '?');
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 // Le gare importate si riallineano a ogni sincronizzazione: chi
                 // le modifica qui deve saperlo prima di salvare, non scoprirlo
                 // un'ora dopo quando la modifica è sparita.
-                Forms\Components\Section::make('Gara importata')
+                Section::make('Gara importata')
                     ->schema([
-                        Forms\Components\Placeholder::make('avviso_sincronizzazione')
+                        Placeholder::make('avviso_sincronizzazione')
                             ->hiddenLabel()
                             ->content(fn (?Game $record): string => 'Data, squadre, luogo e risultato arrivano dalla '
                                 .$record?->fonteDellaSincronizzazione()
@@ -81,53 +93,53 @@ class GameResource extends Resource
                     ])
                     ->icon('heroicon-o-arrow-path')
                     ->visible(fn (?Game $record): bool => (bool) $record?->isImported()),
-                Forms\Components\Section::make('Dettagli Partita')
+                Section::make('Dettagli Partita')
                     ->schema([
-                        Forms\Components\Select::make('season_id')
+                        Select::make('season_id')
                             ->label('Stagione')
                             ->relationship('season', 'name')
                             ->preload()
                             ->required(),
-                        Forms\Components\Select::make('competition_type')
+                        Select::make('competition_type')
                             ->label('Competizione')
                             ->options(CompetitionType::class)
                             ->required(),
-                        Forms\Components\Select::make('status')
+                        Select::make('status')
                             ->label('Stato')
                             ->options(GameStatus::class)
                             ->default(GameStatus::Scheduled)
                             ->required(),
                     ])->columns(2),
-                Forms\Components\Section::make('Squadre e Risultato')
+                Section::make('Squadre e Risultato')
                     ->schema([
-                        Forms\Components\Select::make('home_team_id')
+                        Select::make('home_team_id')
                             ->label('Squadra in Casa')
                             ->relationship('homeTeam', 'name')
                             ->required()
                             ->live(),
-                        Forms\Components\TextInput::make('home_score')
+                        TextInput::make('home_score')
                             ->label('Set vinti (Casa)')
                             ->numeric()
                             ->minValue(0),
-                        Forms\Components\Select::make('away_team_id')
+                        Select::make('away_team_id')
                             ->label('Squadra in Trasferta')
                             ->relationship('awayTeam', 'name')
                             ->required()
                             ->different('home_team_id'),
-                        Forms\Components\TextInput::make('away_score')
+                        TextInput::make('away_score')
                             ->label('Set vinti (Trasferta)')
                             ->numeric()
                             ->minValue(0),
                     ])->columns(2),
-                Forms\Components\Section::make('Programmazione')
+                Section::make('Programmazione')
                     ->schema([
-                        Forms\Components\DateTimePicker::make('match_date')
+                        DateTimePicker::make('match_date')
                             ->label('Data e Ora Incontro')
                             ->required(),
-                        Forms\Components\TextInput::make('location')
+                        TextInput::make('location')
                             ->label('Luogo / Palazzetto')
                             ->maxLength(255),
-                        Forms\Components\TextInput::make('stream_url')
+                        TextInput::make('stream_url')
                             ->label('Link diretta streaming')
                             ->url()
                             // Il link finisce in un `href` (e, se incorporabile,
@@ -142,29 +154,29 @@ class GameResource extends Resource
                 // Finiscono solo nei dati strutturati della gara (l'offerta di
                 // SportsEvent per Google): niente si inventa, un campo vuoto
                 // resta fuori.
-                Forms\Components\Section::make('Biglietti')
+                Section::make('Biglietti')
                     ->description('Per i risultati di Google. Vuoti: la prossima gara in casa usa il link del Match Day o della Biglietteria, le altre non dichiarano biglietti.')
                     ->schema([
-                        Forms\Components\TextInput::make('biglietti_url')
+                        TextInput::make('biglietti_url')
                             ->label('Link di vendita (Vivaticket)')
                             ->url()
                             ->rule('url:https')
                             ->maxLength(500)
                             ->columnSpanFull(),
-                        Forms\Components\DateTimePicker::make('biglietti_in_vendita_dal')
+                        DateTimePicker::make('biglietti_in_vendita_dal')
                             ->label('In vendita dal'),
-                        Forms\Components\TextInput::make('biglietti_prezzo_da')
+                        TextInput::make('biglietti_prezzo_da')
                             ->label('Prezzo più basso (€)')
                             ->numeric()
                             ->minValue(0)
                             ->helperText('Solo se è quello pubblicato su Vivaticket.'),
-                        Forms\Components\Toggle::make('biglietti_esauriti')
+                        Toggle::make('biglietti_esauriti')
                             ->label('Esauriti')
                             ->inline(false),
                     ])
                     ->columns(2)
                     ->collapsible()
-                    ->visible(fn (Forms\Get $get): bool => (bool) Team::find($get('home_team_id'))?->is_internal),
+                    ->visible(fn (Get $get): bool => (bool) Team::find($get('home_team_id'))?->is_internal),
             ]);
     }
 
@@ -172,16 +184,16 @@ class GameResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('match_date')
+                TextColumn::make('match_date')
                     ->label('Data e Ora')
                     ->dateTime(self::DATE_TIME_FORMAT)
                     ->sortable()
                     ->description(fn ($record) => $record->location),
-                Tables\Columns\TextColumn::make('competition_type')
+                TextColumn::make('competition_type')
                     ->label('Competizione')
                     ->badge()
                     ->color('primary'),
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label('Stato')
                     ->badge()
                     ->color(fn ($state): string => match ($state instanceof GameStatus ? $state : GameStatus::tryFrom((string) $state)) {
@@ -191,28 +203,28 @@ class GameResource extends Resource
                         GameStatus::Postponed => 'warning',
                         default => 'gray',
                     }),
-                Tables\Columns\TextColumn::make('homeTeam.name')
+                TextColumn::make('homeTeam.name')
                     ->label('Casa')
                     ->searchable()
                     ->weight('bold'),
-                Tables\Columns\TextColumn::make('home_score')
+                TextColumn::make('home_score')
                     ->label('Set')
                     ->alignCenter(),
-                Tables\Columns\TextColumn::make('away_score')
+                TextColumn::make('away_score')
                     ->label('Set')
                     ->alignCenter(),
-                Tables\Columns\TextColumn::make('awayTeam.name')
+                TextColumn::make('awayTeam.name')
                     ->label('Trasferta')
                     ->searchable()
                     ->weight('bold'),
-                Tables\Columns\TextColumn::make('matchday')
+                TextColumn::make('matchday')
                     ->label('Giornata')
                     ->alignCenter()
                     ->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: true),
                 // Segnala dove il tabellino è già stato importato: è il motivo
                 // per cui alcune schede gara hanno la tab "Tabellino" e altre no.
-                Tables\Columns\IconColumn::make('stats_synced_at')
+                IconColumn::make('stats_synced_at')
                     ->label('Tabellino')
                     ->alignCenter()
                     ->boolean()
@@ -222,15 +234,15 @@ class GameResource extends Resource
             ])
             ->defaultSort('match_date', 'desc')
             ->filters([
-                Tables\Filters\SelectFilter::make('competition_type')
+                SelectFilter::make('competition_type')
                     ->label('Competizione')
                     ->options(CompetitionType::class),
-                Tables\Filters\SelectFilter::make('season_id')
+                SelectFilter::make('season_id')
                     ->label('Stagione')
                     ->relationship('season', 'name'),
             ])
-            ->actions(static::viewAndEditActions())
-            ->bulkActions(static::standardBulkActions());
+            ->recordActions(static::viewAndEditActions())
+            ->toolbarActions(static::standardBulkActions());
     }
 
     /**
@@ -238,34 +250,34 @@ class GameResource extends Resource
      * lettura. Il tabellino per giocatrice sta invece nel RelationManager
      * (vedi getRelations), che gestisce da solo ordinamento e raggruppamento.
      */
-    public static function infolist(Infolist $infolist): Infolist
+    public static function infolist(Schema $schema): Schema
     {
-        return $infolist
-            ->schema([
-                Infolists\Components\Section::make('Partita')
+        return $schema
+            ->components([
+                Section::make('Partita')
                     ->schema([
-                        Infolists\Components\TextEntry::make('match_date')
+                        TextEntry::make('match_date')
                             ->label('Data e ora')
                             ->dateTime(self::DATE_TIME_FORMAT),
-                        Infolists\Components\TextEntry::make('competition_type')
+                        TextEntry::make('competition_type')
                             ->label('Competizione')
                             ->badge(),
-                        Infolists\Components\TextEntry::make('status')
+                        TextEntry::make('status')
                             ->label('Stato')
                             ->badge(),
-                        Infolists\Components\TextEntry::make('matchday')
+                        TextEntry::make('matchday')
                             ->label('Giornata')
                             ->placeholder('—'),
-                        Infolists\Components\TextEntry::make('phase')
+                        TextEntry::make('phase')
                             ->label('Fase')
                             ->placeholder('—'),
-                        Infolists\Components\TextEntry::make('season.name')
+                        TextEntry::make('season.name')
                             ->label('Stagione'),
-                        Infolists\Components\TextEntry::make('location')
+                        TextEntry::make('location')
                             ->label('Palazzetto')
                             ->placeholder('—')
                             ->columnSpanFull(),
-                        Infolists\Components\TextEntry::make('stream_url')
+                        TextEntry::make('stream_url')
                             ->label('Diretta streaming')
                             ->placeholder('—')
                             ->url(fn ($state) => $state)
@@ -273,44 +285,44 @@ class GameResource extends Resource
                             ->columnSpanFull(),
                     ])->columns(3),
 
-                Infolists\Components\Section::make('Risultato')
+                Section::make('Risultato')
                     ->schema([
-                        Infolists\Components\ImageEntry::make('home_logo')
+                        ImageEntry::make('home_logo')
                             ->label('')
                             ->checkFileExistence(false)
                             ->height(40)
                             ->state(fn (Game $record) => $record->homeTeam?->logoUrl()),
-                        Infolists\Components\TextEntry::make('homeTeam.name')
+                        TextEntry::make('homeTeam.name')
                             ->label('Casa')
                             ->weight(FontWeight::Bold),
-                        Infolists\Components\TextEntry::make('score')
+                        TextEntry::make('score')
                             ->label('Set')
                             ->weight(FontWeight::Bold)
                             ->state(fn (Game $record) => $record->home_score !== null || $record->away_score !== null
                                 ? ($record->home_score ?? 0).' - '.($record->away_score ?? 0)
                                 : '—'),
-                        Infolists\Components\TextEntry::make('awayTeam.name')
+                        TextEntry::make('awayTeam.name')
                             ->label('Trasferta')
                             ->weight(FontWeight::Bold),
-                        Infolists\Components\ImageEntry::make('away_logo')
+                        ImageEntry::make('away_logo')
                             ->label('')
                             ->checkFileExistence(false)
                             ->height(40)
                             ->state(fn (Game $record) => $record->awayTeam?->logoUrl()),
                     ])->columns(5),
 
-                Infolists\Components\Section::make('Referto')
+                Section::make('Referto')
                     ->description('Dati del referto pubblicato dalla Lega: non sono modificabili dal CMS.')
                     ->schema([
-                        Infolists\Components\TextEntry::make('spectators')
+                        TextEntry::make('spectators')
                             ->label('Spettatori')
                             ->numeric()
                             ->placeholder('non comunicati'),
-                        Infolists\Components\TextEntry::make('referees')
+                        TextEntry::make('referees')
                             ->label('Arbitri')
                             ->placeholder('non comunicati')
                             ->columnSpan(2),
-                        Infolists\Components\TextEntry::make('total_duration')
+                        TextEntry::make('total_duration')
                             ->label('Durata totale')
                             ->placeholder('—')
                             ->state(function (Game $record): ?string {
@@ -319,17 +331,17 @@ class GameResource extends Resource
 
                                 return $minutes > 0 ? $minutes.' min' : null;
                             }),
-                        Infolists\Components\RepeatableEntry::make('set_scores')
+                        RepeatableEntry::make('set_scores')
                             ->label('Parziali per set')
                             ->schema([
-                                Infolists\Components\TextEntry::make('set')
+                                TextEntry::make('set')
                                     ->label('Set')
                                     ->formatStateUsing(fn ($state) => $state.'°'),
-                                Infolists\Components\TextEntry::make('duration')
+                                TextEntry::make('duration')
                                     ->label('Durata')
                                     ->placeholder('—')
                                     ->formatStateUsing(fn ($state) => $state !== null ? $state.' min' : null),
-                                Infolists\Components\TextEntry::make('partials')
+                                TextEntry::make('partials')
                                     ->label('Parziali (l\'ultimo è il punteggio del set)')
                                     ->placeholder('—')
                                     ->formatStateUsing(fn ($state) => is_array($state) ? implode(' · ', $state) : $state),
@@ -344,15 +356,15 @@ class GameResource extends Resource
                         || filled($record->spectators)
                         || filled($record->referees)),
 
-                Infolists\Components\Section::make('Sincronizzazione Lega')
+                Section::make('Sincronizzazione Lega')
                     ->schema([
-                        Infolists\Components\TextEntry::make('lvf_match_id')
+                        TextEntry::make('lvf_match_id')
                             ->label('ID gara Lega'),
-                        Infolists\Components\TextEntry::make('lvf_synced_at')
+                        TextEntry::make('lvf_synced_at')
                             ->label('Gara sincronizzata il')
                             ->dateTime(self::DATE_TIME_FORMAT)
                             ->placeholder('mai'),
-                        Infolists\Components\TextEntry::make('stats_synced_at')
+                        TextEntry::make('stats_synced_at')
                             ->label('Tabellino sincronizzato il')
                             ->dateTime(self::DATE_TIME_FORMAT)
                             ->placeholder('mai'),
@@ -362,14 +374,14 @@ class GameResource extends Resource
                     ->collapsible()
                     ->visible(fn (Game $record) => $record->importataDallaLega()),
 
-                Infolists\Components\Section::make('Sincronizzazione CEV')
+                Section::make('Sincronizzazione CEV')
                     ->description('Gara importata dal portale della CEV con `cev:sync`: data, squadre, luogo e risultato si riallineano a ogni giro.')
                     ->schema([
-                        Infolists\Components\TextEntry::make('cev_match_id')
+                        TextEntry::make('cev_match_id')
                             ->label('ID gara CEV')
                             ->url(fn (Game $record) => $record->indirizzoSulPortaleCev())
                             ->openUrlInNewTab(),
-                        Infolists\Components\TextEntry::make('updated_at')
+                        TextEntry::make('updated_at')
                             ->label('Ultima modifica')
                             ->dateTime(self::DATE_TIME_FORMAT),
                     ])
@@ -383,17 +395,17 @@ class GameResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\PlayerStatsRelationManager::class,
+            PlayerStatsRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListGames::route('/'),
-            'create' => Pages\CreateGame::route('/create'),
-            'view' => Pages\ViewGame::route('/{record}'),
-            'edit' => Pages\EditGame::route('/{record}/edit'),
+            'index' => ListGames::route('/'),
+            'create' => CreateGame::route('/create'),
+            'view' => ViewGame::route('/{record}'),
+            'edit' => EditGame::route('/{record}/edit'),
         ];
     }
 

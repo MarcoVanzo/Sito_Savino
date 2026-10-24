@@ -1,6 +1,54 @@
+/*
+ * Tema del pannello (Filament 4+, Tailwind CSS 4). Lo compila
+ * @tailwindcss/vite, limitato a questa cartella in vite.config.js: il sito
+ * pubblico resta su Tailwind 3 (postcss.config.js lo salta qui). Il
+ * `tailwindcss` importato dal tema di Filament e' la 4, alias `tailwindcss4`.
+ */
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
 
-@config 'tailwind.config.js';
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+/* Ex tailwind.config.js del tema. */
+@theme {
+    --color-savino-red: #df338f;
+    --color-savino-blue: #003063;
+    --color-savino-gold: #bda871;
+
+    --animate-pulse-gold: pulse-gold 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    --animate-fade-in: fade-in 0.5s ease-out;
+    --animate-slide-up: slide-up 0.5s ease-out;
+
+    @keyframes pulse-gold {
+        0%,
+        100% {
+            opacity: 1;
+            color: #bda871;
+        }
+        50% {
+            opacity: 0.5;
+            color: #f8269c;
+        }
+    }
+    @keyframes fade-in {
+        0% {
+            opacity: 0;
+        }
+        100% {
+            opacity: 1;
+        }
+    }
+    @keyframes slide-up {
+        0% {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
 
 /* Premium Customizations - Background & Glassmorphism */
 .fi-simple-layout {
@@ -24,11 +72,12 @@
     backdrop-filter: blur(12px);
 }
 
-/* Base UI Improvements */
+/* Base UI Improvements. Prefisso `savino-`: `--radius-*` in Tailwind 4 e'
+   la scala di `rounded-*`, ridefinirla cambierebbe tutto il pannello. */
 :root {
-    --radius-lg: 0.75rem;
-    --radius-xl: 1rem;
-    --radius-2xl: 1.25rem;
+    --savino-radius-lg: 0.75rem;
+    --savino-radius-xl: 1rem;
+    --savino-radius-2xl: 1.25rem;
 }
 
 /* Sidebar Styling */
@@ -85,7 +134,7 @@
 /* Cards & Sections */
 .fi-section {
     box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;
-    border-radius: var(--radius-xl) !important;
+    border-radius: var(--savino-radius-xl) !important;
     border: 1px solid rgba(0, 0, 0, 0.03) !important;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -98,7 +147,7 @@
 /* Widget Cards Hover */
 .fi-wi-stats-overview-stat {
     transition: all 0.3s ease;
-    border-radius: var(--radius-xl) !important;
+    border-radius: var(--savino-radius-xl) !important;
 }
 .fi-wi-stats-overview-stat:hover {
     transform: translateY(-2px);
@@ -110,7 +159,7 @@
 
 /* Tables */
 .fi-ta-table {
-    border-radius: var(--radius-lg) !important;
+    border-radius: var(--savino-radius-lg) !important;
     overflow: hidden;
 }
 .fi-ta-row {

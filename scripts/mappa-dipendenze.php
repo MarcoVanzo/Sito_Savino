@@ -447,6 +447,12 @@ foreach ($tutti as $p) {
         $lega('bootstrap/app.php', $p, 'scoperta');
     }
 }
+// Il server SSR di Inertia: la sua entry la nomina vite.config.js (`ssr:`) e
+// lo avvia `inertia:start-ssr` (start.sh), non una vista.
+$vite = (string) @file_get_contents('vite.config.js');
+if (preg_match('/\bssr:\s*[\'"]([^\'"]+\.js)[\'"]/', $vite, $m) && in_array($m[1], $tutti, true)) {
+    $lega('bootstrap/app.php', $m[1], 'scoperta');
+}
 $inertia = 'app/Http/Middleware/HandleInertiaRequests.php';
 if (isset($php[$inertia]) && ! in_array('p:$rootview', array_column($php[$inertia]->stringhe, 1), true)) {
     $lega($inertia, 'resources/views/app.blade.php', 'vista');

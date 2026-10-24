@@ -19,7 +19,7 @@ class StatsOverviewWidget extends BaseWidget
     protected static ?int $sort = 1;
 
     // Disabilita il polling automatico — i dati statistici non richiedono aggiornamento in tempo reale
-    protected static ?string $pollingInterval = null;
+    protected ?string $pollingInterval = null;
 
     /**
      * Il widget è auto-discovered e finiva quindi nella dashboard di TUTTI i

@@ -7,6 +7,7 @@ use App\Models\SiteSetting;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * Controlla che i file caricati dal pannello esistano davvero.
@@ -172,7 +173,7 @@ class VerificaIFileCaricati extends Command
     {
         try {
             return Storage::disk(config('filesystems.default'))->exists($percorso);
-        } catch (\Throwable $errore) {
+        } catch (Throwable $errore) {
             $this->warn("Disco non raggiungibile per {$percorso}: ".$errore->getMessage());
 
             // Un disco che non risponde non è un file mancante: meglio non

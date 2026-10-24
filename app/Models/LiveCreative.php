@@ -8,6 +8,7 @@ use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
 use App\Support\LiveStream;
 use Database\Factories\LiveCreativeFactory;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -115,7 +116,7 @@ class LiveCreative extends Model implements HasMedia
      * @param  Builder<LiveCreative>  $query
      * @return Builder<LiveCreative>
      */
-    public function scopeValide(Builder $query, ?\DateTimeInterface $giorno = null): Builder
+    public function scopeValide(Builder $query, ?DateTimeInterface $giorno = null): Builder
     {
         $giorno = ($giorno ?? now())->format('Y-m-d');
 
@@ -163,7 +164,7 @@ class LiveCreative extends Model implements HasMedia
         return [...$this->perIlSito(), 'uso' => $this->uso->value];
     }
 
-    public function valida(?\DateTimeInterface $giorno = null): bool
+    public function valida(?DateTimeInterface $giorno = null): bool
     {
         $giorno = ($giorno ?? now())->format('Y-m-d');
 

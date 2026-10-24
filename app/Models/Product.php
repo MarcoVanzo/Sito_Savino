@@ -152,6 +152,28 @@ class Product extends Model implements HasMedia
      * (CartService::getCartWeight) sia il checkout dell'asta, che spedisce un
      * pezzo solo: il ripiego deve essere lo stesso nei due punti.
      */
+    /**
+     * Se la scheda esiste davvero in questa lingua: nome scritto e, se in
+     * italiano c'e' una descrizione, scritta anche quella. Senza, la versione
+     * inglese mostra i testi italiani e non si propone a Google (sitemap,
+     * hreflang, noindex: audit SEO del 20/10/2026). Le traduzioni le scrive
+     * la redazione: nessuna traduzione automatica.
+     */
+    public function tradottoIn(string $locale): bool
+    {
+        if ($locale === config('app.fallback_locale')) {
+            return true;
+        }
+
+        if (trim((string) $this->getTranslation('name', $locale, false)) === '') {
+            return false;
+        }
+
+        $descrizione = fn (string $lingua): string => trim(strip_tags((string) $this->getTranslation('description', $lingua, false)));
+
+        return $descrizione((string) config('app.fallback_locale')) === '' || $descrizione($locale) !== '';
+    }
+
     public function pesoPerLaSpedizione(): float
     {
         $peso = (float) ($this->weight ?? 0);
@@ -259,6 +281,22 @@ class Product extends Model implements HasMedia
             ->nonQueued()
             ->width(1200)
             ->quality(85);
+
+        // La foto della scheda in WebP, in due misure: la pagina mostrava
+        // l'originale (un PNG fino a 1 MB, elemento LCP: audit del 20/10/2026).
+        // In coda, accanto a `zoom`: le foto gia' caricate le genera
+        // `media:genera-le-conversioni-nuove` dal worker.
+        $this->addMediaConversion('scheda')
+            ->performOnCollections('images', 'products')
+            ->width(1200)
+            ->format('webp')
+            ->quality(80);
+
+        $this->addMediaConversion('scheda_media')
+            ->performOnCollections('images', 'products')
+            ->width(800)
+            ->format('webp')
+            ->quality(80);
 
         $this->addMediaConversion('og-image')
             ->performOnCollections('images', 'products')

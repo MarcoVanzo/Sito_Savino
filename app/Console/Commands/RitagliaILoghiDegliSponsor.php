@@ -7,6 +7,7 @@ use App\Support\RitaglioDelMargine;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Throwable;
 
 /**
  * Toglie il margine bianco attorno ai loghi degli sponsor già in archivio.
@@ -68,7 +69,7 @@ class RitagliaILoghiDegliSponsor extends Command
             // Non `getPath()`: in produzione il file sta su Spaces e non c'e'
             // nessun percorso sul filesystem da aprire.
             $byte = Storage::disk($logo->disk)->get($logo->getPathRelativeToRoot());
-        } catch (\Throwable $errore) {
+        } catch (Throwable $errore) {
             $this->warn("  ⚠ {$sponsor->name}: {$errore->getMessage()}");
 
             return false;

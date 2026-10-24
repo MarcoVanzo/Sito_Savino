@@ -5,7 +5,7 @@ import { Link, router } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useFormatPrice } from '@/Composables/useFormatPrice.js';
 import { useCart } from '@/Composables/useCart.js';
-import { trackAddToCart } from '@/meta-pixel.js';
+import { aggiuntoAlCarrello } from '@/conversioni.js';
 import EtichetteProdotto from '@/Components/Shop/EtichetteProdotto.vue';
 
 const $t = useTranslations();
@@ -41,12 +41,12 @@ const handleAddToCart = () => {
     }
     isAdding.value = true;
     cartError.value = '';
-    trackAddToCart({
+    aggiuntoAlCarrello({
         id: props.product.id,
         name: props.product.name,
         // Il prezzo che si paga: con uno sconto annunciabile `price` e' il
         // barrato, non l'incasso.
-        value: Number(hasSalePrice.value ? props.product.sale_price : props.product.price),
+        price: Number(hasSalePrice.value ? props.product.sale_price : props.product.price),
     });
     addToCart({ product_id: props.product.id, quantity: 1 }, {
         onFinish: () => { isAdding.value = false; },

@@ -120,7 +120,8 @@ class Player extends Model implements HasMedia
         return $this->hasMany(Roster::class);
     }
 
-    public function stats()
+    /** @return HasMany<PlayerStat, $this> */
+    public function stats(): HasMany
     {
         return $this->hasMany(PlayerStat::class);
     }

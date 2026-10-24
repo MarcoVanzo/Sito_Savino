@@ -20,6 +20,20 @@ class SecurityHeadersMiddleware
      */
     private const PIXEL_DI_META = 'https://www.facebook.com';
 
+    /** Google Maps (frame) e Google Ads (conversioni) usano lo stesso host. */
+    private const GOOGLE = 'https://www.google.com';
+
+    /**
+     * Gli host a cui Google Ads manda conversioni e remarketing (guida CSP di
+     * Google per gtag.js). Entrano nella policy solo con `GOOGLE_ADS_ID`.
+     */
+    private const GOOGLE_ADS = [
+        'https://www.googleadservices.com',
+        'https://googleads.g.doubleclick.net',
+        self::GOOGLE,
+        'https://td.doubleclick.net',
+    ];
+
     /**
      * I percorsi serviti dal pannello, dove la policy resta larga. Stesso
      * elenco di `bootstrap/app.php`: il pannello è Filament, cioè Livewire e
@@ -27,7 +41,9 @@ class SecurityHeadersMiddleware
      * Senza `unsafe-eval` il pannello non si disegna, e senza `unsafe-inline`
      * non parte nessuno dei suoi script di avvio.
      */
-    private const PERCORSI_DEL_PANNELLO = ['admin', 'admin/*', 'filament/*', 'livewire/*'];
+    // Livewire 4 risponde su `livewire-{hash}/…` (hash dall'APP_KEY), non più
+    // su `livewire/…`: `livewire*` copre entrambi.
+    private const PERCORSI_DEL_PANNELLO = ['admin', 'admin/*', 'filament/*', 'livewire*'];
 
     /**
      * Aggiunge header di sicurezza a tutte le risposte HTTP.
@@ -128,7 +144,7 @@ class SecurityHeadersMiddleware
             // `blob:` e rilegge il risultato con `fetch` su `blob:`/`data:`.
             // Senza `worker-src` vale `script-src`, che `blob:` non lo ammette:
             // il worker veniva rifiutato senza errori in console, il file
-            // restava in "Caricamento" e `/livewire/upload-file` non partiva
+            // restava in "Caricamento" e `/livewire-{hash}/upload-file` non partiva
             // mai.
             $connessioni[] = 'blob:';
             $connessioni[] = 'data:';
@@ -146,7 +162,9 @@ class SecurityHeadersMiddleware
                 $nonce ? "'nonce-{$nonce}'" : "'unsafe-inline'",
                 'https://www.googletagmanager.com',
                 'https://connect.facebook.net',
+                ...self::googleAds(),
             ];
+            $connessioni = [...$connessioni, ...self::googleAds()];
         }
 
         return implode('; ', [
@@ -182,12 +200,13 @@ class SecurityHeadersMiddleware
             // l'errore si leggeva solo nella console del visitatore.
             'frame-src '.implode(' ', [
                 self::SELF,
-                'https://www.google.com', 'https://maps.google.com',
+                self::GOOGLE, 'https://maps.google.com',
                 'https://www.youtube.com', 'https://www.youtube-nocookie.com',
                 'https://player.vimeo.com',
                 'https://player.twitch.tv',
                 'https://www.dailymotion.com', 'https://geo.dailymotion.com',
                 self::PIXEL_DI_META,
+                ...($pannello ? [] : array_diff(self::googleAds(), [self::GOOGLE])),
             ]),
             "media-src 'self' https:",
             ...($worker ? ['worker-src '.implode(' ', $worker)] : []),
@@ -199,6 +218,14 @@ class SecurityHeadersMiddleware
             // una pagina di questo sito può inviare un modulo.
             'form-action '.implode(' ', [self::SELF, self::PIXEL_DI_META]),
         ]);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function googleAds(): array
+    {
+        return (string) config('services.google_ads.id') !== '' ? self::GOOGLE_ADS : [];
     }
 
     /**

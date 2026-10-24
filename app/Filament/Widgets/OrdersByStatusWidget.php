@@ -9,15 +9,15 @@ use Livewire\Attributes\Reactive;
 
 class OrdersByStatusWidget extends ChartWidget
 {
-    protected static ?string $heading = 'Ordini per Stato';
+    protected ?string $heading = 'Ordini per Stato';
 
-    protected static ?string $pollingInterval = null;
+    protected ?string $pollingInterval = null;
 
     protected static ?int $sort = 4;
 
     protected static bool $isDiscovered = false;
 
-    protected static ?string $maxHeight = '300px';
+    protected ?string $maxHeight = '300px';
 
     /**
      * Periodo in giorni, passato da ShopAnalyticsPage::getWidgetData(). #[Reactive]

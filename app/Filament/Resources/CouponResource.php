@@ -3,14 +3,28 @@
 namespace App\Filament\Resources;
 
 use App\Enums\CouponType;
-use App\Filament\Resources\CouponResource\Pages;
+use App\Filament\Resources\CouponResource\Pages\CreateCoupon;
+use App\Filament\Resources\CouponResource\Pages\EditCoupon;
+use App\Filament\Resources\CouponResource\Pages\ListCoupons;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Coupon;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
-use Filament\Tables;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -27,79 +41,79 @@ class CouponResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Coupon';
 
-    protected static ?string $navigationIcon = 'heroicon-o-ticket';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-ticket';
 
     protected static ?string $navigationLabel = 'Codici Promozionali';
 
-    protected static ?string $navigationGroup = 'Shop Ufficiale';
+    protected static string|\UnitEnum|null $navigationGroup = 'Shop Ufficiale';
 
     protected static ?int $navigationSort = 7;
 
     protected static ?string $slug = 'shop/coupon';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Placeholder::make('info_banner')
+        return $schema
+            ->components([
+                Placeholder::make('info_banner')
                     ->label('')
                     ->content('Qui gestisci i codici promozionali che i clienti inseriscono al checkout. Per sconti diretti sui prodotti, modifica il prezzo scontato nel Catalogo Prodotti.')
                     ->columnSpanFull(),
-                Forms\Components\Section::make('Codice e Tipo')
+                Section::make('Codice e Tipo')
                     ->schema([
-                        Forms\Components\TextInput::make('code')
+                        TextInput::make('code')
                             ->label('Codice Coupon')
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(50),
-                        Forms\Components\Select::make('type')
+                        Select::make('type')
                             ->label('Tipo Sconto')
                             ->options(CouponType::class)
                             ->required()
                             ->default(CouponType::Percentage)
                             ->live(),
-                        Forms\Components\TextInput::make('value')
+                        TextInput::make('value')
                             ->label('Valore')
                             ->required()
                             ->numeric()
                             ->minValue(0)
-                            ->maxValue(fn (Forms\Get $get) => self::eInPercentuale($get) ? 100 : null)
-                            ->suffix(fn (Forms\Get $get) => self::eInPercentuale($get) ? '%' : '€'),
-                        Forms\Components\TextInput::make('max_discount')
+                            ->maxValue(fn (Get $get) => self::eInPercentuale($get) ? 100 : null)
+                            ->suffix(fn (Get $get) => self::eInPercentuale($get) ? '%' : '€'),
+                        TextInput::make('max_discount')
                             ->label('Sconto Massimo (€)')
                             ->numeric()
                             ->nullable()
                             ->prefix('€')
                             ->helperText('Solo per coupon percentuali')
-                            ->visible(fn (Forms\Get $get) => self::eInPercentuale($get)),
+                            ->visible(fn (Get $get) => self::eInPercentuale($get)),
                     ])->columns(2),
-                Forms\Components\Section::make('Condizioni')
+                Section::make('Condizioni')
                     ->schema([
-                        Forms\Components\TextInput::make('min_order_amount')
+                        TextInput::make('min_order_amount')
                             ->label('Ordine Minimo (€)')
                             ->numeric()
                             ->nullable()
                             ->prefix('€'),
-                        Forms\Components\TextInput::make('max_uses')
+                        TextInput::make('max_uses')
                             ->label('Utilizzi Totali Max')
                             ->numeric()
                             ->nullable(),
-                        Forms\Components\TextInput::make('max_uses_per_user')
+                        TextInput::make('max_uses_per_user')
                             ->label('Utilizzi Max per Utente')
                             ->numeric()
                             ->default(1),
                     ])->columns(3),
-                Forms\Components\Section::make('Prodotti a cui si applica')
+                Section::make('Prodotti a cui si applica')
                     ->description('Lascia vuoto per applicare il codice a tutto il carrello. Compilando anche solo uno dei due elenchi, lo sconto vale soltanto sugli articoli indicati.')
                     ->schema([
-                        Forms\Components\Select::make('products')
+                        Select::make('products')
                             ->label('Prodotti')
                             ->relationship('products', 'name')
                             ->multiple()
                             ->searchable()
                             ->preload()
                             ->columnSpanFull(),
-                        Forms\Components\Select::make('categories')
+                        Select::make('categories')
                             ->label('Categorie')
                             ->relationship('categories', 'name')
                             ->multiple()
@@ -111,19 +125,19 @@ class CouponResource extends Resource
                             ->helperText('Vale per i prodotti della categoria scelta, anche per quelli che ci stanno come «Anche in». Le sottocategorie vanno aggiunte a parte.')
                             ->columnSpanFull(),
                     ])->columns(1),
-                Forms\Components\Section::make('Validità')
+                Section::make('Validità')
                     ->schema([
-                        Forms\Components\DateTimePicker::make('valid_from')
+                        DateTimePicker::make('valid_from')
                             ->label('Valido Da')
                             ->nullable(),
-                        Forms\Components\DateTimePicker::make('valid_until')
+                        DateTimePicker::make('valid_until')
                             ->label('Valido Fino A')
                             ->nullable(),
-                        Forms\Components\Toggle::make('is_active')
+                        Toggle::make('is_active')
                             ->label('Attivo')
                             ->default(true),
                     ])->columns(3),
-                Forms\Components\Textarea::make('description')
+                Textarea::make('description')
                     ->label('Note Interne')
                     ->nullable()
                     ->columnSpanFull()
@@ -139,7 +153,7 @@ class CouponResource extends Resource
      * falso, cosi' un coupon percentuale mostrava il suffisso € invece di %,
      * accettava valori oltre 100 e nascondeva il tetto allo sconto.
      */
-    private static function eInPercentuale(Forms\Get $get): bool
+    private static function eInPercentuale(Get $get): bool
     {
         $tipo = $get('type');
 
@@ -154,51 +168,51 @@ class CouponResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('code')
+                TextColumn::make('code')
                     ->label('Codice')
                     ->searchable()
                     ->sortable()
                     ->copyable()
                     ->weight(FontWeight::Bold),
-                Tables\Columns\TextColumn::make('type')
+                TextColumn::make('type')
                     ->label('Tipo')
                     ->badge()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('value')
+                TextColumn::make('value')
                     ->label('Valore')
                     ->formatStateUsing(fn ($state, $record): string => $record->type === CouponType::Percentage ? "{$state}%" : "€{$state}"),
-                Tables\Columns\TextColumn::make('ambito')
+                TextColumn::make('ambito')
                     ->label('Si applica a')
                     ->state(fn (Coupon $record): string => $record->haLimitiDiCatalogo()
                         ? 'Solo alcuni prodotti'
                         : 'Tutto il carrello')
                     ->badge()
                     ->color(fn (Coupon $record): string => $record->haLimitiDiCatalogo() ? 'warning' : 'gray'),
-                Tables\Columns\TextColumn::make('used_count')
+                TextColumn::make('used_count')
                     ->label('Utilizzi')
                     ->suffix(fn ($record): string => '/ '.($record->max_uses ?? '∞')),
-                Tables\Columns\TextColumn::make('valid_until')
+                TextColumn::make('valid_until')
                     ->label('Scadenza')
                     ->date('d/m/Y')
                     ->placeholder('Nessuna'),
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label('Attivo')
                     ->boolean(),
                 ...static::timestampColumns(),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                Tables\Filters\TernaryFilter::make('is_active')
+                TernaryFilter::make('is_active')
                     ->label('Attivo'),
-                Tables\Filters\SelectFilter::make('type')
+                SelectFilter::make('type')
                     ->label('Tipo Sconto')
                     ->options(CouponType::class),
-                Tables\Filters\TrashedFilter::make(),
+                TrashedFilter::make(),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
             ])
-            ->bulkActions(static::softDeleteBulkActions());
+            ->toolbarActions(static::softDeleteBulkActions());
     }
 
     public static function getRelations(): array
@@ -211,9 +225,9 @@ class CouponResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListCoupons::route('/'),
-            'create' => Pages\CreateCoupon::route('/create'),
-            'edit' => Pages\EditCoupon::route('/{record}/edit'),
+            'index' => ListCoupons::route('/'),
+            'create' => CreateCoupon::route('/create'),
+            'edit' => EditCoupon::route('/{record}/edit'),
         ];
     }
 

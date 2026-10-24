@@ -7,6 +7,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 /**
  * Lo storico dei prezzi praticati, e il prezzo da barrare quando c'è uno
@@ -91,7 +92,7 @@ class StoricoPrezzi
      * vuota), gli altri non la chiedono.
      *
      * @param  iterable<Product>  $prodotti
-     * @return array<int, Collection<int, \stdClass>>
+     * @return array<int, Collection<int, stdClass>>
      */
     public function righePer(iterable $prodotti): array
     {
@@ -128,8 +129,8 @@ class StoricoPrezzi
      * sotto il riferimento, oppure nessun prezzo praticato prima.
      */
     /**
-     * @param  Collection<int, \stdClass>|null  $righe  lo storico del prodotto già
-     *                                                  letto (righePer), dal più recente
+     * @param  Collection<int, stdClass>|null  $righe  lo storico del prodotto già
+     *                                                 letto (righePer), dal più recente
      */
     public function prezzoDiRiferimento(Product $prodotto, ?Collection $righe = null): ?float
     {

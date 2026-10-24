@@ -39,7 +39,8 @@ class VariabiliAllineateFraIComponentiTest extends TestCase
         'SESSION_ENCRYPT',
         'SESSION_LIFETIME',
         'SESSION_SECURE_COOKIE',
-        // Il rendering lato server non e' attivo, e comunque riguarda la risposta.
+        // Il rendering lato server riguarda la risposta a una pagina: worker e
+        // scheduler non ne disegnano.
         'INERTIA_SSR_ENABLED',
     ];
 

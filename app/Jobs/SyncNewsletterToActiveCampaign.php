@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class SyncNewsletterToActiveCampaign implements ShouldBeUnique, ShouldQueue
 {
@@ -112,7 +113,7 @@ class SyncNewsletterToActiveCampaign implements ShouldBeUnique, ShouldQueue
     /**
      * Gestione failure permanente dopo tutti i retry.
      */
-    public function failed(\Throwable $exception): void
+    public function failed(Throwable $exception): void
     {
         Log::critical('ActiveCampaign: sincronizzazione fallita permanentemente', [
             'subscriber_id' => $this->subscriber->id,

@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Throwable;
 
 class FixMediaVisibility extends Command
 {
@@ -31,7 +32,7 @@ class FixMediaVisibility extends Command
             try {
                 $this->rendiPubblico($path, $dryRun);
                 $sistemati++;
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $errori++;
                 $this->error(" Error for {$path}: {$e->getMessage()}");
             }
@@ -75,7 +76,7 @@ class FixMediaVisibility extends Command
 
         try {
             $files = Storage::disk('s3')->files(dirname($path).'/conversions/');
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return 0;
         }
 

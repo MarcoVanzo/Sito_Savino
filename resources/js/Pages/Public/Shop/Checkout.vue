@@ -6,7 +6,7 @@ import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useFormatPrice } from '@/Composables/useFormatPrice.js'
-import { trackInitiateCheckout } from '@/meta-pixel.js'
+import { checkoutIniziato, consensoPerLOrdine } from '@/conversioni.js'
 
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
@@ -46,9 +46,14 @@ onMounted(() => {
         return;
     }
 
-    trackInitiateCheckout({
+    checkoutIniziato({
         value: Number(props.cartTotal),
-        numItems: Number(props.itemCount),
+        items: props.cart.items.map((item) => ({
+            id: item.product_id ?? item.product?.id,
+            name: item.product?.name || item.name,
+            price: Number(item.unit_price),
+            quantity: Number(item.quantity ?? 1),
+        })),
     });
 });
 
@@ -73,6 +78,10 @@ const form = useForm({
     coupon_code: '',
     notes: '',
     privacy_accepted: false,
+    // Riempiti all'invio, solo con il consenso di marketing (consensoPerLOrdine).
+    consenso_riferimento: null,
+    meta_fbp: null,
+    meta_fbc: null,
     guest_name: authUser?.name || '',
     guest_email: authUser?.email || '',
     guest_phone: '',
@@ -272,6 +281,7 @@ const submitOrder = () => {
         vaiAlPrimoErrore();
         return;
     }
+    Object.assign(form, consensoPerLOrdine(page.props.consensoCookie?.versione ?? null));
     form.post(route('shop.checkout.store'), {
         preserveScroll: true,
         onError: (errori) => {
@@ -873,7 +883,7 @@ const ogMeta = useOgMeta({
                                 class="flex items-center gap-3 pb-4 border-b border-gray-100 last:border-0 last:pb-0"
                             >
                                 <div class="w-14 h-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                    <img v-if="item.product?.image_url" :src="item.product.image_url" :alt="item.name || ''" class="w-full h-full object-cover" />
+                                    <img loading="lazy" v-if="item.product?.image_url" :src="item.product.image_url" :alt="item.name || ''" class="w-full h-full object-cover" />
                                     <div v-else class="w-full h-full flex items-center justify-center">
                                         <svg aria-hidden="true" class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />

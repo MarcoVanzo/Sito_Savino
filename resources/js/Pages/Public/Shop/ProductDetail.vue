@@ -12,7 +12,7 @@ import { useOgMeta } from '@/Composables/useOgMeta';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
 import EtichetteProdotto from '@/Components/Shop/EtichetteProdotto.vue';
 import StatoArticolo from '@/Components/Shop/StatoArticolo.vue';
-import { trackViewContent, trackAddToCart } from '@/meta-pixel.js';
+import { prodottoVisto, aggiuntoAlCarrello } from '@/conversioni.js';
 
 
 const $t = useTranslations();
@@ -39,12 +39,15 @@ const ogMeta = useOgMeta({
 
 // --- Image Gallery ---
 const selectedImageIndex = ref(0);
-const mainImage = computed(() => {
-    if (props.product?.images?.length) {
-        return props.product.images[selectedImageIndex.value];
-    }
-    return null;
+// `immagini` porta le misure in WebP (ShopController::fotoDellaScheda);
+// `images`, gli originali, resta il ripiego per le schede gia' in cache.
+const fotoDellaScheda = computed(() => {
+    if (props.product?.immagini?.length) return props.product.immagini;
+
+    return (props.product?.images ?? []).map((src) => ({ src, srcset: null, miniatura: src }));
 });
+const fotoGrande = computed(() => fotoDellaScheda.value[selectedImageIndex.value] ?? null);
+const mainImage = computed(() => fotoGrande.value?.src ?? null);
 
 const selectImage = (index) => {
     selectedImageIndex.value = index;
@@ -79,12 +82,12 @@ const isTouchDevice = ref(false);
 onMounted(() => {
     isTouchDevice.value = window.matchMedia('(hover: none)').matches;
 
-    trackViewContent({
+    prodottoVisto({
         id: props.product.id,
         name: props.product.name,
         // Il prezzo che si paga, non il barrato (`price` con uno sconto
         // annunciabile e' il riferimento dei 30 giorni).
-        value: displayPrice.value,
+        price: displayPrice.value,
     });
 });
 
@@ -189,11 +192,11 @@ const handleAddToCart = () => {
     cartError.value = '';
     // Prima della chiamata e non nella callback: `addToCart` naviga via Inertia
     // e il componente può essere già smontato quando la risposta arriva.
-    trackAddToCart({
+    aggiuntoAlCarrello({
         id: props.product.id,
         name: props.product.name,
-        // Taglia e firma comprese: e' il valore che il carrello fa pagare.
-        value: displayPrice.value * quantity.value,
+        // Taglia e firma comprese: e' il prezzo che il carrello fa pagare.
+        price: displayPrice.value,
         quantity: quantity.value,
     });
     addToCart({
@@ -266,6 +269,11 @@ const handleAddToCart = () => {
                             <img
                                 v-if="mainImage"
                                 :src="mainImage"
+                                :srcset="fotoGrande?.srcset || undefined"
+                                sizes="(min-width: 1280px) 600px, (min-width: 1024px) 45vw, 100vw"
+                                width="1200"
+                                height="1200"
+                                fetchpriority="high"
                                 :alt="product?.name || ''"
                                 class="w-full h-full object-cover transition-all duration-300"
                                 :style="zoomStyle"
@@ -282,15 +290,15 @@ const handleAddToCart = () => {
                             </div>
                         </div>
                         <!-- Thumbnail Strip -->
-                        <div v-if="product?.images?.length > 1" class="flex gap-3 overflow-x-auto pb-2">
+                        <div v-if="fotoDellaScheda.length > 1" class="flex gap-3 overflow-x-auto pb-2">
                             <button type="button"
-                                v-for="(img, index) in product.images"
+                                v-for="(foto, index) in fotoDellaScheda"
                                 :key="index"
                                 @click="selectImage(index)"
                                 class="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 hover:opacity-100"
                                 :class="selectedImageIndex === index ? 'border-savino-fucsia shadow-md opacity-100' : 'border-gray-200 opacity-60'"
                             >
-                                <img :src="img" :alt="`${product.name} - ${index + 1}`" class="w-full h-full object-cover" @error="onImgError" />
+                                <img :src="foto.miniatura" width="80" height="80" loading="lazy" :alt="`${product.name} - ${index + 1}`" class="w-full h-full object-cover" @error="onImgError" />
                             </button>
                         </div>
                     </div>

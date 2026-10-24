@@ -5,6 +5,7 @@ namespace App\Services\Analytics;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Service account Google → access token per la GA4 Data API.
@@ -151,7 +152,7 @@ class Ga4Credentials
 
         try {
             $signed = openssl_sign($header.'.'.$claims, $signature, $key, OPENSSL_ALGO_SHA256);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             throw new Ga4Exception('auth_failed', 'Firma del JWT fallita: '.$e->getMessage());
         }
 

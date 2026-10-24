@@ -11,13 +11,14 @@ use App\Models\SiteSetting;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use InvalidArgumentException;
 
 class BidService
 {
     /**
      * Piazza un'offerta su un'asta.
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function placeBid(Auction $auction, User $user, float $amount): Bid
     {
@@ -69,15 +70,15 @@ class BidService
     private function verificaCheSiPossaOffrire(Auction $auction, User $user, ?Bid $highestBid): void
     {
         if ($auction->status !== AuctionStatus::Active) {
-            throw new \InvalidArgumentException('L\'asta non è attiva.');
+            throw new InvalidArgumentException('L\'asta non è attiva.');
         }
 
         if ($auction->end_date->isPast()) {
-            throw new \InvalidArgumentException('L\'asta è già terminata.');
+            throw new InvalidArgumentException('L\'asta è già terminata.');
         }
 
         if ($highestBid && $highestBid->user_id === $user->id) {
-            throw new \InvalidArgumentException('Sei già il miglior offerente. Non puoi superare la tua stessa offerta.');
+            throw new InvalidArgumentException('Sei già il miglior offerente. Non puoi superare la tua stessa offerta.');
         }
     }
 
@@ -95,7 +96,7 @@ class BidService
         $minimumBid = round($base + $bidIncrement, 2);
 
         if ($amount < $minimumBid) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 "L'offerta minima è di €".number_format($minimumBid, 2, ',', '.').'.'
             );
         }
@@ -104,7 +105,7 @@ class BidService
         $maximumBid = round($base + $maxBidJump, 2);
 
         if ($amount > $maximumBid) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 "L'offerta massima consentita è di €".number_format($maximumBid, 2, ',', '.').'.'
             );
         }

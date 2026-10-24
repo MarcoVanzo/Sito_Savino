@@ -72,6 +72,23 @@ class HomepageGoLiveTest extends TestCase
     }
 
     #[Test]
+    public function le_gare_del_vivaio_non_accendono_il_match_day(): void
+    {
+        $this->travelTo(now()->setTime(19, 45));
+        $b1 = Team::factory()->internal()->create(['name' => 'Serie B1 / U19', 'category' => 'B1']);
+        Game::factory()->create([
+            'home_team_id' => $b1->id,
+            'away_team_id' => Team::factory()->create()->id,
+            'match_date' => now()->setTime(20, 30),
+            'status' => GameStatus::Scheduled,
+            'stream_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        ]);
+
+        $this->assertFalse(MatchDay::stato()['attivo']);
+        $this->assertNull(MatchDay::prossimaGara());
+    }
+
+    #[Test]
     public function in_trasferta_c_e_la_fascia_ma_non_il_pop_up_dei_biglietti(): void
     {
         $this->garaDiOggi(inCasa: false);
@@ -81,6 +98,51 @@ class HomepageGoLiveTest extends TestCase
             ->where('matchDay.inCasa', false)
             ->where('matchDay.popup', null)
         );
+    }
+
+    #[Test]
+    public function in_trasferta_il_pop_up_porta_alla_diretta_da_un_ora_prima(): void
+    {
+        $this->travelTo(now()->setTime(18, 0));
+        $this->garaDiOggi(inCasa: false, attributi: ['stream_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ']);
+
+        $this->assertFalse(MatchDay::stato()['popup_diretta']);
+        $this->assertFalse(MatchDay::stato()['diretta_vicina']);
+
+        $this->travelTo(now()->setTime(19, 45));
+        $this->get('/')->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('matchDay.popup', null)
+            ->where('matchDay.popupDiretta', true)
+            ->where('matchDay.direttaVicina', true)
+        );
+
+        SiteSetting::set('match_day_popup_attivo', false, 'home');
+        $this->assertFalse(MatchDay::stato()['popup_diretta']);
+    }
+
+    #[Test]
+    public function in_casa_la_diretta_prende_il_posto_dei_biglietti_dopo_il_fischio_d_inizio(): void
+    {
+        $this->travelTo(now()->setTime(20, 0));
+        $gara = $this->garaDiOggi(inCasa: true, attributi: ['stream_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ']);
+
+        $stato = MatchDay::stato();
+        $this->assertNotNull($stato['popup']);
+        $this->assertFalse($stato['popup_diretta']);
+
+        $this->assertTrue($stato['diretta_vicina']);
+
+        $this->travelTo(now()->setTime(21, 0));
+        $stato = MatchDay::stato();
+        $this->assertNull($stato['popup']);
+        $this->assertTrue($stato['popup_diretta']);
+
+        // Un link che non si apre nel sito non ha pop-up (porterebbe fuori),
+        // ma i pulsanti di hero e fascia sì: aprono una scheda nuova.
+        $gara->update(['stream_url' => 'https://www.example.com/diretta']);
+        $stato = MatchDay::stato();
+        $this->assertFalse($stato['popup_diretta']);
+        $this->assertTrue($stato['diretta_vicina']);
     }
 
     #[Test]

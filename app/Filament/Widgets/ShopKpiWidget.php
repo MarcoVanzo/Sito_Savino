@@ -12,7 +12,7 @@ use Livewire\Attributes\Reactive;
 
 class ShopKpiWidget extends BaseWidget
 {
-    protected static ?string $pollingInterval = null;
+    protected ?string $pollingInterval = null;
 
     protected static bool $isDiscovered = false;
 

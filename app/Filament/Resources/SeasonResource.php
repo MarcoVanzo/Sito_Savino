@@ -2,14 +2,21 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\SeasonResource\Pages;
-use App\Filament\Resources\SeasonResource\RelationManagers;
+use App\Filament\Resources\SeasonResource\Pages\CreateSeason;
+use App\Filament\Resources\SeasonResource\Pages\EditSeason;
+use App\Filament\Resources\SeasonResource\Pages\ListSeasons;
+use App\Filament\Resources\SeasonResource\RelationManagers\GamesRelationManager;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Season;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -27,22 +34,22 @@ class SeasonResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Stagioni';
 
-    protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';
 
-    protected static ?string $navigationGroup = 'Stagione';
+    protected static string|\UnitEnum|null $navigationGroup = 'Stagione';
 
     protected static ?int $navigationSort = 5;
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('name')
+        return $schema
+            ->components([
+                TextInput::make('name')
                     ->required(),
                 // Le altre stagioni vengono disattivate DOPO il salvataggio
                 // (vedi CreateSeason/EditSeason): farlo al cambio di stato lasciava
                 // il sito senza stagione corrente se poi si annullava la modifica.
-                Forms\Components\Toggle::make('is_current')
+                Toggle::make('is_current')
                     ->label('Stagione Corrente')
                     ->helperText('Attivandola, le altre stagioni verranno disattivate al salvataggio.'),
             ]);
@@ -52,40 +59,40 @@ class SeasonResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\IconColumn::make('is_current')
+                IconColumn::make('is_current')
                     ->boolean(),
-                Tables\Columns\TextColumn::make('deleted_at')
+                TextColumn::make('deleted_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 ...static::timestampColumns(),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
-                Tables\Filters\TernaryFilter::make('is_current')
+                TrashedFilter::make(),
+                TernaryFilter::make('is_current')
                     ->label('Stagione Corrente'),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
             ])
-            ->bulkActions(static::softDeleteBulkActions());
+            ->toolbarActions(static::softDeleteBulkActions());
     }
 
     public static function getRelations(): array
     {
         return [
-            RelationManagers\GamesRelationManager::class,
+            GamesRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListSeasons::route('/'),
-            'create' => Pages\CreateSeason::route('/create'),
-            'edit' => Pages\EditSeason::route('/{record}/edit'),
+            'index' => ListSeasons::route('/'),
+            'create' => CreateSeason::route('/create'),
+            'edit' => EditSeason::route('/{record}/edit'),
         ];
     }
 

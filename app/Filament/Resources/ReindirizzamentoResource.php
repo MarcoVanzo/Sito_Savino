@@ -3,16 +3,25 @@
 namespace App\Filament\Resources;
 
 use App\Enums\CodiceDelRedirect;
-use App\Filament\Resources\ReindirizzamentoResource\Pages;
+use App\Filament\Resources\ReindirizzamentoResource\Pages\CreateReindirizzamento;
+use App\Filament\Resources\ReindirizzamentoResource\Pages\EditReindirizzamento;
+use App\Filament\Resources\ReindirizzamentoResource\Pages\ListReindirizzamenti;
 use App\Models\Reindirizzamento;
 use App\Support\RedirectGestiti;
 use Closure;
-use Filament\Forms;
-use Filament\Forms\Components\Component;
-use Filament\Forms\Form;
-use Filament\Forms\Get;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
@@ -31,16 +40,16 @@ class ReindirizzamentoResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Redirect';
 
-    protected static ?string $navigationIcon = 'heroicon-o-arrow-uturn-right';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrow-uturn-right';
 
-    protected static ?string $navigationGroup = 'Amministrazione';
+    protected static string|\UnitEnum|null $navigationGroup = 'Amministrazione';
 
     protected static ?int $navigationSort = 90;
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form->schema([
-            Forms\Components\Section::make()
+        return $schema->components([
+            Section::make()
                 ->schema(self::campi())
                 ->columns(1),
         ]);
@@ -54,7 +63,7 @@ class ReindirizzamentoResource extends Resource
     public static function campi(): array
     {
         return [
-            Forms\Components\TextInput::make('from_path')
+            TextInput::make('from_path')
                 ->label('Vecchio indirizzo')
                 ->helperText('Solo il percorso, es. /tag/challenge-cup/ o un indirizzo intero del vecchio sito: si salva senza query, senza slash finale e in minuscolo.')
                 ->required()
@@ -82,13 +91,13 @@ class ReindirizzamentoResource extends Resource
                         }
                     },
                 ]),
-            Forms\Components\Select::make('status_code')
+            Select::make('status_code')
                 ->label('Risposta')
                 ->options(CodiceDelRedirect::class)
                 ->default(CodiceDelRedirect::Permanente->value)
                 ->required()
                 ->live(),
-            Forms\Components\TextInput::make('to_path')
+            TextInput::make('to_path')
                 ->label('Destinazione')
                 ->helperText('Un percorso del sito (/news/…) o un indirizzo https://. Vuota per il 410.')
                 ->maxLength(2048)
@@ -114,41 +123,41 @@ class ReindirizzamentoResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('from_path')
+                TextColumn::make('from_path')
                     ->label('Vecchio indirizzo')
                     ->searchable()
                     ->limit(60),
-                Tables\Columns\TextColumn::make('status_code')
+                TextColumn::make('status_code')
                     ->label('Risposta')
                     ->badge(),
-                Tables\Columns\TextColumn::make('to_path')
+                TextColumn::make('to_path')
                     ->label('Destinazione')
                     ->searchable()
                     ->limit(60)
                     ->placeholder('—'),
-                Tables\Columns\TextColumn::make('hits')
+                TextColumn::make('hits')
                     ->label('Visite')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('last_hit_at')
+                TextColumn::make('last_hit_at')
                     ->label('Ultima visita')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->placeholder('mai'),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status_code')
+                SelectFilter::make('status_code')
                     ->label('Risposta')
                     ->options(CodiceDelRedirect::class),
             ])
             ->defaultSort('updated_at', 'desc')
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -156,9 +165,9 @@ class ReindirizzamentoResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListReindirizzamenti::route('/'),
-            'create' => Pages\CreateReindirizzamento::route('/create'),
-            'edit' => Pages\EditReindirizzamento::route('/{record}/edit'),
+            'index' => ListReindirizzamenti::route('/'),
+            'create' => CreateReindirizzamento::route('/create'),
+            'edit' => EditReindirizzamento::route('/{record}/edit'),
         ];
     }
 

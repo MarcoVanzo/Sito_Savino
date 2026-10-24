@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\ShippingZoneResource\Pages;
 
 use App\Filament\Resources\ShippingZoneResource;
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
-use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
+use LaraZeus\SpatieTranslatable\Resources\Pages\EditRecord\Concerns\Translatable;
 
 class EditShippingZone extends EditRecord
 {
@@ -16,7 +16,7 @@ class EditShippingZone extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 }

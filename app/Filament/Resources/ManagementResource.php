@@ -3,21 +3,28 @@
 namespace App\Filament\Resources;
 
 use App\Enums\StaffType;
-use App\Filament\Resources\ManagementResource\Pages;
+use App\Filament\Resources\ManagementResource\Pages\CreateManagement;
+use App\Filament\Resources\ManagementResource\Pages\EditManagement;
+use App\Filament\Resources\ManagementResource\Pages\ListManagement;
 use App\Filament\Traits\HasStandardTableActions;
+use App\Filament\Traits\SchedaDelloStaff;
 use App\Models\StaffMember;
-use Filament\Forms;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Form;
-use Filament\Resources\Concerns\Translatable;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
 
 class ManagementResource extends Resource
 {
     use HasStandardTableActions;
+    use SchedaDelloStaff;
     use Translatable;
 
     protected static ?string $model = StaffMember::class;
@@ -28,9 +35,9 @@ class ManagementResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Membri Organigramma';
 
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
 
-    protected static ?string $navigationGroup = 'Società';
+    protected static string|\UnitEnum|null $navigationGroup = 'Società';
 
     protected static ?string $navigationLabel = 'Membri Organigramma';
 
@@ -41,83 +48,50 @@ class ManagementResource extends Resource
         return parent::getEloquentQuery()->where('type', StaffType::Dirigenza)->with('media');
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Anagrafica e Ruolo')
+        return $schema
+            ->components([
+                Section::make('Anagrafica e Ruolo')
                     ->schema([
-                        Forms\Components\TextInput::make('first_name')
+                        TextInput::make('first_name')
                             ->label('Nome')
                             ->required()
                             ->maxLength(255),
-                        Forms\Components\TextInput::make('last_name')
+                        TextInput::make('last_name')
                             ->label('Cognome')
                             ->required()
                             ->maxLength(255),
                         // Campo nascosto vero: una Select con `hidden()` non viene
                         // deidratata, e senza `type` (NOT NULL, nessun default) la
                         // creazione di un membro falliva con un errore SQL.
-                        Forms\Components\Hidden::make('type')
+                        Hidden::make('type')
                             ->default(StaffType::Dirigenza->value),
-                        Forms\Components\TextInput::make('role')
+                        TextInput::make('role')
                             ->label('Ruolo specifico')
                             ->required()
                             ->maxLength(255)
                             ->helperText('Es. Allenatore, Presidente, Medico...'),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Foto Profilo')
-                    ->schema([
-                        SpatieMediaLibraryFileUpload::make('avatar')
-                            ->label('Immagine di Profilo (Avatar)')
-                            ->collection('staff')
-                            ->image()
-                            ->maxSize(5120)
-                            ->imageResizeMode('contain')
-                            ->imageResizeTargetWidth('1200')
-                            ->imageResizeTargetHeight('1200')
-                            ->imageResizeUpscale(false)
-                            ->helperText('Immagine ottimale: quadrata (es. 800x800px).')
-                            ->columnSpanFull(),
-                    ]),
+                self::fotoDelProfilo(),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                Tables\Columns\SpatieMediaLibraryImageColumn::make('avatar')
-                    ->checkFileExistence(false)
-                    ->conversion('thumb')
-                    ->label('')
-                    ->collection('staff')
-                    ->circular(),
-                Tables\Columns\TextColumn::make('first_name')
-                    ->label('Nome')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('last_name')
-                    ->label('Cognome')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('role')
-                    ->label('Ruolo')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('type')
-                    ->label('Sezione')
-                    ->badge()
-                    ->sortable(),
-            ])
+            ->columns(self::colonneDelloStaff())
             ->defaultSort('sort_order')
             ->reorderable('sort_order')
             ->filters([
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -125,9 +99,9 @@ class ManagementResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListManagement::route('/'),
-            'create' => Pages\CreateManagement::route('/create'),
-            'edit' => Pages\EditManagement::route('/{record}/edit'),
+            'index' => ListManagement::route('/'),
+            'create' => CreateManagement::route('/create'),
+            'edit' => EditManagement::route('/{record}/edit'),
         ];
     }
 }

@@ -5,12 +5,13 @@ namespace App\Filament\Resources\PageResource\Pages;
 use App\Filament\Resources\PageResource;
 use App\Filament\Resources\PageResource\Concerns\PreservaContentData;
 use App\Support\ContentData;
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
-use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
+use LaraZeus\SpatieTranslatable\Actions\LocaleSwitcher;
+use LaraZeus\SpatieTranslatable\Resources\Pages\EditRecord\Concerns\Translatable;
 use Livewire\Attributes\Locked;
 
 /**
@@ -34,7 +35,6 @@ class EditPage extends EditRecord
     use PreservaContentData;
     use Translatable {
         fillForm as private riempiIlModuloConIlPlugin;
-        updatedActiveLocale as private cambiaLinguaConIlPlugin;
     }
 
     protected static string $resource = PageResource::class;
@@ -54,9 +54,34 @@ class EditPage extends EditRecord
         $this->lingueGrezze = array_keys($this->otherLocaleData);
     }
 
+    /**
+     * Cambio di lingua sullo stato grezzo del modulo, come faceva il plugin
+     * ufficiale di Filament 3. Quello di lara-zeus passa da `getState()`:
+     * valida la lingua che si lascia e tiene da parte i dati deidratati, che
+     * il salvataggio qui sotto (pensato per lo stato grezzo) rimetterebbe
+     * nel modulo come se fossero grezzi (un FileUpload riceve una stringa).
+     */
     public function updatedActiveLocale(): void
     {
-        $this->cambiaLinguaConIlPlugin();
+        if (filament('spatie-translatable')->getPersistLocale()) {
+            session()->put('spatie_translatable_active_locale', $this->activeLocale);
+        }
+
+        if (blank($this->oldActiveLocale)) {
+            return;
+        }
+
+        $this->resetValidation();
+
+        $colonneTradotte = $this->colonneTradotte();
+
+        $this->otherLocaleData[$this->oldActiveLocale] = Arr::only($this->data, $colonneTradotte);
+        $this->data = [
+            ...Arr::except($this->data, $colonneTradotte),
+            ...$this->otherLocaleData[$this->activeLocale] ?? [],
+        ];
+
+        unset($this->otherLocaleData[$this->activeLocale]);
 
         if (! in_array($this->activeLocale, $this->lingueGrezze, true)) {
             return;
@@ -256,8 +281,8 @@ class EditPage extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\LocaleSwitcher::make(),
-            Actions\DeleteAction::make(),
+            LocaleSwitcher::make(),
+            DeleteAction::make(),
         ];
     }
 }

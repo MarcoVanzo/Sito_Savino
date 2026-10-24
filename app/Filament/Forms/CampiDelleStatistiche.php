@@ -2,7 +2,9 @@
 
 namespace App\Filament\Forms;
 
-use Filament\Forms;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
 
 /**
  * La griglia dei contatori che diverse pagine mostrano in evidenza: un numero
@@ -22,9 +24,9 @@ class CampiDelleStatistiche
     /**
      * @param  array<int, array{valore: string, etichetta: string, nome: string, esempioValore?: string, esempioEtichetta?: string}>  $statistiche
      */
-    public static function griglia(array $statistiche, int $colonne): Forms\Components\Grid
+    public static function griglia(array $statistiche, int $colonne): Grid
     {
-        return Forms\Components\Grid::make($colonne)
+        return Grid::make($colonne)
             ->schema(array_map(
                 static fn (array $statistica) => self::coppia($statistica),
                 $statistiche,
@@ -36,13 +38,13 @@ class CampiDelleStatistiche
      *
      * @param  array{valore: string, etichetta: string, nome: string, esempioValore?: string, esempioEtichetta?: string}  $statistica
      */
-    private static function coppia(array $statistica): Forms\Components\Group
+    private static function coppia(array $statistica): Group
     {
-        return Forms\Components\Group::make([
-            Forms\Components\TextInput::make($statistica['valore'])
+        return Group::make([
+            TextInput::make($statistica['valore'])
                 ->label('Valore '.$statistica['nome'])
                 ->placeholder($statistica['esempioValore'] ?? null),
-            Forms\Components\TextInput::make($statistica['etichetta'])
+            TextInput::make($statistica['etichetta'])
                 ->label('Etichetta '.$statistica['nome'])
                 ->placeholder($statistica['esempioEtichetta'] ?? null),
         ]);

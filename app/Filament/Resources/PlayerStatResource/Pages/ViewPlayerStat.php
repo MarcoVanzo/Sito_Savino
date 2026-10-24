@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\PlayerStatResource\Pages;
 
 use App\Filament\Resources\PlayerStatResource;
-use Filament\Actions;
+use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
 /**
@@ -19,7 +19,7 @@ class ViewPlayerStat extends ViewRecord
         return [
             // EditAction si nasconde da sola sulle righe importate:
             // PlayerStatResource::canEdit() le esclude.
-            Actions\EditAction::make(),
+            EditAction::make(),
         ];
     }
 

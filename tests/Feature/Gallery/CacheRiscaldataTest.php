@@ -51,8 +51,41 @@ class CacheRiscaldataTest extends TestCase
         (new RicostruisciLaCacheDellaGallery)->handle(app(GalleryArchive::class));
 
         foreach (config('app.supported_locales') as $locale) {
-            $this->assertCount(3, Cache::get(GalleryArchive::CHIAVE.':'.$locale));
+            $this->assertCount(3, (new GalleryArchive)->media(null, $locale));
         }
+    }
+
+    #[Test]
+    public function l_archivio_sta_in_cache_compresso_e_si_rilegge_uguale(): void
+    {
+        GalleryImage::factory()->count(3)->create(['is_active' => true]);
+        $archivio = new GalleryArchive;
+        $archivio->riscalda();
+
+        // Serializzato pesava 8 MB in una colonna mediumtext da 16: senza
+        // compressione, con la gallery che cresce, la scrittura falliva.
+        $grezzo = Cache::get(GalleryArchive::CHIAVE.':it');
+        $this->assertIsString($grezzo);
+        $this->assertStringStartsWith('gz:', $grezzo);
+        $this->assertSame($archivio->costruisci(null, 'it'), (new GalleryArchive)->media(null, 'it'));
+    }
+
+    #[Test]
+    public function la_copia_scritta_prima_della_compressione_resta_valida(): void
+    {
+        Cache::put(GalleryArchive::CHIAVE.':it', [['id' => 1]], now()->addDay());
+
+        $this->assertSame([['id' => 1]], (new GalleryArchive)->media(null, 'it'));
+    }
+
+    #[Test]
+    public function una_copia_illeggibile_si_ricostruisce(): void
+    {
+        GalleryImage::factory()->count(2)->create(['is_active' => true]);
+        Cache::put(GalleryArchive::CHIAVE.':it', 'gz:non-base64!', now()->addDay());
+
+        $this->assertCount(2, (new GalleryArchive)->media(null, 'it'));
+        $this->assertStringStartsWith('gz:', Cache::get(GalleryArchive::CHIAVE.':it'));
     }
 
     #[Test]

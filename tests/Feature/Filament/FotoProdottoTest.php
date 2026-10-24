@@ -148,7 +148,7 @@ class FotoProdottoTest extends TestCase
         $this->actingAs($user);
         $categoria = ProductCategory::factory()->create();
 
-        $immagine = imagecreatetruecolor(6000, 4000);
+        $immagine = imagecreatetruecolor(6400, 3600); // 16:9: Filament 4 controlla il ritaglio anche sul server
         ob_start();
         imagejpeg($immagine, null, 98);
         $foto = UploadedFile::fake()->createWithContent('categoria.jpg', ob_get_clean());

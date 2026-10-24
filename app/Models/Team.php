@@ -29,6 +29,12 @@ class Team extends Model implements HasMedia
     public const CATEGORIE_VIVAIO = ['B1', 'U17', 'U15'];
 
     /**
+     * La categoria della prima squadra (Serie A1): l'unica che ha Match Day,
+     * diretta in home e indirizzo `/diretta`.
+     */
+    public const CATEGORIA_PRIMA_SQUADRA = 'A1';
+
+    /**
      * La squadra che fa da avversaria finché la CEV non la conosce ("la
      * vincente del 3° turno"): una sola, condivisa da tutte quelle gare.
      * Quando la CEV pubblica il nome, `cev:sync` la sostituisce sulla gara.

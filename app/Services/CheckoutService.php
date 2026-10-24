@@ -16,9 +16,11 @@ use App\Models\ShippingZone;
 use App\Models\User;
 use App\Support\CondizioniDiVendita;
 use App\Support\Locale;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 
 class CheckoutService
 {
@@ -71,7 +73,7 @@ class CheckoutService
                     $data['user_id'] ?? null,
                     $data['guest_email'] ?? null
                 );
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $errors['coupon_code'] = [$e->getMessage()];
             }
         }
@@ -261,27 +263,27 @@ class CheckoutService
      *
      * @return array{discount: float, coupon: Coupon}
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function applyCoupon(string $code, Cart $cart, ?int $userId = null, ?string $guestEmail = null): array
     {
         $coupon = Coupon::byCode($code)->lockForUpdate()->first();
 
         if (! $coupon) {
-            throw new \InvalidArgumentException(__('messages.checkout.invalid_coupon'));
+            throw new InvalidArgumentException(__('messages.checkout.invalid_coupon'));
         }
 
         // L'ordine minimo guarda tutto il carrello: e' una soglia di spesa,
         // non un vincolo su cosa si compra.
         if (! $coupon->isValidForOrder($this->calculateSubtotal($cart), $userId, $guestEmail)) {
-            throw new \InvalidArgumentException(__('messages.checkout.coupon_not_applicable'));
+            throw new InvalidArgumentException(__('messages.checkout.coupon_not_applicable'));
         }
 
         // Lo sconto, invece, morde solo sugli articoli ammessi.
         $scontabile = $this->importoScontabile($cart, $coupon);
 
         if ($scontabile <= 0.0) {
-            throw new \InvalidArgumentException(__('messages.checkout.coupon_products_missing'));
+            throw new InvalidArgumentException(__('messages.checkout.coupon_products_missing'));
         }
 
         $discount = $coupon->calculateDiscount($scontabile);

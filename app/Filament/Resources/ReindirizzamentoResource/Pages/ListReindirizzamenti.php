@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\ReindirizzamentoResource\Pages;
 
 use App\Filament\Resources\ReindirizzamentoResource;
-use Filament\Actions;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListReindirizzamenti extends ListRecords
@@ -13,7 +13,7 @@ class ListReindirizzamenti extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            CreateAction::make(),
         ];
     }
 }
