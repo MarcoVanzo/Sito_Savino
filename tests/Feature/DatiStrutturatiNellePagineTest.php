@@ -462,17 +462,17 @@ class DatiStrutturatiNellePagineTest extends TestCase
     }
 
     #[Test]
-    public function la_descrizione_del_prodotto_non_spezza_le_lettere_accentate_ai_bordi(): void
+    public function la_descrizione_del_prodotto_separa_i_paragrafi_e_non_spezza_le_lettere_accentate(): void
     {
         $prodotto = Product::factory()->create([
             'slug' => 'maglia-qualita',
-            'short_description' => '<p>&nbsp;«Pezzo unico» di qualità&nbsp;</p>',
+            'short_description' => '<p>&nbsp;«Pezzo unico» di qualità.</p><p>Blu e rosa&nbsp;</p>',
             'is_active' => true,
         ]);
 
         $scheda = $this->delTipo($this->blocchi('/shop/prodotto/'.$prodotto->slug), 'Product');
 
-        $this->assertSame('«Pezzo unico» di qualità', $scheda['description']);
+        $this->assertSame('«Pezzo unico» di qualità. Blu e rosa', $scheda['description']);
     }
 
     #[Test]

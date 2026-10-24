@@ -18,6 +18,7 @@ use App\Models\Season;
 use App\Models\Team;
 use App\Services\GalleryArchive;
 use App\Services\Seo\DatiStrutturati;
+use App\Support\TestoDallHtml;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route as RoutingRoute;
@@ -365,7 +366,7 @@ class ServeSocialCrawlerMeta
 
         return [
             'title' => $title,
-            'description' => $description !== '' ? $description : mb_substr(strip_tags($content), 0, 160),
+            'description' => $description !== '' ? $description : mb_substr(TestoDallHtml::testo($content), 0, 160),
             'image' => $post->getFirstMediaUrl('cover') ?: null,
             'type' => 'article',
             'jsonld' => $conIDati ? [$this->dati->notizia($post, $locale)] : [],
@@ -390,7 +391,7 @@ class ServeSocialCrawlerMeta
         $short = $this->translated($product, 'short_description', $locale);
         $description = $short !== ''
             ? $short
-            : mb_substr(strip_tags($this->translated($product, 'description', $locale)), 0, 160);
+            : mb_substr(TestoDallHtml::testo($this->translated($product, 'description', $locale)), 0, 160);
 
         $briciole = [['name' => $this->etichetta('shop', $locale), 'url' => route($this->prefisso($locale).'shop')]];
 
@@ -426,7 +427,7 @@ class ServeSocialCrawlerMeta
         }
 
         $name = $this->translated($categoria, 'name', $locale);
-        $description = mb_substr(trim(strip_tags($this->translated($categoria, 'description', $locale))), 0, 160);
+        $description = mb_substr(TestoDallHtml::testo($this->translated($categoria, 'description', $locale)), 0, 160);
 
         $jsonld = [];
 
