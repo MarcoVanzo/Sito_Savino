@@ -17,6 +17,7 @@ use App\Models\ShippingZone;
 use App\Models\SiteSetting;
 use App\Models\Team;
 use App\Support\MatchDay;
+use App\Support\TestoDallHtml;
 use DateTimeZone;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -275,7 +276,7 @@ class DatiStrutturati
         ];
 
         if ($descrizione !== '') {
-            $articolo['description'] = Str::limit(trim(strip_tags($descrizione)), 300);
+            $articolo['description'] = Str::limit(TestoDallHtml::testo($descrizione), 300);
         }
 
         return $articolo;
@@ -292,7 +293,7 @@ class DatiStrutturati
     public function prodotto(Product $prodotto, string $locale): array
     {
         $nome = trim((string) $prodotto->getTranslation('name', $locale));
-        $descrizione = trim(strip_tags((string) ($prodotto->getTranslation('short_description', $locale) ?: $prodotto->getTranslation('description', $locale))));
+        $descrizione = TestoDallHtml::testo((string) ($prodotto->getTranslation('short_description', $locale) ?: $prodotto->getTranslation('description', $locale)));
         $indirizzo = route($this->prefisso($locale).'shop.product', ['product' => $prodotto->slug]);
 
         $immagini = $prodotto->getMedia('products')->concat($prodotto->getMedia('images'))
@@ -300,10 +301,6 @@ class DatiStrutturati
             ->unique()
             ->values()
             ->all();
-
-        // Str::trim e non trim(): trim() conta i byte, e con lo spazio non
-        // separabile (C2 A0) nella lista spezzava una «à» in coda o un « in testa.
-        $descrizione = Str::trim(html_entity_decode($descrizione, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
 
         // Google la segnala se manca (Schede commercianti): senza testo della
         // redazione vale la stessa frase di ripiego della meta description.
