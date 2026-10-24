@@ -21,7 +21,11 @@ class TestiDelleInformative
      */
     public static function tutte(): array
     {
-        return require database_path('data/informative_privacy.php');
+        // Letto una volta per processo: `versione()` serve a ogni pagina
+        // (props condivise di Inertia) e il file pesa 50 KB.
+        static $tutte = null;
+
+        return $tutte ??= require database_path('data/informative_privacy.php');
     }
 
     /**

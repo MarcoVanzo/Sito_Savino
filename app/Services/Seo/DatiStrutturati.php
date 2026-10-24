@@ -301,7 +301,9 @@ class DatiStrutturati
             ->values()
             ->all();
 
-        $descrizione = trim(html_entity_decode($descrizione, ENT_QUOTES | ENT_HTML5, 'UTF-8'), " \n\r\t\v\0\u{A0}");
+        // Str::trim e non trim(): trim() conta i byte, e con lo spazio non
+        // separabile (C2 A0) nella lista spezzava una «à» in coda o un « in testa.
+        $descrizione = Str::trim(html_entity_decode($descrizione, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
 
         // Google la segnala se manca (Schede commercianti): senza testo della
         // redazione vale la stessa frase di ripiego della meta description.

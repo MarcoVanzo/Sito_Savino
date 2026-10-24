@@ -462,6 +462,20 @@ class DatiStrutturatiNellePagineTest extends TestCase
     }
 
     #[Test]
+    public function la_descrizione_del_prodotto_non_spezza_le_lettere_accentate_ai_bordi(): void
+    {
+        $prodotto = Product::factory()->create([
+            'slug' => 'maglia-qualita',
+            'short_description' => '<p>&nbsp;«Pezzo unico» di qualità&nbsp;</p>',
+            'is_active' => true,
+        ]);
+
+        $scheda = $this->delTipo($this->blocchi('/shop/prodotto/'.$prodotto->slug), 'Product');
+
+        $this->assertSame('«Pezzo unico» di qualità', $scheda['description']);
+    }
+
+    #[Test]
     public function il_prodotto_dichiara_spedizioni_delle_zone_e_reso_a_14_giorni(): void
     {
         ShippingZone::factory()->create([
