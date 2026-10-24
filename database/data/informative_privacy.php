@@ -56,6 +56,9 @@ $cf = '94217750481';
 
 return [
     'privacy-policy' => [
+        // La data della revisione in vigore, uguale alla frase «È aggiornata
+        // al …» del testo (un test le confronta).
+        'versione' => '2026-10-24',
         'firme' => [
             // Testo originale, fino al 22 settembre 2026.
             'esclusivamente dati tecnici necessari alla navigazione',
@@ -102,11 +105,16 @@ return [
             // Meta solo dal pixel nel browser, senza la Conversions API.
             'È aggiornata al 5 ottobre 2026.',
             'Last updated 5 October 2026.',
+            // Revisioni del 5 e del 21 ottobre 2026, fino al 24: Meta
+            // contitolare senza il link al Controller Addendum, che dice il
+            // contenuto essenziale dell'accordo (art. 26 §2 GDPR).
+            'titolare autonomo di ciò che ne fa dopo. Non vendiamo',
+            'for what it does with it afterwards. We do not sell',
         ],
         'contenuto' => [
             'it' => <<<HTML
             <h2>Informativa sul trattamento dei dati personali</h2>
-            <p>Ai sensi degli articoli 13 e 14 del Regolamento UE 2016/679 (GDPR), questa pagina descrive come il sito tratta i dati personali di chi lo visita. È aggiornata al 21 ottobre 2026.</p>
+            <p>Ai sensi degli articoli 13 e 14 del Regolamento UE 2016/679 (GDPR), questa pagina descrive come il sito tratta i dati personali di chi lo visita. È aggiornata al 24 ottobre 2026.</p>
 
             <h3>Titolare del trattamento</h3>
             <p>{$societa} — {$sede}<br />
@@ -156,7 +164,7 @@ return [
                 <li><strong>ActiveCampaign</strong>: invio della newsletter, solo agli indirizzi che hanno confermato l'iscrizione, con la misura di aperture e clic descritta sopra;</li>
                 <li><strong>Google Ireland</strong>: statistiche del sito (Google Analytics 4), solo con il tuo consenso.</li>
             </ul>
-            <p>Trattano invece i dati come <strong>titolari autonomi</strong>, ciascuno con la propria informativa: PayPal e Stripe, per i pagamenti dello shop e delle aste (i dati della carta o del conto li ricevono direttamente loro: il sito non li vede); il corriere incaricato delle spedizioni. Meta Platforms Ireland, per la misurazione delle inserzioni con il pixel e solo con il tuo consenso ai cookie di marketing, è contitolare con la società della raccolta e della trasmissione dei dati (articolo 26 del GDPR) e titolare autonomo di ciò che ne fa dopo. Non vendiamo e non cediamo i dati a nessun altro.</p>
+            <p>Trattano invece i dati come <strong>titolari autonomi</strong>, ciascuno con la propria informativa: PayPal e Stripe, per i pagamenti dello shop e delle aste (i dati della carta o del conto li ricevono direttamente loro: il sito non li vede); il corriere incaricato delle spedizioni. Meta Platforms Ireland, per la misurazione delle inserzioni con il pixel e solo con il tuo consenso ai cookie di marketing, è contitolare con la società della raccolta e della trasmissione dei dati (articolo 26 del GDPR) e titolare autonomo di ciò che ne fa dopo. Il contenuto essenziale dell'accordo di contitolarità è nell'<a href="https://www.facebook.com/legal/controller_addendum" target="_blank" rel="noopener noreferrer">Appendice sul titolare del trattamento</a> (Controller Addendum) pubblicata da Meta. Non vendiamo e non cediamo i dati a nessun altro.</p>
             <p>Alcune pagine contengono inoltre contenuti ospitati altrove — la mappa del palazzetto, i video: si caricano solo se lo chiedi con un clic o se hai accettato i cookie di marketing, e da quel momento il tuo indirizzo IP arriva a chi li ospita. È spiegato nella <a href="/cookie-policy">Cookie Policy</a>.</p>
 
             <h3>Trasferimenti fuori dall'Unione Europea</h3>
@@ -187,7 +195,7 @@ return [
             HTML,
             'en' => <<<HTML
             <h2>Privacy notice</h2>
-            <p>Under Articles 13 and 14 of Regulation (EU) 2016/679 (GDPR), this page explains how the site handles the personal data of its visitors. Last updated 21 October 2026.</p>
+            <p>Under Articles 13 and 14 of Regulation (EU) 2016/679 (GDPR), this page explains how the site handles the personal data of its visitors. Last updated 24 October 2026.</p>
 
             <h3>Data controller</h3>
             <p>{$societa} — {$sede}, Italy<br />
@@ -237,7 +245,7 @@ return [
                 <li><strong>ActiveCampaign</strong>: newsletter delivery, only to addresses that have confirmed their subscription, with the open and click measurement described above;</li>
                 <li><strong>Google Ireland</strong>: site statistics (Google Analytics 4), only with your consent.</li>
             </ul>
-            <p>The following act instead as <strong>independent controllers</strong>, each with its own privacy notice: PayPal and Stripe, for shop and auction payments (card or account details go straight to them: the site never sees them); the courier handling shipments. Meta Platforms Ireland, for advertising measurement with the pixel and only with your consent to marketing cookies, is joint controller with the club for collecting and transmitting the data (Article 26 GDPR) and independent controller for what it does with it afterwards. We do not sell or otherwise pass data to anyone else.</p>
+            <p>The following act instead as <strong>independent controllers</strong>, each with its own privacy notice: PayPal and Stripe, for shop and auction payments (card or account details go straight to them: the site never sees them); the courier handling shipments. Meta Platforms Ireland, for advertising measurement with the pixel and only with your consent to marketing cookies, is joint controller with the club for collecting and transmitting the data (Article 26 GDPR) and independent controller for what it does with it afterwards. The essence of the joint controller arrangement is set out in Meta's <a href="https://www.facebook.com/legal/controller_addendum" target="_blank" rel="noopener noreferrer">Controller Addendum</a>. We do not sell or otherwise pass data to anyone else.</p>
             <p>Some pages also carry content hosted elsewhere — the arena map, the videos: they only load if you ask with a click or if you have accepted marketing cookies, and from that moment your IP address reaches whoever hosts them. This is explained in the <a href="/en/cookie-policy">Cookie Policy</a>.</p>
 
             <h3>Transfers outside the European Union</h3>
@@ -270,6 +278,11 @@ return [
     ],
 
     'cookie-policy' => [
+        // La data della revisione in vigore: è anche la versione del consenso
+        // ai cookie (`ConsensoCookie::versione()`). Si cambia insieme alla
+        // frase «È aggiornata al …» del testo — un test le confronta — e un
+        // consenso dato su una versione precedente fa tornare il banner.
+        'versione' => '2026-10-21',
         'firme' => [
             // Testo originale, fino al 22 settembre 2026.
             'non utilizza cookie di profilazione',

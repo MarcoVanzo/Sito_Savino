@@ -21,13 +21,24 @@ use Dompdf\Adapter\CPDF;
  *   file con la sua tabella xref, come fa un editor PDF quando salva: il resto
  *   del file resta byte per byte quello di dompdf.
  *
- * Quello che dompdf non sa fare è il PDF taggato (struttura di titoli ed
- * elenchi per lo screen reader). Lo stesso testo delle condizioni è però
- * pubblicato come pagine HTML accessibili, che la dichiarazione di
- * accessibilità indica come alternativa.
+ * Quello che dompdf non sa fare è il PDF taggato (struttura di titoli,
+ * elenchi e tabelle per lo screen reader). Dal 20/10/2026, dove c'è Chrome,
+ * il PDF lo stampa lui dallo stesso HTML (`PdfConChrome`), taggato e con
+ * titolo e lingua; dompdf resta il ripiego.
  */
 class PdfAccessibile extends PDF
 {
+    /** L'HTML caricato, da passare a Chrome. */
+    private ?string $html = null;
+
+    public function loadHTML(string $string, ?string $encoding = null): static
+    {
+        $this->html = $string;
+        parent::loadHTML($string, $encoding);
+
+        return $this;
+    }
+
     public function render(): void
     {
         parent::render();
@@ -41,6 +52,10 @@ class PdfAccessibile extends PDF
     /** @param array<string, int> $options */
     public function output(array $options = []): string
     {
+        if ($this->html !== null && ($taggato = PdfConChrome::daHtml($this->html)) !== null) {
+            return $taggato;
+        }
+
         $pdf = parent::output($options);
         $lingua = $this->getDomPDF()->getDom()->documentElement?->getAttribute('lang') ?? '';
 

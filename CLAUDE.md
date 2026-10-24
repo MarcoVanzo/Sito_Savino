@@ -561,8 +561,9 @@ il server non ne ha). Le visite Inertia non li calcolano.
 
 - Consenso fatto in casa (Cookiebot scartato). La scelta si legge **solo** da
   `resources/js/consenso.js`; scade dopo 12 mesi; si parte se
-  `scelto && statistiche`. `ConsensoCookie::VERSIONE` si alza solo quando cambia
-  ciò che si dichiara.
+  `scelto && statistiche`. La versione del consenso è la `versione` della
+  `cookie-policy` in `informative_privacy.php` (`ConsensoCookie::versione()`):
+  ogni revisione pubblicata della Cookie Policy fa tornare il banner.
 - `consensi_cookie` è la prova del consenso: IP solo come impronta salata con
   `CONSENSI_SALE` (ripiego su `APP_KEY`: impostarla prima di ruotare la
   chiave, poi non cambiarla), 24 mesi (`consensi:pota`, tiene l'ancora in

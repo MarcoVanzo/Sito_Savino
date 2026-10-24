@@ -14,6 +14,7 @@ import { initMetaPixel, trackPageView as trackPixelPageView } from './meta-pixel
 import { leggiIlConsenso } from './consenso.js';
 import { avviaLaDiagnostica } from './diagnostica.js';
 import { installaDialogDiRipiego } from './Support/dialogDiRipiego.js';
+import { dimenticaIResiduiDelVecchioSito } from './Support/residuiDelVecchioSito.js';
 import { contaLeNavigazioni } from './Support/visualizzazioniDiPagina.js';
 import { seguiIClicVersoLaBiglietteria } from './conversioni.js';
 
@@ -79,6 +80,9 @@ void createInertiaApp({
         // partire niente. Valore illeggibile o scaduto: si riparte dal non
         // consenso e il banner tornerà a chiedere.
         const consenso = leggiIlConsenso(props.initialPage.props.consensoCookie?.versione ?? null);
+
+        // `_grecaptcha` e il modulo ActiveCampaign del vecchio WordPress.
+        dimenticaIResiduiDelVecchioSito();
 
         // Accessibilita': a ogni cambio di pagina il focus va al contenuto e
         // il titolo nuovo viene letto dallo screen reader (WCAG 2.4.3, 4.1.3).

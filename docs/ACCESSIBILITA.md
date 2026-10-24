@@ -22,6 +22,9 @@ comportamenti propri di un browser. Per questo serve anche la prova sotto.
 
 ## 2. Protocollo di prova manuale (VoiceOver o NVDA)
 
+La versione da compilare, con banner dei cookie e registrazione e i criteri
+WCAG per ogni passo, è [`docs/accessibilita/test-screen-reader.md`](accessibilita/test-screen-reader.md).
+
 Da fare a ogni rilascio che tocca shop o layout, e comunque una volta a
 trimestre. Durata: circa 45 minuti. Ambiente: sito di staging o produzione con
 un **prodotto di prova** e pagamento a **bonifico** (l'ordine si annulla dal
@@ -107,7 +110,40 @@ una persona non è ancora conclusa».
   conforme: vedi la dichiarazione. Chi prepara un PDF nuovo lo esporta da
   Word/InDesign con «PDF con tag», titolo del documento e lingua impostati.
 - **PDF che generiamo noi** (condizioni allegate all'ordine, ricevuta):
-  titolo mostrato e lingua (da `<html lang>`) li mette
-  `App\Support\Accessibilita\PdfAccessibile`, che sostituisce il wrapper di
-  laravel-dompdf (`PdfAccessibileServiceProvider`). dompdf non produce PDF
-  taggati: l'alternativa accessibile sono le pagine del sito.
+  passano tutti da `App\Support\Accessibilita\PdfAccessibile`, che
+  sostituisce il wrapper di laravel-dompdf (`PdfAccessibileServiceProvider`).
+  Dal 20/10/2026, **dove c'è Chrome**, il PDF lo stampa Chrome senza
+  interfaccia dallo stesso HTML (`PdfConChrome`): taggato (StructTreeRoot con
+  titoli, paragrafi, tabelle e `TH`), con titolo mostrato e `/Lang` da
+  `<html lang>`. Senza Chrome (`CHROME_PATH` vuoto e nessun binario nei
+  percorsi soliti, o `PDF_CON_CHROME=false`) ripiega su dompdf: titolo e
+  lingua sì, tag no. Test: `PdfTaggatiConChromeTest` (in CI con il Chrome del
+  runner, `CHROME_SENZA_SANDBOX=true`), `PdfAccessibileTest` per il ripiego.
+  **In produzione Chrome non è ancora installato**: web e worker di App
+  Platform (buildpack, worker da 0,5 GB) generano ancora con dompdf finché
+  non si aggiunge il binario e si misura la memoria. Fino ad allora la
+  dichiarazione di accessibilità resta com'è.
+- **PDF statici su Spaces, controllo e correzioni del 20/10/2026** (`pdfinfo`,
+  `pdffonts`, `pdftotext`, lettura del catalogo, controllo di Acrobat). Senza i
+  sorgenti (Word, InDesign) si è corretto quello che si poteva senza toccare il
+  contenuto: testo estratto e pagine renderizzate confrontati con l'originale.
+
+  | File | Prima | Dopo |
+  | --- | --- | --- |
+  | `legal/Modello-Organizzativo_compressed.pdf` (è il **Modello organizzativo e di controllo dell'attività sportiva**, safeguarding, non il Modello 231) | senza tag, senza titolo | taggato con Acrobat, titolo e lingua, segnalibri, testo alternativo ai due organigrammi, frecce di pagina decorative. Restano 4 avvisi da sistemare a mano nell'albero dei tag (annotazioni dell'indice, intestazioni di una tabella, un elenco, un salto di livello nei titoli) |
+  | `legal/Protocollo-1-Codice-di-condotta.pdf` | taggato, senza titolo | titolo; mancano ancora i titoli strutturati (solo paragrafi) |
+  | `legal/Protocollo-2-Bullismo-e-cyberbullismo.pdf` | taggato, senza titolo | titolo |
+  | `legal/Protocollo-3-Razzismo-e-xenofobia.pdf` | taggato, senza titolo | titolo |
+  | `documenti/bilancio_SDBVolley_24-25-2.pdf` | senza tag, senza titolo | titolo e lingua. **Resta senza tag**: il tagging automatico di Acrobat riordina il disegno e a pagina 8 un livello semitrasparente copre un titolo, quindi quella versione non è pubblicabile |
+
+  Il carattere Arial dei file Word resta non incorporato (si risolve solo
+  riesportando). Per chiudere davvero: **bilancio** riesportato da InDesign con
+  «Crea PDF con tag» e alt alle foto (i testi alternativi delle 38 immagini con
+  contenuto sono in `docs/accessibilita/alt-bilancio-2024-25.md`), **Protocollo 1** da Word con gli stili «Titolo». Come
+  riesportarli: **Word** → File › Proprietà › Titolo compilato; stili
+  «Titolo 1/2» per i capitoli; testo alternativo alle immagini; Salva con nome
+  › PDF › Opzioni: «Tag della struttura del documento per l'accessibilità» e
+  «Conforme a PDF/A» (incorpora i caratteri). **InDesign** → titolo in File ›
+  Informazioni file, alt nelle Opzioni di esportazione oggetto, Esporta ›
+  PDF interattivo/stampa con «Crea PDF con tag» e «Visualizza titolo del
+  documento». **Non ricomprimere** con iLovePDF o servizi simili: toglie i tag.

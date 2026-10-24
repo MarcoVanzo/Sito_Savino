@@ -17,11 +17,19 @@ use Illuminate\Support\Facades\DB;
 class TestiDelleInformative
 {
     /**
-     * @return array<string, array{firme: list<string>, contenuto: array<string, string>}>
+     * @return array<string, array{versione: string, firme: list<string>, contenuto: array<string, string>}>
      */
     public static function tutte(): array
     {
         return require database_path('data/informative_privacy.php');
+    }
+
+    /**
+     * La data (Y-m-d) della revisione in vigore di un'informativa.
+     */
+    public static function versione(string $slug): ?string
+    {
+        return self::tutte()[$slug]['versione'] ?? null;
     }
 
     /**

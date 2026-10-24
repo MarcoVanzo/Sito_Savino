@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\CartService;
+use App\Support\TestiDelleInformative;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -37,7 +38,6 @@ class ShopAuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Password::defaults()],
-            'privacy_accepted' => ['required', 'accepted'],
         ]);
 
         $user = new User([
@@ -50,7 +50,14 @@ class ShopAuthController extends Controller
         // Va impostato prima del primo salvataggio: UserObserver::created
         // vedrebbe un utente non attivo e avviserebbe i Super Admin di un
         // "nuovo utente in attesa di abilitazione" che è invece un cliente.
-        $user->forceFill(['role' => UserRole::Customer, 'is_active' => true])->save();
+        //
+        // L'informativa privacy non si accetta, si legge: il modulo la linka
+        // con una frase e qui si annota quale versione era in vigore.
+        $user->forceFill([
+            'role' => UserRole::Customer,
+            'is_active' => true,
+            'informativa_privacy_versione' => TestiDelleInformative::versione('privacy-policy'),
+        ])->save();
 
         Auth::login($user);
 

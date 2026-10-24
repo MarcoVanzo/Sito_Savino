@@ -59,7 +59,7 @@ class ConsensoCookieController extends Controller
             'statistiche' => (bool) $dati['statistiche'],
             'marketing' => (bool) $dati['marketing'],
             'azione' => ConsensoCookie::azionePer((bool) $dati['statistiche'], (bool) $dati['marketing'], $primaVolta),
-            'versione' => ConsensoCookie::VERSIONE,
+            'versione' => ConsensoCookie::versione(),
             'impronta_testi' => $improntaTesti,
             'locale' => app()->getLocale(),
             // La colonna sta a 255: un user agent più lungo di così è

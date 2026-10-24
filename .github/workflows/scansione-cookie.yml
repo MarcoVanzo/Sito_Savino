@@ -116,3 +116,31 @@ jobs:
         run: |
           echo "::error::Prima del consenso il sito fa partire cookie o richieste non necessarie. Il dettaglio è nei log del passo 'Scansiona il sito'."
           exit 1
+
+  # Il banner provato come lo usa un visitatore, in un browser pulito: niente
+  # verso Google, Meta, reCAPTCHA, YouTube o Maps prima della scelta e dopo
+  # «Rifiuta tutti»; GA4 e Pixel dopo «Accetta tutti». La registrazione del
+  # consenso viene intercettata dallo script: sul registro vero non arriva
+  # niente. Solo letture, quindi nessuna chiave e nessun commit.
+  preconsenso:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+
+      - name: Installa Playwright
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.0
+          ./node_modules/.bin/playwright install --with-deps chromium
+
+      - name: Prova il banner
+        env:
+          URL_DA_SCANSIONARE: ${{ github.event.inputs.url || vars.URL_SITO || 'https://seashell-app-47mmf.ondigitalocean.app' }}
+        run: node scripts/verifica-preconsenso.mjs --url="$URL_DA_SCANSIONARE"

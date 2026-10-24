@@ -58,7 +58,7 @@ class ConsensoDiMarketingDellOrdine
 
         return $ultima !== null
             && $ultima->marketing
-            && $ultima->versione === ConsensoCookie::VERSIONE
+            && $ultima->versione === ConsensoCookie::versione()
             && $ultima->created_at->greaterThanOrEqualTo(now()->subDays(self::DURATA_GIORNI));
     }
 

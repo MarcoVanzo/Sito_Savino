@@ -75,7 +75,7 @@ class HandleInertiaRequests extends Middleware
             // La versione dei testi dell'informativa: il banner la confronta con
             // quella salvata nel browser e, se è cambiata, torna a chiedere
             // invece di dare per buono un sì raccolto su un'altra informativa.
-            'consensoCookie' => ['versione' => ConsensoCookie::VERSIONE],
+            'consensoCookie' => ['versione' => ConsensoCookie::versione()],
             // Il DSN di Sentry non è un segreto: dice dove spedire, non
             // autorizza a leggere. Gli eventi passano comunque dal nostro
             // server (SentryTunnelController), che accetta solo i DSN del sito.

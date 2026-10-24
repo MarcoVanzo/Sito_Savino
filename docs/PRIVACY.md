@@ -21,7 +21,7 @@ Ultima verifica sul codice: **23 settembre 2026**.
 | Lettura unica di quel file | `App\Support\TestiDelleInformative` |
 | Pagine pubbliche | `pages` con slug `privacy-policy` e `cookie-policy`, template `Public/ContentPage` |
 | Elenco dei cookie in fondo alla Cookie Policy | `database/data/cookie_rilevati.json` (scansione) descritto da `database/data/catalogo_cookie.json` |
-| Versione dell'informativa a cui si lega il consenso | `App\Models\ConsensoCookie::VERSIONE` |
+| Versione dell'informativa a cui si lega il consenso | `versione` della `cookie-policy` in `database/data/informative_privacy.php`, letta da `App\Models\ConsensoCookie::versione()` |
 | Informativa comunicazioni promozionali e informativa fornitori (it + en) | `database/data/informative_da_documento.php`, letto da `App\Support\InformativeDaDocumento`; pagine `informativa-comunicazioni-promozionali` e `informativa-fornitori` (dal 26/09/2026, prima erano PDF) |
 | Documenti PDF di governance | Impostazioni → Documenti Legali, gruppo `legal`, file in `legal/` su Spaces |
 
@@ -43,9 +43,14 @@ tecnici" mentre il sito caricava Google Analytics, con un indirizzo sbagliato e
 un indirizzo email che non esiste: ogni ambiente nuovo, e il database dei test,
 nascevano con quella. Ora il seeder legge `TestiDelleInformative::contenuto()`.
 
-**Quando alzare `ConsensoCookie::VERSIONE`**: quando cambia *ciò che si
-dichiara* — un tracker nuovo, una finalità diversa, un destinatario in più — non
-a ogni ritocco di stile. Alzarla fa ricomparire il banner a tutti.
+**La versione del consenso è la data della Cookie Policy** (dal 20/10/2026).
+Ogni revisione pubblicata della Cookie Policy porta una `versione` nuova nel
+file dati, uguale alla frase «È aggiornata al …» (lo verifica
+`tests/Unit/Support/VersioniDelleInformativeTest.php`), e il banner ricompare a
+tutti: è ciò che la policy promette. Fino ad allora era una costante a parte,
+`ConsensoCookie::VERSIONE`, e la revisione del 2 ottobre è uscita senza
+alzarla. Un ritocco di stile che non deve far tornare il banner non è una
+revisione: non cambia la data.
 
 
 ### L'informativa del sito è la pagina, non un PDF
@@ -173,7 +178,7 @@ non un registro statistico: non aggiungerci altro.
 | Sentry | diagnostica degli errori: indirizzo della pagina, tipo di browser e traccia tecnica del guasto, del server e (dal 25/09/2026) del browser. **Non** l'IP né l'utente (`send_default_pii` a `false`, `sendDefaultPii: false`), **non** i parametri delle query (`sql_bindings` a `false`). Gli errori del browser passano dal tunnel `/api/diagnostica`: il browser non contatta Sentry, che vede solo l'IP del server. Nessun cookie né storage, quindi niente consenso. Progetto nella regione europea | `config/sentry.php`, `SENTRY_LARAVEL_DSN`, `resources/js/diagnostica.js`, `SentryTunnelController` |
 | ActiveCampaign | newsletter | `services.activecampaign` |
 | Google Ireland | GA4, **solo dopo il consenso statistico** | `resources/js/analytics.js` |
-| Meta Platforms Ireland | pixel, **solo dopo il consenso marketing** (`META_PIXEL_REQUIRES_CONSENT`, predefinito `true`) | `resources/js/meta-pixel.js` |
+| Meta Platforms Ireland | pixel, **solo dopo il consenso marketing** (`META_PIXEL_REQUIRES_CONSENT`, predefinito `true`); contitolare per raccolta e trasmissione (art. 26), l'informativa linka il Controller Addendum di Meta dal 20/10/2026 | `resources/js/meta-pixel.js` |
 | Google (Maps), YouTube, Vimeo, Twitch, Dailymotion | l'IP di chi carica la mappa o un video: solo col consenso di marketing o dopo un clic sul segnaposto (`ContenutoIncorporato.vue`) | `Societa/Palazzetto.vue`, `LiveStreamModal.vue`, `PageMediaTail.vue` |
 
 **Il poco che riceve Sentry è configurazione, non fortuna.** `send_default_pii`
@@ -190,6 +195,18 @@ Display arrivavano da `fonts.googleapis.com` su ogni pagina pubblica: l'IP del
 visitatore raggiungeva Google prima di qualsiasi scelta, per una cosa che
 possiamo servire noi. Ora stanno in `public/fonts`, i `@font-face` in
 `resources/css/app.css`, e la CSP non ha più bisogno degli host di Google.
+
+**reCAPTCHA non c'è** (analisi di conformità del 20/10/2026). Chi trova
+`_grecaptcha`, `_form_1_` o `acf` nel `localStorage` vede i residui del
+vecchio WordPress, che sullo stesso indirizzo incorporava il modulo
+ActiveCampaign (`activehosted.com/f/embed.php?id=1`) e il reCAPTCHA di
+Contact Form 7. Il sito nuovo non lo carica da nessuna parte: né nel codice,
+né nei contenuti del database, né nel pannello o nel suo login (verificato con
+un browser pulito). I moduli pubblici si difendono con honeypot e `throttle`.
+`resources/js/Support/residuiDelVecchioSito.js` toglie quelle chiavi al primo
+caricamento, e `scripts/verifica-preconsenso.mjs` (ogni lunedì, in
+`scansione-cookie.yml`) fallisce se una richiesta a `google.com/recaptcha` o
+`gstatic.com` parte prima del consenso.
 
 **CompreFace non è una terza parte**: gira su un droplet della società, a
 Francoforte, raggiungibile solo dalla VPC (`COMPREFACE_HOST`). Le fotografie non
@@ -291,8 +308,9 @@ Quattro cose, nell'ordine:
    giuridica;
 3. se entra un fornitore, va nei destinatari e — se è extra-UE — nella sezione
    dei trasferimenti;
-4. se cambia quello che si dichiara al visitatore sui cookie, si alza
-   `ConsensoCookie::VERSIONE` e il banner torna a chiedere.
+4. se cambia quello che si dichiara al visitatore sui cookie, si pubblica una
+   revisione della Cookie Policy con la sua `versione` nuova e il banner torna
+   a chiedere.
 
 Un cookie nuovo si spiega in `database/data/catalogo_cookie.json`, non
 nell'editor del pannello: finché non è lì, la dichiarazione lo pubblica come

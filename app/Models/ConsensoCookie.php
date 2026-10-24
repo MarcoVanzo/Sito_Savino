@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\TestiDelleInformative;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use LogicException;
@@ -24,29 +25,27 @@ class ConsensoCookie extends Model
     public const UPDATED_AT = null;
 
     /**
-     * La versione dei testi dell'informativa a cui si riferisce il consenso.
+     * La versione dei testi dell'informativa a cui si riferisce il consenso:
+     * la data della Cookie Policy in vigore (`versione` della `cookie-policy`
+     * in `database/data/informative_privacy.php`).
      *
-     * Si alza quando cambia ciò che si dichiara al visitatore — un tracker
-     * nuovo, una finalità diversa: i consensi raccolti su una versione
-     * precedente restano validi come prova di ciò che è stato chiesto allora,
-     * e il banner torna a mostrarsi.
+     * I consensi raccolti su una versione precedente restano validi come prova
+     * di ciò che è stato chiesto allora, e il banner torna a mostrarsi: è ciò
+     * che la Cookie Policy promette («viene richiesta di nuovo se cambiamo
+     * questa informativa»).
      *
-     * 2026-09-23: la Cookie Policy dice adesso che mappa e video incorporati si
-     * caricano insieme alla pagina e fanno arrivare l'IP a chi li ospita, e che
-     * i caratteri tipografici non arrivano più dal CDN di Google. Cambia ciò
-     * che si dichiara, quindi la scelta va richiesta.
-     *
-     * 2026-09-26: mappa e video aspettano il consenso di marketing (o un clic
-     * sul segnaposto) invece di partire con la pagina. Il consenso di
-     * marketing dato prima copriva solo il pixel di Meta: adesso fa caricare
-     * anche YouTube e Google Maps, quindi va richiesto su questa versione.
-     *
-     * 2026-10-21: il consenso di marketing copre anche l'acquisto comunicato a
-     * Meta dal server (Conversions API, InviaAcquistoAMeta) e i segnali
-     * pubblicitari di Google Consent Mode, e il pixel diventa quello della
-     * societa'. La Cookie Policy lo dice: la scelta va richiesta.
+     * Fino al 20 ottobre 2026 era una costante a parte, alzata a mano: la
+     * Cookie Policy del 2 ottobre è uscita con la costante ferma al 26
+     * settembre e il banner non è tornato. Le versioni passate erano
+     * 2026-09-23 (mappa e video dichiarati), 2026-09-26 (mappa e video sotto
+     * il consenso di marketing) e 2026-10-21 (Conversions API e segnali di
+     * Google Consent Mode sotto il consenso di marketing).
      */
-    public const VERSIONE = '2026-10-21';
+    public static function versione(): string
+    {
+        return TestiDelleInformative::versione('cookie-policy')
+            ?? throw new LogicException('La Cookie Policy non dichiara la sua versione in database/data/informative_privacy.php.');
+    }
 
     protected $fillable = [
         'riferimento',

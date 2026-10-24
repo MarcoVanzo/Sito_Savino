@@ -24,6 +24,30 @@ Ultima verifica sul codice: **26 settembre 2026**.
 | Beni personalizzati esclusi dal recesso (art. 59 c. 1 lett. c) | la firma della giocatrice: avviso accanto alla casella nella scheda prodotto, segno sulla riga nel checkout e nell'email di conferma, righe non selezionabili in `/recesso`; condizioni, informativa sul recesso e "Resi e rimborsi" la nominano | `order_items.personalizzazione`; `RecessoController::articoliScelti` rifiuta le righe personalizzate; `resources/js/Support/righeDiRecesso.js` |
 | Prezzo precedente negli sconti (art. 17-bis, Omnibus) | il barrato è il prezzo più basso dei 30 giorni prima della riduzione, con la didascalia | `App\Services\StoricoPrezzi`, tabella `storico_prezzi`, `ShopController::prezzi()`; `prezzi:registra` ogni ora |
 
+### L'avviso sulla garanzia legale, confrontato con il regolamento
+
+Verifica del 20/10/2026 sul testo di EUR-Lex del Regolamento di esecuzione
+(UE) 2025/1960 (GU L del 2/10/2025, si applica dal 27/09/2026), allegato I:
+
+- **Contenuto**: le immagini in `public/images/garanzia/` coincidono riga per
+  riga con il modello dell'allegato (titolo, riquadro dei due anni, i due casi,
+  gli obblighi del venditore, il riquadro grigio con il QR e
+  `europa.eu/youreurope/garanzie`, «Cosa fare», la nota su GARAN). Nota (1):
+  gli elementi non si modificano, quindi non si ridisegna niente.
+- **Colori**: la nota (2) indica il blu `#003399`, ma il modello dell'allegato
+  stesso è in `#034DA2`, e le nostre immagini (dai PDF della Commissione) in
+  `#034EA2`: si segue la grafica ufficiale, che non si ricolora. Giallo e
+  bianco coincidono. A colori RGB come chiede la nota (5) per l'online.
+- **QR e link**: rimandano alla sezione della propria lingua su «La tua
+  Europa» (`/garanzie` → `index_it.htm`, `/guarantees` → `index_en.htm`,
+  entrambi rispondono 200).
+- **Dove si vede**: scheda prodotto («I tuoi diritti di garanzia legale» apre
+  l'avviso intero), sotto la casella del checkout, email di conferma. Il
+  regolamento prevede la visualizzazione annidata solo per l'etichetta
+  GARAN (allegato II), non per l'avviso: l'avviso dietro un clic segue le
+  linee guida della Commissione per i negozi online. Scelta confermata dalla
+  società il 20/10/2026: resta dietro il clic.
+
 ### Le versioni delle condizioni
 
 `CondizioniDiVendita::VERSIONE` è la data della versione in vigore e finisce
