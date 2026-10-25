@@ -15,6 +15,7 @@ import { leggiIlConsenso } from './consenso.js';
 import { avviaLaDiagnostica } from './diagnostica.js';
 import { installaDialogDiRipiego } from './Support/dialogDiRipiego.js';
 import { installaHasOwnDiRipiego } from './Support/hasOwnDiRipiego.js';
+import { apriSenzaInertiaSeCadeLaRete } from './Support/visitaSenzaRete.js';
 import { dimenticaIResiduiDelVecchioSito } from './Support/residuiDelVecchioSito.js';
 import { contaLeNavigazioni } from './Support/visualizzazioniDiPagina.js';
 import { seguiIClicVersoLaBiglietteria } from './conversioni.js';
@@ -24,16 +25,21 @@ import { seguiIClicVersoLaBiglietteria } from './conversioni.js';
 installaHasOwnDiRipiego();
 
 // Prima di tutto il resto: anche la prima pagina Inertia si carica su richiesta.
-// Solo le visite GET si possono riaprire con un indirizzo.
+// Solo le visite GET si possono riaprire con un indirizzo. I precaricamenti
+// del menu lanciano gli stessi eventi ma non sono una pagina chiesta da chi
+// naviga: non si contano.
 let visitaInCorso = null;
 router.on('start', (evento) => {
-    const { method, url } = evento.detail.visit;
+    const { method, url, prefetch } = evento.detail.visit;
+    if (prefetch) return;
     visitaInCorso = method === 'get' ? url.href : null;
 });
-router.on('finish', () => {
+router.on('finish', (evento) => {
+    if (evento.detail.visit.prefetch) return;
     visitaInCorso = null;
 });
 ricaricaDopoIlRilascio(window, () => visitaInCorso);
+apriSenzaInertiaSeCadeLaRete(document, window, () => visitaInCorso);
 // iOS < 15.4 non ha <dialog>: senza, ogni showModal() del sito va in errore.
 installaDialogDiRipiego();
 
