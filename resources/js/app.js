@@ -14,9 +14,14 @@ import { initMetaPixel, trackPageView as trackPixelPageView } from './meta-pixel
 import { leggiIlConsenso } from './consenso.js';
 import { avviaLaDiagnostica } from './diagnostica.js';
 import { installaDialogDiRipiego } from './Support/dialogDiRipiego.js';
+import { installaHasOwnDiRipiego } from './Support/hasOwnDiRipiego.js';
 import { dimenticaIResiduiDelVecchioSito } from './Support/residuiDelVecchioSito.js';
 import { contaLeNavigazioni } from './Support/visualizzazioniDiPagina.js';
 import { seguiIClicVersoLaBiglietteria } from './conversioni.js';
+
+// Chrome < 93 non ha Object.hasOwn: Inertia lo usa a ogni cambio di pagina
+// quando manca anche structuredClone. Va messo prima di qualunque visita.
+installaHasOwnDiRipiego();
 
 // Prima di tutto il resto: anche la prima pagina Inertia si carica su richiesta.
 // Solo le visite GET si possono riaprire con un indirizzo.
