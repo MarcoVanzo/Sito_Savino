@@ -152,6 +152,9 @@ export function opzioniDiSentry({ app, dsn, environment, origine }) {
             'ResizeObserver loop',
             'Non-Error promise rejection captured',
             /^AbortError/,
+            // Estensioni del browser (Safari su iOS in testa): la promessa
+            // rifiutata non ha stack, quindi `allowUrls` non la scarta.
+            /runtime\.sendMessage\(\)/,
         ],
         integrations: (predefinite) => predefinite.filter((i) => i.name !== 'BrowserSession'),
         beforeSend: ripulisciEvento,
