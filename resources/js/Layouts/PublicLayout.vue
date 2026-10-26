@@ -13,9 +13,10 @@ import FlashMessages from '@/Components/FlashMessages.vue';
 import UserMenu from '@/Components/Shop/UserMenu.vue';
 import PasswordExpiryBanner from '@/Components/PasswordExpiryBanner.vue';
 import { useHeaderNavFit, SHOP_BUTTON_FONT_SIZE } from '@/Composables/useHeaderNavFit.js';
+import { componenteConRiprova } from '@/Support/componenteConRiprova.js';
 
-const MobileDrawer = defineAsyncComponent(() => import('@/Components/MobileDrawer.vue'));
-const CookieConsent = defineAsyncComponent(() => import('@/Components/CookieConsent.vue'));
+const MobileDrawer = defineAsyncComponent(componenteConRiprova(() => import('@/Components/MobileDrawer.vue')));
+const CookieConsent = defineAsyncComponent(componenteConRiprova(() => import('@/Components/CookieConsent.vue')));
 
 const isMobileMenuOpen = ref(false);
 const activeMobileIndex = ref(null);
