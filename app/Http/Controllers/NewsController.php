@@ -126,6 +126,7 @@ class NewsController extends Controller
     {
         $locale = app()->getLocale();
 
+        /** @var array{post: array, relatedPosts: array, lingue?: list<string>} $data `lingue` manca nelle voci in cache di prima */
         $data = Cache::remember("public:news:{$locale}:{$slug}", now()->addMinutes(10), function () use ($slug) {
             $post = Post::published()
                 ->with(['author:id,name', 'categories', 'tags', 'media'])
