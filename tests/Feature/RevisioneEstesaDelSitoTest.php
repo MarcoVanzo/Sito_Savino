@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\PostStatus;
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Game;
 use App\Models\MenuItem;
 use App\Models\Page;
@@ -14,6 +15,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -103,6 +105,21 @@ class RevisioneEstesaDelSitoTest extends TestCase
         SiteSetting::set('official_photo_pdf', 'official-photos/foto.pdf');
 
         $this->assertSame(['Foto Ufficiale', 'Risultati'], array_column(MenuItem::getTree('main')[0]['children'], 'label'));
+    }
+
+    #[Test]
+    public function la_foto_ufficiale_dal_menu_apre_il_pdf_invece_di_mostrarlo_come_testo(): void
+    {
+        SiteSetting::set('official_photo_pdf', 'official-photos/foto.pdf');
+        $pdf = Storage::url('official-photos/foto.pdf');
+
+        $this->get('/stagione/foto-ufficiale')->assertRedirect($pdf);
+
+        // Visita Inertia (voce di menu): il browser deve navigare da se'.
+        $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => (string) app(HandleInertiaRequests::class)->version(request())])
+            ->get('/stagione/foto-ufficiale')
+            ->assertStatus(409)
+            ->assertHeader('X-Inertia-Location', $pdf);
     }
 
     #[Test]
