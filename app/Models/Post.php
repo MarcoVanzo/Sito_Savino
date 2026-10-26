@@ -56,6 +56,29 @@ class Post extends Model implements HasMedia
     }
 
     /**
+     * Se la notizia esiste davvero in questa lingua: titolo scritto e, se in
+     * italiano c'e' un testo, scritto anche quello. Senza, `/en/news/…` mostra
+     * l'italiano e Google la scarta come doppione della pagina italiana
+     * («canonica diversa da quella specificata», Search Console 26/10/2026):
+     * niente hreflang, sitemap ne' indicizzazione in quella lingua, come per
+     * i prodotti (Product::tradottoIn).
+     */
+    public function tradottoIn(string $locale): bool
+    {
+        if ($locale === config('app.fallback_locale')) {
+            return true;
+        }
+
+        if (trim((string) $this->getTranslation('title', $locale, false)) === '') {
+            return false;
+        }
+
+        $testo = fn (string $lingua): string => trim(strip_tags((string) $this->getTranslation('content', $lingua, false)));
+
+        return $testo((string) config('app.fallback_locale')) === '' || $testo($locale) !== '';
+    }
+
+    /**
      * @return BelongsToMany<Category, $this>
      */
     public function categories(): BelongsToMany

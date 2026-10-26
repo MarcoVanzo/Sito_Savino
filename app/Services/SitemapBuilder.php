@@ -196,6 +196,7 @@ class SitemapBuilder
                 $addLocalizedUrls("/news/{$post->slug}", [
                     'freq' => Url::CHANGE_FREQUENCY_MONTHLY,
                     'priority' => 0.6,
+                    'lingue' => array_values(array_filter(IndirizziPerLingua::lingue(), fn (string $lingua) => $post->tradottoIn($lingua))),
                 ], $post->updated_at, $copertina !== '' ? [[$copertina, (string) $post->getTranslation('title', 'it')]] : []);
             });
         }
