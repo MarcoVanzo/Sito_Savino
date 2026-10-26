@@ -622,8 +622,11 @@ class PublicController extends Controller
     {
         $pdfUrl = SiteSetting::get('official_photo_pdf');
 
+        // `Inertia::location()` e non `redirect()`: la voce di menu e' un
+        // `<Link>`, e Inertia seguiva il redirect via XHR fino a Spaces,
+        // mostrando il PDF come testo in una finestra sopra la pagina.
         if ($pdfUrl) {
-            return redirect(Storage::url($pdfUrl));
+            return Inertia::location(Storage::url($pdfUrl));
         }
 
         // `back()` seguiva l'URL precedente in sessione e poteva scaricare il
