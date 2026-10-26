@@ -1,10 +1,14 @@
 <script setup>
-import { onMounted } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useCart } from '@/Composables/useCart.js';
 import { useTranslations } from '@/Composables/useTranslations.js';
 
 const { cartCount, fetchCartCount, toggleCart } = useCart();
 const $t = useTranslations();
+
+// Il numero entra nel nome accessibile così come si vede nel badge e senza
+// parentesi: axe (WCAG 2.5.3) toglie il testo fra parentesi prima del confronto.
+const conteggioVisibile = computed(() => (cartCount.value > 99 ? '99+' : String(cartCount.value)));
 
 onMounted(() => {
     fetchCartCount();
@@ -15,7 +19,7 @@ onMounted(() => {
     <button type="button"
         @click="toggleCart"
         class="relative p-2 text-gray-300 hover:text-savino-fucsia-chiaro transition-colors duration-300 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
-        :aria-label="`${$t('shop.cart_title') || 'Carrello'} (${cartCount})`"
+        :aria-label="`${$t('shop.cart_title') || 'Carrello'}: ${conteggioVisibile}`"
     >
         <!-- Shopping Bag Icon -->
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -35,7 +39,7 @@ onMounted(() => {
                 v-if="cartCount > 0"
                 class="absolute -top-1 -right-1 bg-savino-red text-white text-[10px] font-black min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 shadow-lg ring-2 ring-gray-900"
             >
-                {{ cartCount > 99 ? '99+' : cartCount }}
+                {{ conteggioVisibile }}
             </span>
         </Transition>
     </button>
