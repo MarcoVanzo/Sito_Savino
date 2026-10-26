@@ -219,7 +219,10 @@ async function main() {
         await scheda.addScriptTag({ content: axe });
         const esito = await scheda.evaluate(async (tag) => {
             // eslint-disable-next-line no-undef
-            const r = await axe.run(document, { runOnly: { type: 'tag', values: tag }, resultTypes: ['violations', 'incomplete'] });
+            // Con una finestra modale aperta il resto della pagina e' inerte,
+            // ma axe lo misurerebbe attraverso il ::backdrop (il bianco su
+            // fucsia dell'hero scendeva a 4,25 sotto la diretta): si esamina la finestra.
+            const r = await axe.run(document.querySelector('dialog[open]') ?? document, { runOnly: { type: 'tag', values: tag }, resultTypes: ['violations', 'incomplete'] });
             const voce = (v) => ({
                 regola: v.id,
                 impatto: v.impact,
@@ -410,6 +413,9 @@ async function main() {
         await passaggio('diretta con sponsor', async (scheda, controlla) => {
             await apri(scheda, '/');
             // La gara di prova è oggi: il pop-up del Match Day si chiude prima.
+            // Si apre 1,5 s dopo il caricamento (PopupMatchDay.vue): contato
+            // subito non c'era ancora, poi copriva il pulsante e il clic scadeva.
+            await scheda.locator('dialog[open]').waitFor({ timeout: 5000 }).catch(() => {});
             if (await scheda.locator('dialog[open]').count()) {
                 await scheda.keyboard.press('Escape');
                 await scheda.waitForTimeout(300);

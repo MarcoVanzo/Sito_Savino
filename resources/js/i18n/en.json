@@ -1194,7 +1194,7 @@
         "audio_disattiva": "Turn the spot sound off",
         "guarda_spot": "Watch the spot",
         "visita": "Visit the sponsor",
-        "visita_nome": "Visit {sponsor} (opens in a new tab)",
+        "visita_nome": "Visit the sponsor {sponsor} (opens in a new tab)",
         "accanto": "Next to the live stream: {sponsor}",
         "tutto_schermo": "Full screen",
         "esci_tutto_schermo": "Exit full screen",
