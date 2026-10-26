@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Post;
 use App\Services\NewsFeedBuilder;
+use App\Support\IndirizziPerLingua;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Cache;
@@ -125,6 +126,7 @@ class NewsController extends Controller
     {
         $locale = app()->getLocale();
 
+        /** @var array{post: array, relatedPosts: array, lingue?: list<string>} $data `lingue` manca nelle voci in cache di prima */
         $data = Cache::remember("public:news:{$locale}:{$slug}", now()->addMinutes(10), function () use ($slug) {
             $post = Post::published()
                 ->with(['author:id,name', 'categories', 'tags', 'media'])
@@ -147,12 +149,21 @@ class NewsController extends Controller
             return [
                 'post' => $this->postToArray($post),
                 'relatedPosts' => $relatedPosts,
+                'lingue' => array_values(array_filter(
+                    IndirizziPerLingua::lingue(),
+                    fn (string $lingua) => $post->tradottoIn($lingua),
+                )),
             ];
         });
 
         return Inertia::render('Public/NewsDetail', [
             'post' => $this->publicAuthor($data['post']),
             'relatedPosts' => array_map($this->voceDellElenco(...), $data['relatedPosts']),
+        ])->withViewData([
+            // Le lingue in cui la notizia e' scritta: le altre non entrano
+            // negli hreflang e, aperte, sono noindex (app.blade.php). Una
+            // voce in cache di prima non le ha: per dieci minuti resta com'era.
+            'lingueDellaPagina' => $data['lingue'] ?? null,
         ]);
     }
 
