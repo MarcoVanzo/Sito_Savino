@@ -54,15 +54,20 @@ export function conAudioSpento(indirizzo) {
 
 /**
  * Aspetta che il visitatore abbia risposto al banner dei cookie (la finestra
- * della diretta lo renderebbe inerte), poi chiama `decidi(marketing)`: senza
- * consenso di marketing YouTube non si carica senza un clic, e la home mostra
- * il pop-up di sempre. Restituisce la funzione che smette di aspettare.
+ * della diretta lo renderebbe inerte), poi chiama `decidi(puoPartire)`.
+ * Non può partire senza consenso di marketing (YouTube non si carica senza un
+ * clic) né per chi ha chiesto al sistema meno movimento (un video che parte
+ * da solo è proprio quello: gli spot della diretta fanno lo stesso). In quei
+ * casi la home mostra il pop-up di sempre. Restituisce la funzione che smette
+ * di aspettare.
  */
 export function aspettaLaScelta({ versione, decidi, finestra = window }) {
     let attesa = null;
 
+    const movimentoRidotto = () => finestra.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
     const decidiTra = (millisecondi) => {
-        attesa = setTimeout(() => decidi(marketingConsentito(versione)), millisecondi);
+        attesa = setTimeout(() => decidi(marketingConsentito(versione) && !movimentoRidotto()), millisecondi);
     };
 
     const dopoIlBanner = () => {

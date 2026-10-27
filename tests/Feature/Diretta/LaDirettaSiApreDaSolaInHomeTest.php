@@ -6,6 +6,7 @@ use App\Enums\GameStatus;
 use App\Models\Game;
 use App\Models\SiteSetting;
 use App\Models\Team;
+use App\Services\Diretta\LimitiGeograficiDellaDiretta;
 use App\Support\MatchDay;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
@@ -28,6 +29,9 @@ class LaDirettaSiApreDaSolaInHomeTest extends TestCase
     private const LINK = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
 
     private static string $privateKey;
+
+    /** @var array<string, list<string>> I limiti che YouTube dichiara in questo momento. */
+    private array $limiti = [];
 
     public static function setUpBeforeClass(): void
     {
@@ -59,17 +63,38 @@ class LaDirettaSiApreDaSolaInHomeTest extends TestCase
     }
 
     #[Test]
-    public function a_gara_in_corso_con_una_diretta_visibile_ovunque_la_home_la_apre(): void
+    public function la_home_non_aspetta_youtube_e_la_visita_dopo_apre_la_diretta(): void
     {
         $this->youtubeRisponde([]);
         $this->garaAlle('20:30');
 
+        // La prima visita non sa ancora niente: risponde subito e chiede a
+        // YouTube dopo la risposta.
         $this->get('/')->assertInertia(fn (AssertableInertia $page) => $page
-            ->where('matchDay.apriDiretta', true)
+            ->where('matchDay.apriDiretta', false)
+            ->where('matchDay.popupDiretta', true)
         );
 
         Http::assertSent(fn (Request $request) => str_starts_with($request->url(), 'https://www.googleapis.com/youtube/v3/videos')
             && $request['id'] === 'dQw4w9WgXcQ');
+        $this->assertTrue(MatchDay::stato()['apri_diretta']);
+    }
+
+    #[Test]
+    public function un_esito_vecchio_vale_finche_youtube_non_ne_da_uno_nuovo(): void
+    {
+        $this->withoutDefer();
+        $this->youtubeRisponde([]);
+        $this->garaAlle('20:30');
+        $this->youtubeGiaInterrogato();
+
+        // La Lega blocca la diretta a gara in corso: la home lo sa alla
+        // richiesta successiva a quella che ha chiesto di nuovo.
+        $this->limiti = ['blocked' => ['IT']];
+        $this->travel(11)->minutes();
+
+        $this->assertTrue(MatchDay::stato()['apri_diretta']);
+        $this->assertFalse(MatchDay::stato()['apri_diretta']);
     }
 
     /** @return array<string, array{array<string, list<string>>}> */
@@ -88,6 +113,7 @@ class LaDirettaSiApreDaSolaInHomeTest extends TestCase
     {
         $this->garaAlle('20:30');
         $this->youtubeRisponde($limiti);
+        $this->youtubeGiaInterrogato();
 
         $stato = MatchDay::stato();
 
@@ -107,13 +133,14 @@ class LaDirettaSiApreDaSolaInHomeTest extends TestCase
             'oauth2.googleapis.com/*' => Http::response(['access_token' => 'token-di-prova']),
             'www.googleapis.com/youtube/*' => Http::response(['error' => 'quotaExceeded'], 403),
         ]);
+        $this->youtubeGiaInterrogato();
         $stato = MatchDay::stato();
         $this->assertFalse($stato['apri_diretta']);
         // Non sapere non è un blocco: il pop-up resta com'era.
         $this->assertTrue($stato['popup_diretta']);
 
-        cache()->flush();
         config()->set('services.ga4.service_account_json', '');
+        $this->youtubeGiaInterrogato();
         $this->assertFalse(MatchDay::stato()['apri_diretta']);
     }
 
@@ -169,11 +196,20 @@ class LaDirettaSiApreDaSolaInHomeTest extends TestCase
     /** @param  array<string, list<string>>  $limiti */
     private function youtubeRisponde(array $limiti): void
     {
-        $contenuto = $limiti === [] ? [] : ['regionRestriction' => $limiti];
+        $this->limiti = $limiti;
 
         Http::fake([
             'oauth2.googleapis.com/*' => Http::response(['access_token' => 'token-di-prova']),
-            'www.googleapis.com/youtube/*' => Http::response(['items' => [['id' => 'dQw4w9WgXcQ', 'contentDetails' => $contenuto]]]),
+            'www.googleapis.com/youtube/*' => fn () => Http::response(['items' => [[
+                'id' => 'dQw4w9WgXcQ',
+                'contentDetails' => $this->limiti === [] ? [] : ['regionRestriction' => $this->limiti],
+            ]]]),
         ]);
+    }
+
+    /** Come dopo una visita: l'esito di YouTube è già salvato. */
+    private function youtubeGiaInterrogato(): void
+    {
+        app(LimitiGeograficiDellaDiretta::class)->verifica('dQw4w9WgXcQ');
     }
 }

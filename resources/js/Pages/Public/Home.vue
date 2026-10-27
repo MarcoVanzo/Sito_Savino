@@ -112,8 +112,8 @@ const closeStream = () => {
 const page = usePage();
 
 // A gara in corso la diretta si apre da sola (MatchDay::apriDiretta). Il
-// pop-up intanto aspetta: torna solo se la diretta non si può aprire (niente
-// consenso di marketing, quindi YouTube vorrebbe comunque un clic).
+// pop-up intanto aspetta: torna solo se la diretta non può partire (consenso
+// di marketing, meno movimento: aperturaAutomaticaDellaDiretta.js).
 const popupInAttesa = ref(Boolean(props.matchDay?.apriDiretta));
 let smettiDiAspettare = null;
 
@@ -126,8 +126,8 @@ onMounted(() => {
 
     smettiDiAspettare = aspettaLaScelta({
         versione: page.props.consensoCookie?.versione ?? null,
-        decidi: (marketing) => {
-            if (!marketing) {
+        decidi: (puoPartire) => {
+            if (!puoPartire) {
                 popupInAttesa.value = false;
 
                 return;

@@ -80,20 +80,24 @@ class MatchDay
             : null;
 
         $direttaVicina = self::direttaVicina($gara);
+        // Il pop-up apre la finestra del sito: un link che porta fuori no.
+        $popupDiretta = $popup === null && self::popupAttivo() && $direttaVicina
+            && LiveStream::embedUrl($gara?->stream_url) !== null;
+        $apriDiretta = self::puoAprireLaDiretta($gara);
+        // Una domanda sola per richiesta, e solo se serve: pop-up e apertura
+        // automatica devono leggere lo stesso esito.
+        $limiti = $popupDiretta || $apriDiretta ? self::limitiPerPaese($gara) : null;
 
         return [
             'attivo' => true,
             'gara' => $gara,
             'in_casa' => $inCasa,
             'popup' => $popup,
-            // Il pop-up apre la finestra del sito: un link che porta fuori no.
-            // Né una diretta che la Lega blocca in qualche paese: chi sta lì
-            // troverebbe «video non disponibile» (se non si sa, il pop-up resta).
-            'popup_diretta' => $popup === null && self::popupAttivo() && $direttaVicina
-                && LiveStream::embedUrl($gara?->stream_url) !== null
-                && self::limitiPerPaese($gara) !== true,
+            // Né il pop-up per una diretta che la Lega blocca in qualche paese:
+            // chi sta lì troverebbe «video non disponibile». Se non si sa, resta.
+            'popup_diretta' => $popupDiretta && $limiti !== true,
             'diretta_vicina' => $direttaVicina,
-            'apri_diretta' => self::apriDiretta($gara),
+            'apri_diretta' => $apriDiretta && $limiti === false,
         ];
     }
 
@@ -156,18 +160,17 @@ class MatchDay
     }
 
     /**
-     * La home apre da sola la diretta: interruttore acceso, gara cominciata e
-     * non finita, link incorporabile e senza limiti per paese. YouTube si
-     * interroga per ultimo, solo quando tutto il resto dice di sì.
+     * La home può aprire da sola la diretta: interruttore acceso, gara
+     * cominciata e non finita, link incorporabile. Manca solo il via di
+     * YouTube sui limiti per paese, che `stato()` chiede per ultimo.
      */
-    private static function apriDiretta(?Game $gara): bool
+    private static function puoAprireLaDiretta(?Game $gara): bool
     {
         return $gara !== null
             && ImpostazioniDellaDiretta::aperturaAutomatica()
             && $gara->match_date->lessThanOrEqualTo(now())
             && $gara->status !== GameStatus::Completed
-            && LiveStream::embedUrl($gara->stream_url) !== null
-            && self::limitiPerPaese($gara) === false;
+            && LiveStream::embedUrl($gara->stream_url) !== null;
     }
 
     /** @return bool|null true = bloccata in qualche paese, null = non si sa */

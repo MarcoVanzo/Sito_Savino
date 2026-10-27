@@ -107,9 +107,10 @@ onBeforeUnmount(() => {
             />
 
             <div v-else class="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl">
-                <!-- La finestra si apre dal pulsante "Guarda la diretta": l'avvio
-                     automatico è chiesto dal visitatore. Il riquadro, invece,
-                     aspetta comunque il consenso di marketing o il clic. -->
+                <!-- La finestra si apre dal pulsante "Guarda la diretta" (l'avvio
+                     automatico l'ha chiesto il visitatore) o da sola a gara in
+                     corso, con l'audio spento nell'indirizzo (Home.vue). Il
+                     riquadro aspetta comunque il consenso di marketing o il clic. -->
                 <div class="absolute inset-0">
                     <ContenutoIncorporato
                         :src="stream.embedUrl"
