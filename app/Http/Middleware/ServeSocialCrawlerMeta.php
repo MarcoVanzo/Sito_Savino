@@ -61,6 +61,13 @@ class ServeSocialCrawlerMeta
     private const TITOLO_MAX = 60;
 
     /**
+     * Verifica del dominio nel portfolio business Meta della società: sta nel
+     * layout e nell'HTML dei crawler (Meta non esegue il JavaScript e legge la
+     * home come facebookexternalhit). Se sparisce Meta revoca la verifica.
+     */
+    public const VERIFICA_DOMINIO_META = '5gr7s7i501lorhvjdo8huyhldd9qif';
+
+    /**
      * User-agent patterns dei crawler social.
      */
     private const CRAWLER_PATTERNS = [
@@ -843,6 +850,7 @@ class ServeSocialCrawlerMeta
         $lang = $locale === 'en' ? 'en' : 'it';
         $ogLocale = $locale === 'en' ? 'en_GB' : 'it_IT';
         $ogType = e($meta['type'] ?? 'website');
+        $verificaDominioMeta = self::VERIFICA_DOMINIO_META;
 
         return <<<HTML
 <!DOCTYPE html>
@@ -862,6 +870,7 @@ class ServeSocialCrawlerMeta
     <meta name="twitter:title" content="{$title}">
     <meta name="twitter:description" content="{$description}">
     <meta name="twitter:image" content="{$image}">
+    <meta name="facebook-domain-verification" content="{$verificaDominioMeta}">
 </head>
 <body>
     <h1>{$title}</h1>
