@@ -62,6 +62,26 @@ describe('diagnostica', () => {
         expect(opzioni.allowUrls).toEqual(['https://sito.test']);
     });
 
+    it('scarta il banner dei cookie bloccato su Firefox, non gli altri import falliti', () => {
+        const { ignoreErrors } = opzioniDiSentry({
+            app: {},
+            dsn: 'x',
+            environment: 'test',
+            origine: 'https://sito.test',
+        });
+        const ignorato = (messaggio) =>
+            ignoreErrors.some((regola) =>
+                typeof regola === 'string' ? messaggio.includes(regola) : regola.test(messaggio),
+            );
+        const firefox = 'TypeError: error loading dynamically imported module: https://sito.test/build/assets';
+
+        expect(ignorato(`${firefox}/CookieConsent-DgOpX9Gd.js`)).toBe(true);
+        expect(ignorato(`${firefox}/MobileDrawer-a1b2c3d4.js`)).toBe(false);
+        expect(
+            ignorato('TypeError: Failed to fetch dynamically imported module: https://sito.test/build/assets/CookieConsent-DgOpX9Gd.js'),
+        ).toBe(false);
+    });
+
     it('non manda token ed email contenuti negli indirizzi', () => {
         expect(ripulisciIndirizzo('https://sito.test/reset-password/abc123?email=a%40b.it')).toBe(
             'https://sito.test/reset-password/[nascosto]',
