@@ -99,4 +99,14 @@ class LiveStreamTest extends TestCase
     {
         $this->assertNull(LiveStream::embedUrl($url));
     }
+
+    #[Test]
+    public function l_id_del_video_si_legge_solo_dai_link_youtube(): void
+    {
+        $this->assertSame('dQw4w9WgXcQ', LiveStream::youtubeId('https://youtu.be/dQw4w9WgXcQ'));
+        $this->assertSame('AbC123xyz9', LiveStream::youtubeId('https://youtube.com/live/AbC123xyz9'));
+        $this->assertNull(LiveStream::youtubeId('https://vimeo.com/123456789'));
+        $this->assertNull(LiveStream::youtubeId('https://www.youtube.com/@legavolleyfemminile/streams'));
+        $this->assertNull(LiveStream::youtubeId(null));
+    }
 }

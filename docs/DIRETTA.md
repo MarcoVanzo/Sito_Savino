@@ -93,6 +93,22 @@ giorni fa in avanti; togliendo il filtro anche le passate). Sulla partita,
 
 Salvando, il sito riceve le impostazioni entro una decina di secondi.
 
+### Aprire la diretta da sola in home
+
+Sponsor → Diretta, «Apri la diretta da sola»: a gara della prima squadra
+cominciata (fino a tre ore dal fischio d'inizio, non a gara finita) chi apre
+la homepage trova la diretta già aperta, senza audio. Una volta per scheda.
+Vale solo se:
+
+- il link è un video **YouTube** e YouTube conferma che non è bloccato in
+  nessun paese (le dirette che la Lega limita per i diritti tv restano col
+  pulsante, senza nemmeno il pop-up «Guarda la diretta»: chi sta in quei
+  paesi vedrebbe «video non disponibile»). Il sito lo chiede a YouTube col service account di GA4: nel
+  progetto Google va abilitata la «YouTube Data API v3»; se YouTube non
+  risponde, la diretta non si apre da sola;
+- il visitatore ha accettato i cookie di marketing (YouTube non si carica
+  senza): altrimenti vede il pop-up di sempre.
+
 ## 5. Regia dal telefono (facoltativa)
 
 Sponsor → **Regia diretta**, dal telefono a bordo campo. Si apre sulla prima

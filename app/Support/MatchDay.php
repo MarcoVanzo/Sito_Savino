@@ -5,6 +5,8 @@ namespace App\Support;
 use App\Enums\GameStatus;
 use App\Models\Game;
 use App\Models\SiteSetting;
+use App\Services\Diretta\LimitiGeograficiDellaDiretta;
+use App\Support\Diretta\ImpostazioniDellaDiretta;
 
 /**
  * La modalità Match Day della homepage: fascia «Oggi si gioca», sezione della
@@ -23,6 +25,13 @@ use App\Models\SiteSetting;
  * Dove non ci sono biglietti da vendere (trasferta, o gara già cominciata) il
  * pop-up porta alla diretta, se la gara ne ha una incorporabile: da un'ora
  * prima del fischio d'inizio, come i contatori della diretta.
+ *
+ * Con «Apri la diretta da sola» (Sponsor → Diretta) la home, a gara in corso,
+ * apre la finestra della diretta senza aspettare il clic, solo se YouTube
+ * conferma che non è bloccata in nessun paese. Pop-up e `popup_diretta`
+ * restano calcolati: li mostra la home quando non può aprirla (nessun
+ * consenso di marketing, quindi niente YouTube senza un clic). Una diretta
+ * bloccata in qualche paese non ha nemmeno il pop-up: restano i pulsanti.
  */
 class MatchDay
 {
@@ -43,7 +52,7 @@ class MatchDay
     public const MINUTI_PRIMA_DELLA_DIRETTA = 60;
 
     /**
-     * @return array{attivo: bool, gara: ?Game, in_casa: bool, popup: ?array{titolo: string, testo: string, pulsante: string, url: string}, popup_diretta: bool, diretta_vicina: bool}
+     * @return array{attivo: bool, gara: ?Game, in_casa: bool, popup: ?array{titolo: string, testo: string, pulsante: string, url: string}, popup_diretta: bool, diretta_vicina: bool, apri_diretta: bool}
      */
     public static function stato(): array
     {
@@ -78,9 +87,13 @@ class MatchDay
             'in_casa' => $inCasa,
             'popup' => $popup,
             // Il pop-up apre la finestra del sito: un link che porta fuori no.
+            // Né una diretta che la Lega blocca in qualche paese: chi sta lì
+            // troverebbe «video non disponibile» (se non si sa, il pop-up resta).
             'popup_diretta' => $popup === null && self::popupAttivo() && $direttaVicina
-                && LiveStream::embedUrl($gara?->stream_url) !== null,
+                && LiveStream::embedUrl($gara?->stream_url) !== null
+                && self::limitiPerPaese($gara) !== true,
             'diretta_vicina' => $direttaVicina,
+            'apri_diretta' => self::apriDiretta($gara),
         ];
     }
 
@@ -142,6 +155,27 @@ class MatchDay
             && now()->greaterThanOrEqualTo($gara->match_date->copy()->subMinutes(self::MINUTI_PRIMA_DELLA_DIRETTA));
     }
 
+    /**
+     * La home apre da sola la diretta: interruttore acceso, gara cominciata e
+     * non finita, link incorporabile e senza limiti per paese. YouTube si
+     * interroga per ultimo, solo quando tutto il resto dice di sì.
+     */
+    private static function apriDiretta(?Game $gara): bool
+    {
+        return $gara !== null
+            && ImpostazioniDellaDiretta::aperturaAutomatica()
+            && $gara->match_date->lessThanOrEqualTo(now())
+            && $gara->status !== GameStatus::Completed
+            && LiveStream::embedUrl($gara->stream_url) !== null
+            && self::limitiPerPaese($gara) === false;
+    }
+
+    /** @return bool|null true = bloccata in qualche paese, null = non si sa */
+    private static function limitiPerPaese(?Game $gara): ?bool
+    {
+        return app(LimitiGeograficiDellaDiretta::class)->perIlLink($gara?->stream_url);
+    }
+
     private static function popupAttivo(): bool
     {
         return filter_var(SiteSetting::get('match_day_popup_attivo', true), FILTER_VALIDATE_BOOLEAN);
@@ -164,10 +198,10 @@ class MatchDay
     }
 
     /**
-     * @return array{attivo: false, gara: null, in_casa: false, popup: null, popup_diretta: false, diretta_vicina: false}
+     * @return array{attivo: false, gara: null, in_casa: false, popup: null, popup_diretta: false, diretta_vicina: false, apri_diretta: false}
      */
     private static function spento(): array
     {
-        return ['attivo' => false, 'gara' => null, 'in_casa' => false, 'popup' => null, 'popup_diretta' => false, 'diretta_vicina' => false];
+        return ['attivo' => false, 'gara' => null, 'in_casa' => false, 'popup' => null, 'popup_diretta' => false, 'diretta_vicina' => false, 'apri_diretta' => false];
     }
 }

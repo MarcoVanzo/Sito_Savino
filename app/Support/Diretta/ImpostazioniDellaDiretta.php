@@ -39,12 +39,25 @@ class ImpostazioniDellaDiretta
         'diretta_ciclo_durata_secondi' => 15,
         'diretta_ciclo_ritardo_minuti' => 5,
         'diretta_pausa_durata_secondi' => 180,
+        'diretta_apertura_automatica' => false,
     ];
 
     public static function abilitata(): bool
     {
         return filter_var(
             SiteSetting::get('diretta_sponsor_abilitata', self::PREDEFINITI['diretta_sponsor_abilitata']),
+            FILTER_VALIDATE_BOOLEAN,
+        );
+    }
+
+    /**
+     * La home apre da sola la diretta della gara in corso (`MatchDay`).
+     * Non dipende dagli sponsor: vale anche con l'interruttore generale spento.
+     */
+    public static function aperturaAutomatica(): bool
+    {
+        return filter_var(
+            SiteSetting::get('diretta_apertura_automatica', self::PREDEFINITI['diretta_apertura_automatica']),
             FILTER_VALIDATE_BOOLEAN,
         );
     }

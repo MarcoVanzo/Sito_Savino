@@ -47,6 +47,14 @@ class LiveStream
         };
     }
 
+    /** L'id del video YouTube del link, se il link è un video YouTube. */
+    public static function youtubeId(?string $url): ?string
+    {
+        return preg_match('#^https://www\.youtube-nocookie\.com/embed/([A-Za-z0-9_-]+)$#', (string) self::embedUrl($url), $m) === 1
+            ? $m[1]
+            : null;
+    }
+
     /**
      * L'indirizzo così com'è stato scritto, ma solo se è un link web.
      *

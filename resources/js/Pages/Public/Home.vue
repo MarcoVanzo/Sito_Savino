@@ -19,6 +19,7 @@ import { isExternalLink, externalLinkAttrs } from '@/Support/menuLinks.js';
 import { useLocale } from '@/Composables/useLocale.js';
 import { useSafeUrl } from '@/Composables/useSafeUrl.js';
 import { testoAlternativo } from '@/Support/testoAlternativo.js';
+import { aspettaLaScelta, conAudioSpento, giaAperta, ricordaAperta } from '@/Support/aperturaAutomaticaDellaDiretta.js';
 
 const { safeUrl } = useSafeUrl();
 const { onImgError } = useImageFallback();
@@ -86,19 +87,22 @@ const quandoNellaFascia = computed(() => {
 // finestra dentro al sito, le altre in una scheda nuova (il link resta un link).
 const activeStream = ref(null);
 
+const apriLaDiretta = ({ audioSpento = false } = {}) => {
+    activeStream.value = {
+        title: `${partita.value?.home_team?.name ?? ''} — ${partita.value?.away_team?.name ?? ''}`,
+        embedUrl: audioSpento ? conAudioSpento(partita.value.stream_embed_url) : partita.value.stream_embed_url,
+        url: partita.value.stream_url,
+        sponsor: partita.value.diretta_sponsor ?? null,
+    };
+};
+
 const openNextGameStream = (event) => {
     if (!partita.value?.stream_embed_url) {
         return;
     }
 
     event.preventDefault();
-
-    activeStream.value = {
-        title: `${partita.value?.home_team?.name ?? ''} — ${partita.value?.away_team?.name ?? ''}`,
-        embedUrl: partita.value.stream_embed_url,
-        url: partita.value.stream_url,
-        sponsor: partita.value.diretta_sponsor ?? null,
-    };
+    apriLaDiretta();
 };
 
 const closeStream = () => {
@@ -106,6 +110,36 @@ const closeStream = () => {
 };
 
 const page = usePage();
+
+// A gara in corso la diretta si apre da sola (MatchDay::apriDiretta). Il
+// pop-up intanto aspetta: torna solo se la diretta non si può aprire (niente
+// consenso di marketing, quindi YouTube vorrebbe comunque un clic).
+const popupInAttesa = ref(Boolean(props.matchDay?.apriDiretta));
+let smettiDiAspettare = null;
+
+onMounted(() => {
+    const gara = props.matchDay?.gara;
+
+    if (!popupInAttesa.value || !gara?.stream_embed_url || giaAperta(gara.id)) {
+        return;
+    }
+
+    smettiDiAspettare = aspettaLaScelta({
+        versione: page.props.consensoCookie?.versione ?? null,
+        decidi: (marketing) => {
+            if (!marketing) {
+                popupInAttesa.value = false;
+
+                return;
+            }
+
+            ricordaAperta(gara.id);
+            apriLaDiretta({ audioSpento: true });
+        },
+    });
+});
+
+onUnmounted(() => smettiDiAspettare?.());
 
 // Impostazioni home dal backend con fallback
 const settings = computed(() => page.props.siteSettings ?? {});
@@ -1052,7 +1086,7 @@ const ogMeta = useOgMeta({
 
         <LiveStreamModal :stream="activeStream" @close="closeStream" />
         <PopupMatchDay
-            v-if="matchDayAttivo && (matchDay.popup || matchDay.popupDiretta)"
+            v-if="matchDayAttivo && !popupInAttesa && (matchDay.popup || matchDay.popupDiretta)"
             :popup="matchDay.popup"
             :diretta="Boolean(matchDay.popupDiretta)"
             @guarda="openNextGameStream"
