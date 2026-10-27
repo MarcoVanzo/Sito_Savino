@@ -90,6 +90,10 @@
         <!-- Theme Color -->
         <meta name="theme-color" content="#003063">
 
+        {{-- Verifica del dominio nel portfolio business Meta: non togliere,
+             o Meta revoca la verifica (ServeSocialCrawlerMeta::VERIFICA_DOMINIO_META). --}}
+        <meta name="facebook-domain-verification" content="{{ \App\Http\Middleware\ServeSocialCrawlerMeta::VERIFICA_DOMINIO_META }}">
+
         {{-- Dati strutturati (schema.org) calcolati sul server da
              ServeSocialCrawlerMeta / DatiStrutturati: la società e il sito in
              home, la notizia, il prodotto, la partita, l'atleta e le briciole

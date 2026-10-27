@@ -41,6 +41,19 @@ class SocialCrawlerMetaTest extends TestCase
         config(['media-library.disk_name' => 'public']);
     }
 
+    /**
+     * Meta verifica il dominio leggendo la home senza JavaScript: se il tag
+     * sparisce revoca la verifica del portfolio business.
+     */
+    #[Test]
+    public function la_home_porta_la_verifica_del_dominio_di_meta_a_browser_e_crawler(): void
+    {
+        $tag = '<meta name="facebook-domain-verification" content="5gr7s7i501lorhvjdo8huyhldd9qif">';
+
+        $this->get('/')->assertOk()->assertSee($tag, false);
+        $this->withHeaders(['User-Agent' => 'facebookexternalhit/1.1'])->get('/')->assertOk()->assertSee($tag, false);
+    }
+
     #[Test]
     public function il_prodotto_dello_shop_ha_titolo_e_immagine_propri(): void
     {
