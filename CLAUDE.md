@@ -687,7 +687,8 @@ framework si insegna allo script, non si silenzia. `--html=mappa.html` per la ma
 - **Diretta che si apre da sola** (`diretta_apertura_automatica`,
   `MatchDay::apriDiretta`): solo a gara in corso e con YouTube che conferma
   nessun limite per paese (`LimitiGeograficiDellaDiretta`; non si sa = non si
-  apre). Senza consenso di marketing la home ripiega sul pop-up; una diretta
+  apre). La home non aspetta mai YouTube: ultimo esito in cache, nuova domanda
+  con `defer` dopo la risposta. Senza consenso di marketing la home ripiega sul pop-up; una diretta
   bloccata in qualche paese il pop-up non ce l'ha.
 - **Match Day, diretta in home, `/diretta` e regia: solo la prima squadra (A1)**,
   mai il vivaio (anche lui `is_internal`): `Game::dellaPrimaSquadra()`.

@@ -17,14 +17,22 @@ use Illuminate\Support\Facades\Log;
  * che non aprirla, quindi chi chiede ottiene `false` solo quando YouTube ha
  * confermato che limiti non ce ne sono. Altre piattaforme, niente service
  * account o YouTube che non risponde: `null`, cioè «non si sa».
+ *
+ * La home non aspetta mai YouTube: riceve l'ultimo esito salvato, e quando è
+ * vecchio (o manca) la nuova domanda parte dopo aver risposto al visitatore
+ * (`defer`). Prima chiedeva durante la richiesta: con Google lento la home
+ * restava ferma fino al timeout del token.
  */
 class LimitiGeograficiDellaDiretta
 {
     /** La Lega può cambiare i limiti anche a diretta cominciata. */
-    private const MINUTI_IN_CACHE = 10;
+    private const MINUTI_PRIMA_DI_RICHIEDERE = 10;
 
     /** Una risposta mancata si riprova presto, ma non a ogni visita della home. */
-    private const MINUTI_IN_CACHE_SE_NON_SI_SA = 2;
+    private const MINUTI_PRIMA_DI_RIPROVARE = 2;
+
+    /** Quanto resta buono l'ultimo esito mentre se ne chiede uno nuovo: una gara. */
+    private const ORE_IN_MEMORIA = 3;
 
     /** @return bool|null true = limitata, false = libera, null = non si sa */
     public function perIlLink(?string $url): ?bool
@@ -35,22 +43,58 @@ class LimitiGeograficiDellaDiretta
             return null;
         }
 
-        $chiave = 'diretta:limiti-geografici:'.$videoId;
-        $salvato = Cache::get($chiave);
+        $salvato = Cache::get(self::chiave($videoId));
 
-        if (is_array($salvato)) {
-            return $salvato['limitata'];
+        if (! is_array($salvato) || self::daRichiedere($salvato)) {
+            $this->richiediDopoLaRisposta($videoId);
         }
 
+        return is_array($salvato) ? $salvato['limitata'] : null;
+    }
+
+    /** Chiede a YouTube adesso e salva l'esito: la usa `defer`, e i test. */
+    public function verifica(string $videoId): ?bool
+    {
         $limitata = $this->chiediAYoutube($videoId);
 
         Cache::put(
-            $chiave,
-            ['limitata' => $limitata],
-            now()->addMinutes($limitata === null ? self::MINUTI_IN_CACHE_SE_NON_SI_SA : self::MINUTI_IN_CACHE),
+            self::chiave($videoId),
+            ['limitata' => $limitata, 'verificato_il' => now()->getTimestamp()],
+            now()->addHours(self::ORE_IN_MEMORIA),
         );
 
         return $limitata;
+    }
+
+    /**
+     * Una domanda alla volta per video: con la home visitata da molti, senza
+     * il segnaposto ogni richiesta ne accoderebbe una.
+     */
+    private function richiediDopoLaRisposta(string $videoId): void
+    {
+        if (! Cache::add(self::chiave($videoId).':in-corso', true, now()->addMinutes(1))) {
+            return;
+        }
+
+        defer(fn () => $this->verifica($videoId));
+    }
+
+    /**
+     * Le voci scritte dalla prima versione non hanno `verificato_il`: valgono
+     * come vecchie e si richiedono.
+     *
+     * @param  array{limitata: bool|null, verificato_il?: int}  $salvato
+     */
+    private static function daRichiedere(array $salvato): bool
+    {
+        $minuti = $salvato['limitata'] === null ? self::MINUTI_PRIMA_DI_RIPROVARE : self::MINUTI_PRIMA_DI_RICHIEDERE;
+
+        return now()->getTimestamp() - (int) ($salvato['verificato_il'] ?? 0) >= $minuti * 60;
+    }
+
+    private static function chiave(string $videoId): string
+    {
+        return 'diretta:limiti-geografici:'.$videoId;
     }
 
     private function chiediAYoutube(string $videoId): ?bool

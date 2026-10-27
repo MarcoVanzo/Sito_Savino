@@ -63,6 +63,21 @@ describe('aperturaAutomaticaDellaDiretta', () => {
         expect(decidi).toHaveBeenCalledWith(false);
     });
 
+    it('a chi ha chiesto meno movimento non parte da sola', () => {
+        salvaIlConsenso({ statistiche: false, marketing: true, versione: 'v1' });
+        const decidi = vi.fn();
+        const finestra = {
+            matchMedia: (query) => ({ matches: query === '(prefers-reduced-motion: reduce)' }),
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+        };
+
+        aspettaLaScelta({ versione: 'v1', decidi, finestra });
+        vi.advanceTimersByTime(ATTESA_CON_LA_SCELTA_FATTA);
+
+        expect(decidi).toHaveBeenCalledWith(false);
+    });
+
     it('lasciando la pagina smette di aspettare', () => {
         salvaIlConsenso({ statistiche: false, marketing: true, versione: 'v1' });
         const decidi = vi.fn();

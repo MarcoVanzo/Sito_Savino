@@ -107,7 +107,12 @@ Vale solo se:
   progetto Google va abilitata la «YouTube Data API v3»; se YouTube non
   risponde, la diretta non si apre da sola;
 - il visitatore ha accettato i cookie di marketing (YouTube non si carica
-  senza): altrimenti vede il pop-up di sempre.
+  senza) e non ha chiesto al sistema meno movimento: altrimenti vede il pop-up
+  di sempre.
+
+Il sito non fa aspettare la home per chiedere a YouTube: ricontrolla ogni
+dieci minuti, dopo aver risposto. All'inizio della gara la diretta comincia ad
+aprirsi da sola entro un paio di minuti dalle prime visite.
 
 ## 5. Regia dal telefono (facoltativa)
 
