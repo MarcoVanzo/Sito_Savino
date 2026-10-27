@@ -317,6 +317,15 @@ return [
     | con il ruolo «Utente API Cloud Translation». Niente chiavi in più.
     | Quota gratuita: 500.000 caratteri al mese; budget con avviso a 5 €.
     */
+    /*
+    | YouTube Data API v3: se una diretta è bloccata in alcuni paesi, prima di
+    | aprirla da sola in home. Stesso service account di GA4; nel progetto
+    | Google va abilitata la «YouTube Data API v3».
+    */
+    'youtube' => [
+        'timeout' => (int) env('YOUTUBE_TIMEOUT', 5),
+    ],
+
     'google_translate' => [
         'attiva' => (bool) env('TRADUZIONE_AUTOMATICA', true),
         // Minuti di attesa dopo l'ultimo salvataggio: la redazione corregge

@@ -75,7 +75,7 @@ class DirettaSettingsPage extends BaseSettingsPage implements HasTable
 
         // I valori salvati arrivano grezzi ('0'), che per il browser è una
         // stringa piena, cioè un interruttore acceso.
-        foreach (['diretta_sponsor_abilitata', 'diretta_ciclo_attivo'] as $chiave) {
+        foreach (['diretta_sponsor_abilitata', 'diretta_ciclo_attivo', 'diretta_apertura_automatica'] as $chiave) {
             $data[$chiave] = filter_var($data[$chiave], FILTER_VALIDATE_BOOLEAN);
         }
 
@@ -115,6 +115,12 @@ class DirettaSettingsPage extends BaseSettingsPage implements HasTable
                     ->schema([
                         Toggle::make('diretta_sponsor_abilitata')
                             ->label('Sponsor nella diretta'),
+                    ]),
+                Section::make('Apertura automatica in home')
+                    ->description('A gara della prima squadra in corso, chi apre la homepage trova la diretta già aperta, senza audio (i browser fanno partire da soli solo i video muti). Una volta per scheda: chiusa, non si riapre. Solo per le dirette YouTube che il sito ha verificato visibili in tutti i paesi: quelle che la Lega blocca in qualche paese restano col pulsante.')
+                    ->schema([
+                        Toggle::make('diretta_apertura_automatica')
+                            ->label('Apri la diretta da sola'),
                     ]),
                 Section::make('Prima della diretta (pre-roll)')
                     ->schema([

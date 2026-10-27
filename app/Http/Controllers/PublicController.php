@@ -127,6 +127,8 @@ class PublicController extends Controller
                 // Il pulsante della diretta nell'hero, l'unico che da telefono
                 // si vede senza scorrere.
                 'direttaVicina' => $matchDay['diretta_vicina'],
+                // A gara in corso la finestra della diretta si apre da sola.
+                'apriDiretta' => $matchDay['apri_diretta'],
                 // Lo stesso link del pop-up anche per il pulsante della fascia,
                 // che resta quando il pop-up non c'è (gara già cominciata).
                 'urlBiglietti' => (string) SiteSetting::get('match_day_popup_url', ''),
