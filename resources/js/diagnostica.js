@@ -155,6 +155,12 @@ export function opzioniDiSentry({ app, dsn, environment, origine }) {
             // Estensioni del browser (Safari su iOS in testa): la promessa
             // rifiutata non ha stack, quindi `allowUrls` non la scarta.
             /runtime\.sendMessage\(\)/,
+            // Il banner dei cookie fermato da un blocco anti-banner di
+            // Firefox (SITO-SAVINO-BROWSER-G: solo Firefox, il file c'è e
+            // fallisce anche dopo le riprove di componenteConRiprova.js).
+            // Chi lo blocca non dà il consenso e niente parte: non è un
+            // guasto. Gli altri pezzi e gli altri browser restano visibili.
+            /^(TypeError: )?error loading dynamically imported module: \S*\/CookieConsent-[\w-]+\.js$/,
         ],
         integrations: (predefinite) => predefinite.filter((i) => i.name !== 'BrowserSession'),
         beforeSend: ripulisciEvento,
