@@ -133,6 +133,35 @@ class TestiAlternativiDelleImmaginiPubblicheTest extends TestCase
     }
 
     #[Test]
+    public function con_tutta_la_squadra_in_foto_il_titolo_resta_nella_colonna_con_nomi_interi(): void
+    {
+        $album = GalleryEvent::factory()->create(['title' => 'Giornata 6 - Serie A1 2026-2027', 'event_date' => '2026-11-01']);
+        $foto = GalleryImage::factory()->create(['gallery_event_id' => $album->id]);
+        $atlete = Player::factory()->count(14)->sequence(fn ($sequenza) => [
+            'first_name' => 'Atleta'.$sequenza->index,
+            'last_name' => 'Con Un Cognome Lungo',
+        ])->create();
+        DB::table('gallery_image_person')->insert($atlete->map(fn (Player $atleta) => [
+            'gallery_image_id' => $foto->id,
+            'person_type' => Player::class,
+            'person_id' => $atleta->id,
+            'confidence_score' => 99.2,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ])->all());
+
+        $foto = $foto->fresh();
+        TestiSeoDellaFoto::applica($foto);
+        $foto->saveQuietly();
+
+        $titolo = $foto->fresh()->title;
+        $this->assertLessThanOrEqual(TestiSeoDellaFoto::LUNGHEZZA_MASSIMA_TITOLO, mb_strlen($titolo));
+        $this->assertStringEndsWith(' - Giornata 6 - Serie A1 2026-2027 - 01/11/2026', $titolo);
+        $this->assertMatchesRegularExpression('/, altre \d+ - Giornata/', $titolo);
+        $this->assertTrue(TestiSeoDellaFoto::eGeneratoConLaPersona($titolo, 'Atleta0 Con Un Cognome Lungo'));
+    }
+
+    #[Test]
     public function una_foto_senza_album_resta_con_il_nome_della_squadra(): void
     {
         $this->assertSame('Savino Del Bene Volley', TestiSeoDellaFoto::altDellAlbum(null, null));

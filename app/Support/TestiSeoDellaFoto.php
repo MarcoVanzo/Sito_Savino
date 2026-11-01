@@ -24,6 +24,9 @@ class TestiSeoDellaFoto
     /** Separatore fra i nomi delle persone nel titolo generato. */
     public const SEPARATORE_NOMI = ', ';
 
+    /** Lunghezza di gallery_images.title (varchar). */
+    public const LUNGHEZZA_MASSIMA_TITOLO = 255;
+
     /**
      * I testi per la foto, con le persone taggate in questo momento.
      *
@@ -44,7 +47,7 @@ class TestiSeoDellaFoto
         $data = $album?->event_date?->format('d/m/Y') ?? '';
 
         // Formato: "Bosetti, Gaspari - Partita vs Busto Arsizio - 01/07/2026"
-        $titolo = implode(self::SEPARATORE, array_filter([$elencoNomi, $titoloAlbum, $data], fn ($parte) => $parte !== ''));
+        $titolo = self::titolo($nomi, $titoloAlbum, $data);
 
         $alt = self::altDellAlbum($titoloAlbum, $data);
 
@@ -68,6 +71,33 @@ class TestiSeoDellaFoto
             'descrizione' => $descrizione,
             'parole_chiave' => $paroleChiave,
         ];
+    }
+
+    /**
+     * Il titolo generato, entro la lunghezza della colonna.
+     *
+     * Con molte persone in foto (una squadra intera) i nomi superano la
+     * colonna e il salvataggio fallisce (errore 1406): si tolgono i nomi in
+     * fondo, interi, e al loro posto va «altre N». Mai un nome tagliato a
+     * meta': eGeneratoConLaPersona() riconosce i nomi interi del titolo.
+     *
+     * @param  list<string>  $nomi
+     */
+    private static function titolo(array $nomi, string $titoloAlbum, string $data): string
+    {
+        $componi = fn (string $elencoNomi): string => implode(self::SEPARATORE, array_filter(
+            [$elencoNomi, $titoloAlbum, $data],
+            fn (string $parte): bool => $parte !== '',
+        ));
+
+        $titolo = $componi(implode(self::SEPARATORE_NOMI, $nomi));
+
+        for ($tenuti = count($nomi) - 1; $tenuti >= 1 && mb_strlen($titolo) > self::LUNGHEZZA_MASSIMA_TITOLO; $tenuti--) {
+            $altre = count($nomi) - $tenuti;
+            $titolo = $componi(implode(self::SEPARATORE_NOMI, array_slice($nomi, 0, $tenuti)).self::SEPARATORE_NOMI.'altre '.$altre);
+        }
+
+        return mb_substr($titolo, 0, self::LUNGHEZZA_MASSIMA_TITOLO);
     }
 
     /**
