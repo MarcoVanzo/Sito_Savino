@@ -9,6 +9,10 @@
 # preso — te ne accorgi il giorno che servono, che è il giorno peggiore.
 # Questo workflow non tocca la produzione: legge dal bucket e scrive in un
 # container che muore a fine job.
+#
+# Lo fa due volte, una per copia: da Spaces e da Cloudflare R2. La copia su R2
+# è quella che serve se cade l'account DigitalOcean, e il backup notturno ne
+# controlla solo la dimensione: senza ripristinarla, anche lì è un'ipotesi.
 # =============================================================================
 
 name: Verifica Restore
@@ -29,19 +33,36 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  BUCKET_NAME: sito-savino-backups
-  SPACES_REGION: fra1
-  SPACES_ENDPOINT: https://fra1.digitaloceanspaces.com
   # Il ripristino gira qui dentro, non sfiora il database di produzione.
   DB_DI_PROVA: verifica_restore
 
 jobs:
   verifica:
-    name: Ripristina l'ultimo backup e controlla i dati
+    name: Ripristina l'ultimo backup da ${{ matrix.fonte }} e controlla i dati
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       issues: write
+
+    # Una copia rotta non deve fermare la verifica dell'altra.
+    strategy:
+      fail-fast: false
+      matrix:
+        fonte: [spaces, r2]
+
+    # Con `a && b || c` un secret R2 vuoto farebbe ricadere su Spaces: il job
+    # "r2" ripristinerebbe la copia sbagliata e direbbe che R2 funziona. Il
+    # primo passo lo impedisce con R2_CONFIGURATO e il controllo sull'endpoint.
+    env:
+      FONTE: ${{ matrix.fonte }}
+      R2_CONFIGURATO: ${{ secrets.R2_ACCOUNT_ID != '' && secrets.R2_BUCKET != '' && secrets.R2_ACCESS_KEY_ID != '' && secrets.R2_SECRET_ACCESS_KEY != '' }}
+      BUCKET: ${{ matrix.fonte == 'r2' && secrets.R2_BUCKET || 'sito-savino-backups' }}
+      ENDPOINT: ${{ matrix.fonte == 'r2' && format('https://{0}.r2.cloudflarestorage.com', secrets.R2_ACCOUNT_ID) || 'https://fra1.digitaloceanspaces.com' }}
+      AWS_DEFAULT_REGION: ${{ matrix.fonte == 'r2' && 'auto' || 'fra1' }}
+      # aws-cli v2 aggiunge di suo dei checksum che R2 rifiuta su alcune
+      # richieste (come in backup-db.yml): solo dove il protocollo li richiede.
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
 
     services:
       mysql:
@@ -58,6 +79,19 @@ jobs:
           --health-retries=5
 
     steps:
+      - name: Controlla che la fonte sia quella giusta
+        run: |
+          if [ "$FONTE" = "r2" ]; then
+            if [ "$R2_CONFIGURATO" != "true" ]; then
+              echo "❌ Segreti R2_* mancanti: la copia fuori sede non si può verificare."
+              exit 1
+            fi
+            case "$ENDPOINT" in
+              *digitaloceanspaces*) echo "❌ Il job R2 punta a Spaces."; exit 1 ;;
+            esac
+          fi
+          echo "📍 Fonte: ${FONTE}"
+
       - name: Installa dipendenze
         run: |
           sudo apt-get update -qq
@@ -69,23 +103,22 @@ jobs:
       - name: Trova l'ultimo backup
         id: ultimo
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.DO_BACKUP_SPACES_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_BACKUP_SPACES_SECRET }}
-          AWS_DEFAULT_REGION: ${{ env.SPACES_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ matrix.fonte == 'r2' && secrets.R2_ACCESS_KEY_ID || secrets.DO_BACKUP_SPACES_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ matrix.fonte == 'r2' && secrets.R2_SECRET_ACCESS_KEY || secrets.DO_BACKUP_SPACES_SECRET }}
         run: |
           set -eo pipefail
 
           # I nomi contengono il timestamp in UTC, quindi l'ordine alfabetico è
           # anche quello cronologico.
-          CHIAVE=$(aws s3 ls "s3://${BUCKET_NAME}/db/" --recursive \
-            --endpoint-url "${SPACES_ENDPOINT}" \
+          CHIAVE=$(aws s3 ls "s3://${BUCKET}/db/" --recursive \
+            --endpoint-url "${ENDPOINT}" \
             | grep -E '\.sql\.gz\.gpg$' \
             | sort \
             | tail -1 \
             | awk '{print $4}')
 
           if [ -z "$CHIAVE" ]; then
-            echo "❌ Nessun backup trovato in s3://${BUCKET_NAME}/db/"
+            echo "❌ Nessun backup trovato in s3://${BUCKET}/db/"
             exit 1
           fi
 
@@ -108,16 +141,15 @@ jobs:
       # ---------------------------------------------------------------
       - name: Scarica il backup e il suo checksum
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.DO_BACKUP_SPACES_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_BACKUP_SPACES_SECRET }}
-          AWS_DEFAULT_REGION: ${{ env.SPACES_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ matrix.fonte == 'r2' && secrets.R2_ACCESS_KEY_ID || secrets.DO_BACKUP_SPACES_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ matrix.fonte == 'r2' && secrets.R2_SECRET_ACCESS_KEY || secrets.DO_BACKUP_SPACES_SECRET }}
         run: |
           set -eo pipefail
 
-          aws s3 cp "s3://${BUCKET_NAME}/${{ steps.ultimo.outputs.chiave }}" \
-            "${{ steps.ultimo.outputs.nome }}" --endpoint-url "${SPACES_ENDPOINT}"
-          aws s3 cp "s3://${BUCKET_NAME}/${{ steps.ultimo.outputs.chiave }}.sha256" \
-            "${{ steps.ultimo.outputs.nome }}.sha256" --endpoint-url "${SPACES_ENDPOINT}"
+          aws s3 cp "s3://${BUCKET}/${{ steps.ultimo.outputs.chiave }}" \
+            "${{ steps.ultimo.outputs.nome }}" --endpoint-url "${ENDPOINT}"
+          aws s3 cp "s3://${BUCKET}/${{ steps.ultimo.outputs.chiave }}.sha256" \
+            "${{ steps.ultimo.outputs.nome }}.sha256" --endpoint-url "${ENDPOINT}"
 
           # Il checksum è stato calcolato prima dell'upload: se combacia, il
           # file è arrivato e tornato indietro identico.
@@ -224,7 +256,7 @@ jobs:
         if: success()
         run: |
           echo "============================================="
-          echo "  ✅ BACKUP RIPRISTINABILE"
+          echo "  ✅ BACKUP RIPRISTINABILE (${FONTE})"
           echo "============================================="
           echo "  File:        ${{ steps.ultimo.outputs.nome }}"
           echo "  Tabelle:     ${{ steps.controllo.outputs.tabelle }}"
@@ -263,10 +295,12 @@ jobs:
               'con successo: finché non si capisce perché, vanno considerati inaffidabili.',
               '',
               '### Cosa guardare, in ordine',
-              '1. Il passo che ha fallito: download, checksum, decifratura, ripristino o contenuto.',
-              '2. Se ha fallito la decifratura, il secret `BACKUP_GPG_PASSPHRASE` non corrisponde',
+              '1. Quale copia: il nome del job dice spaces o r2. Se fallisce solo r2, il backup',
+              '   su Spaces è buono ma la copia fuori sede no (segreti R2_*, bucket, token).',
+              '2. Il passo che ha fallito: download, checksum, decifratura, ripristino o contenuto.',
+              '3. Se ha fallito la decifratura, il secret `BACKUP_GPG_PASSPHRASE` non corrisponde',
               '   più alla passphrase con cui il backup è stato cifrato.',
-              '3. Se ha fallito il contenuto, il dump è incompleto: guardare i log del workflow',
+              '4. Se ha fallito il contenuto, il dump è incompleto: guardare i log del workflow',
               '   "Backup Database" della notte corrispondente.',
             ].join('\n');
 

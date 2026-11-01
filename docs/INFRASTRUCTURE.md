@@ -817,7 +817,7 @@ casa.
 | Database MySQL | ✅ Managed | Giornaliero, ultimi 7 giorni (verificato 1/10: uno al giorno alle 10:05 UTC, ~0,6 GB) | DigitalOcean |
 | Database MySQL | ✅ Dump GPG | Giornaliero 03:00 UTC (`backup-db.yml`; dal 24/08 al 1/10: 40 run su 40 riuscite) | Bucket `sito-savino-backups` (90 giorni) + copia su Cloudflare R2 |
 | Media Spaces | ✅ Copia | Settimanale, domenica 04:00 UTC (`backup-media.yml`; ultima il 27/09, riuscita) | Bucket `sito-savino-backups`, copia cumulativa (i file non scadono; le versioni sovrascritte dopo 30 giorni, i manifest dopo 90) + copia su Cloudflare R2 con lock di 30 giorni; manifest dei file (27/09: 81.719 file) |
-| Verifica restore | ✅ Automatica | Lunedì 04:30 UTC (`verifica-restore.yml`; 21/09 e 28/09 riuscite) | Ripristina l'ultimo dump in un MySQL usa e getta; apre una issue se non torna su |
+| Verifica restore | ✅ Automatica | Lunedì 04:30 UTC (`verifica-restore.yml`; 21/09 e 28/09 riuscite) | Ripristina l'ultimo dump in un MySQL usa e getta, sia da Spaces sia da R2; apre una issue se non torna su |
 | Codice sorgente | ✅ Git | Ad ogni push | GitHub |
 | Droplet CompreFace | ✅ Backup DigitalOcean | Giornaliero, conservati 7 giorni (attivati il 23/09/2026, ~$7,20/mese) | Immagine intera del droplet. È l'unica copia della face collection, cioè degli esempi appresi: le foto di addestramento non vengono conservate (`CLAUDE.md` §12-ter), e senza backup un droplet perso significherebbe riaddestrare da capo |
 
