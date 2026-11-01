@@ -346,6 +346,12 @@ di quelle senza cui il sito non esiste, righe in `pages`, `players`,
 anche se l'ultimo backup ha più di 36 ore, che vuol dire che il giornaliero si è
 fermato. Su fallimento apre una issue etichettata `urgente`.
 
+Lo fa per **entrambe le copie**, in due job paralleli: `spaces` e `r2`. Il
+backup notturno della copia su R2 controlla solo la dimensione; è il job `r2`
+a dire che la copia fuori sede si scarica, si decifra e si ripristina. Senza i
+segreti `R2_*` quel job fallisce invece di ripiegare su Spaces. Il token R2
+deve poter anche leggere ed elencare il bucket, non solo scriverci.
+
 Non tocca la produzione: legge dal bucket e scrive in un container che muore a
 fine job. Si lancia anche a mano:
 
