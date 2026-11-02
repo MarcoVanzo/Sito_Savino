@@ -63,11 +63,11 @@ class HandleInertiaRequests extends Middleware
                 'passwordExpiry' => fn () => $this->passwordExpiryNotice($request),
             ],
             'flash' => [
-                'success' => fn () => $request->session()->get('success'),
-                'error' => fn () => $request->session()->get('error'),
-                'warning' => fn () => $request->session()->get('warning'),
-                'info' => fn () => $request->session()->get('info'),
-                'newsletter_info' => fn () => $request->session()->get('newsletter_info'),
+                'success' => fn () => $this->flash($request, 'success'),
+                'error' => fn () => $this->flash($request, 'error'),
+                'warning' => fn () => $this->flash($request, 'warning'),
+                'info' => fn () => $this->flash($request, 'info'),
+                'newsletter_info' => fn () => $this->flash($request, 'newsletter_info'),
             ],
             'navigation' => fn () => $isPublic ? MenuItem::getTree('main') : [],
             'footerMenu' => fn () => $isPublic ? $this->footerMenu() : [],
@@ -84,6 +84,15 @@ class HandleInertiaRequests extends Middleware
                 'environment' => config('sentry.environment') ?? app()->environment(),
             ],
         ];
+    }
+
+    /**
+     * Un messaggio flash della sessione; senza sessione (la pagina d'errore di
+     * un indirizzo che nessuna rotta riconosce) non ce n'e'.
+     */
+    private function flash(Request $request, string $chiave): mixed
+    {
+        return $request->hasSession() ? $request->session()->get($chiave) : null;
     }
 
     /**
