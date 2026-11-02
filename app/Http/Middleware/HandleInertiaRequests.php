@@ -62,14 +62,12 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user()?->only('id', 'name', 'email', 'role'),
                 'passwordExpiry' => fn () => $this->passwordExpiryNotice($request),
             ],
-            // Senza sessione (la pagina d'errore di un indirizzo che nessuna
-            // rotta riconosce) non c'è niente da mostrare.
             'flash' => [
-                'success' => fn () => $request->hasSession() ? $request->session()->get('success') : null,
-                'error' => fn () => $request->hasSession() ? $request->session()->get('error') : null,
-                'warning' => fn () => $request->hasSession() ? $request->session()->get('warning') : null,
-                'info' => fn () => $request->hasSession() ? $request->session()->get('info') : null,
-                'newsletter_info' => fn () => $request->hasSession() ? $request->session()->get('newsletter_info') : null,
+                'success' => fn () => $this->flash($request, 'success'),
+                'error' => fn () => $this->flash($request, 'error'),
+                'warning' => fn () => $this->flash($request, 'warning'),
+                'info' => fn () => $this->flash($request, 'info'),
+                'newsletter_info' => fn () => $this->flash($request, 'newsletter_info'),
             ],
             'navigation' => fn () => $isPublic ? MenuItem::getTree('main') : [],
             'footerMenu' => fn () => $isPublic ? $this->footerMenu() : [],
@@ -86,6 +84,15 @@ class HandleInertiaRequests extends Middleware
                 'environment' => config('sentry.environment') ?? app()->environment(),
             ],
         ];
+    }
+
+    /**
+     * Un messaggio flash della sessione; senza sessione (la pagina d'errore di
+     * un indirizzo che nessuna rotta riconosce) non ce n'e'.
+     */
+    private function flash(Request $request, string $chiave): mixed
+    {
+        return $request->hasSession() ? $request->session()->get($chiave) : null;
     }
 
     /**
