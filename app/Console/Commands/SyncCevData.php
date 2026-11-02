@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Services\Cev\CevSyncService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -35,8 +34,9 @@ class SyncCevData extends Command
         try {
             $stats = CevSyncService::make()->sync($competizione, $stagione);
         } catch (Throwable $e) {
-            // Gira schedulato: l'errore va nei log, non solo a video.
-            Log::error('Sync CEV fallita: '.$e->getMessage(), ['exception' => $e]);
+            // Gira schedulato e l'output del figlio finisce in un file che il
+            // giro dopo riscrive: senza report() Sentry vede solo "exit code 1".
+            report($e);
             $this->error('Sincronizzazione fallita: '.$e->getMessage());
 
             return self::FAILURE;

@@ -4,6 +4,7 @@ namespace App\Services\Cev;
 
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Sleep;
 
 /**
  * Accesso HTTP al vecchio portale competizioni della CEV.
@@ -16,6 +17,11 @@ use Illuminate\Support\Facades\Http;
  */
 class CevClient
 {
+    /** Quante volte si chiede una pagina che torna senza il suo marcatore. */
+    private const TENTATIVI_SULLA_PAGINA = 3;
+
+    private const ATTESA_FRA_I_TENTATIVI_MS = 2000;
+
     private bool $primaRichiesta = true;
 
     public function __construct(
@@ -73,6 +79,30 @@ class CevClient
         $this->primaRichiesta = false;
         $url = $this->baseUrl.$path;
 
+        for ($tentativo = 1; ; $tentativo++) {
+            $body = $this->scarica($url, $query);
+
+            // Il portale risponde 200 anche con la sua pagina d'errore: senza il
+            // marcatore atteso non è la pagina che si è chiesta. Di solito è un
+            // intoppo passeggero (il 02/11/2026 due giri falliti su sei): si
+            // riprova prima di fallire.
+            if (trim($body) !== '' && str_contains($body, $marcatore)) {
+                return $body;
+            }
+
+            if ($tentativo >= self::TENTATIVI_SULLA_PAGINA) {
+                throw new CevException("{$url} non ha restituito una pagina di competizione.");
+            }
+
+            Sleep::for(self::ATTESA_FRA_I_TENTATIVI_MS)->milliseconds();
+        }
+    }
+
+    /**
+     * @param  array<string, int|string>  $query
+     */
+    private function scarica(string $url, array $query): string
+    {
         try {
             $response = Http::withHeaders([
                 'User-Agent' => $this->userAgent,
@@ -80,7 +110,7 @@ class CevClient
                 'Accept-Language' => 'en-GB,en;q=0.9',
             ])
                 ->timeout($this->timeout)
-                ->retry(2, 2000, throw: false)
+                ->retry(2, self::ATTESA_FRA_I_TENTATIVI_MS, throw: false)
                 ->get($url, $query);
         } catch (ConnectionException $e) {
             throw new CevException("Connessione a {$url} fallita: {$e->getMessage()}", previous: $e);
@@ -90,14 +120,6 @@ class CevClient
             throw new CevException("{$url} ha risposto con HTTP {$response->status()}.");
         }
 
-        $body = $response->body();
-
-        // Il portale risponde 200 anche con la sua pagina d'errore: senza il
-        // marcatore atteso non è la pagina che si è chiesta.
-        if (trim($body) === '' || ! str_contains($body, $marcatore)) {
-            throw new CevException("{$url} non ha restituito una pagina di competizione.");
-        }
-
-        return $body;
+        return $response->body();
     }
 }
