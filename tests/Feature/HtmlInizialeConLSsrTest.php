@@ -68,6 +68,18 @@ class HtmlInizialeConLSsrTest extends TestCase
         $this->assertMatchesRegularExpression('#<h1[^>]*>.*Savino Del Bene Volley.*</h1>#s', $corpo);
     }
 
+    /**
+     * Un indirizzo che nessuna rotta riconosce: senza le props condivise
+     * l'SSR andava in errore su route() e la pagina arrivava vuota.
+     */
+    #[Test]
+    public function il_404_di_un_indirizzo_senza_rotta_arriva_resa(): void
+    {
+        $corpo = $this->corpo($this->get('/wp-content/uploads/2018/08/download.jpg')->assertNotFound()->getContent());
+
+        $this->assertMatchesRegularExpression('#<h1[^>]*>\s*\S.*</h1>#s', $corpo);
+    }
+
     #[Test]
     public function la_notizia_arriva_con_titolo_e_testo(): void
     {

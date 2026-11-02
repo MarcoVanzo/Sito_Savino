@@ -161,11 +161,20 @@ return Application::configure(basePath: dirname(__DIR__))
                 // 20/10/2026: era quello generico del sito). Su un indirizzo
                 // che nessuna rotta riconosce SetLocale non e' passato: la
                 // lingua si legge dal prefisso.
-                if ($response->getStatusCode() === 404) {
-                    $lingua = in_array($request->segment(1), IndirizziPerLingua::lingue(), true)
-                        ? (string) $request->segment(1)
-                        : app()->getLocale();
+                $lingua = in_array($request->segment(1), IndirizziPerLingua::lingue(), true)
+                    ? (string) $request->segment(1)
+                    : app()->getLocale();
 
+                // Un indirizzo che nessuna rotta riconosce non passa dal gruppo
+                // `web`: senza le props condivise la pagina d'errore restava
+                // senza menu e senza `ziggy`, e l'SSR andava in errore su
+                // route() (504 di Sentry del 01/11/2026).
+                if ($request->route() === null) {
+                    app()->setLocale($lingua);
+                    Inertia::share(app(HandleInertiaRequests::class)->share($request));
+                }
+
+                if ($response->getStatusCode() === 404) {
                     $request->attributes->set(ServeSocialCrawlerMeta::ATTRIBUTO_META, [
                         'title' => __('site.pagina_non_trovata', [], $lingua),
                         'description' => __('site.default_description', [], $lingua),
