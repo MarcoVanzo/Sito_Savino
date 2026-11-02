@@ -14,7 +14,9 @@ use App\Services\Cev\CevException;
 use App\Services\Cev\CevSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Sleep;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -250,6 +252,35 @@ class CevSyncServiceTest extends TestCase
         $this->artisan('cev:sync')->expectsOutputToContain('Pool D')->assertSuccessful();
 
         $this->assertSame('Girone D', __('enums.game.phase.pool_d'));
+    }
+
+    #[Test]
+    public function una_pagina_d_errore_del_portale_si_richiede_prima_di_fallire(): void
+    {
+        Sleep::fake();
+        $richieste = 0;
+        $this->trasformazioniPer['competizione-1948'] = function (string $html) use (&$richieste): string {
+            return ++$richieste === 1 ? '<html><body>Error</body></html>' : $html;
+        };
+
+        $stats = $this->sync(1948, 2026);
+
+        $this->assertSame('Pool D', $stats['girone']);
+        $this->assertSame(2, $richieste);
+    }
+
+    #[Test]
+    public function il_comando_fallito_manda_a_sentry_l_errore_vero(): void
+    {
+        Sleep::fake();
+        Exceptions::fake();
+        config()->set('services.cev.competition_id', 1948);
+        config()->set('services.cev.season_year', 2026);
+        $this->trasformazioniPer['competizione-1948'] = fn (): string => '<html><body>Error</body></html>';
+
+        $this->artisan('cev:sync')->assertFailed();
+
+        Exceptions::assertReported(fn (CevException $e): bool => str_contains($e->getMessage(), 'non ha restituito una pagina di competizione'));
     }
 
     #[Test]
