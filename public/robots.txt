@@ -1,18 +1,13 @@
 User-agent: *
-Disallow: /admin
-Disallow: /dashboard
-Disallow: /profile
-Disallow: /login
-Disallow: /register
-Disallow: /forgot-password
-Disallow: /reset-password
-Disallow: /verify-email
-Disallow: /confirm-password
 Disallow: /storage/
 
-# /build/ NON va vietato: e' li' che stanno JS e CSS di Vite. Il sito non ha
-# SSR, quindi l'HTML iniziale e' vuoto e Google vede il contenuto solo
-# eseguendo quei bundle. Vietarli significa pagine vuote nell'indice.
+# Pannello, accesso e area personale (/admin, /login, /register...) NON si
+# vietano qui: rispondono con "X-Robots-Tag: noindex"
+# (SecurityHeadersMiddleware). Vietati, Google li indicizzava dai link senza
+# poter leggere il noindex.
+
+# /build/ NON va vietato: e' li' che stanno JS e CSS di Vite, che Google
+# esegue per disegnare le pagine.
 
 # Sitemap — dominio definitivo: la direttiva vuole un indirizzo assoluto e
 # quello di anteprima cambierebbe al passaggio del dominio.

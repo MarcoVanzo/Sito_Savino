@@ -86,6 +86,24 @@ class SecurityHeadersTest extends TestCase
         $this->get('/')->assertHeaderMissing('X-Robots-Tag');
     }
 
+    /**
+     * Pannello e accesso stanno fuori dall'indice col `noindex`, non con un
+     * divieto in robots.txt: vietati, Google li indicizzava dai link senza
+     * poterlo leggere.
+     */
+    #[Test]
+    public function le_pagine_di_accesso_dicono_noindex_e_robots_le_lascia_leggere(): void
+    {
+        config()->set('app.indexable_hosts', []);
+
+        $this->get('/login')->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+        $this->get('/register')->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+        $this->get('/admin/login')->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+
+        $robots = (string) file_get_contents(public_path('robots.txt'));
+        $this->assertDoesNotMatchRegularExpression('#^Disallow:\s*/(login|register|admin)#m', $robots);
+    }
+
     #[Test]
     public function response_has_csp_header(): void
     {
