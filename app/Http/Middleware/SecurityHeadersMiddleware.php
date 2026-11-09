@@ -46,6 +46,18 @@ class SecurityHeadersMiddleware
     private const PERCORSI_DEL_PANNELLO = ['admin', 'admin/*', 'filament/*', 'livewire*'];
 
     /**
+     * Pannello, accesso e area personale: fuori dall'indice con `noindex`, non
+     * con un `Disallow` in robots.txt. `/login` è linkato da ogni pagina e
+     * Google lo indicizzava dai link senza poterlo leggere («Indicizzata ma
+     * bloccata da robots.txt», novembre 2026): il divieto va lasciato leggere.
+     */
+    private const PERCORSI_FUORI_DALL_INDICE = [
+        'admin', 'admin/*', 'dashboard', 'profile', 'profile/*',
+        'login', 'register', 'forgot-password', 'reset-password', 'reset-password/*',
+        'verify-email', 'verify-email/*', 'confirm-password',
+    ];
+
+    /**
      * Aggiunge header di sicurezza a tutte le risposte HTTP.
      * CSP in modalità enforcing.
      */
@@ -79,7 +91,7 @@ class SecurityHeadersMiddleware
         // Si dichiara `noindex` invece di vietare la scansione in robots.txt,
         // perché un indirizzo che Google non può leggere può comunque finire in
         // elenco: il divieto, per essere rispettato, va lasciato leggere.
-        if (! $this->indexable($request)) {
+        if (! $this->indexable($request) || $request->is(...self::PERCORSI_FUORI_DALL_INDICE)) {
             $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
         }
 
