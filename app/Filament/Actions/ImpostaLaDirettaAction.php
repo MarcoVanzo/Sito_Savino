@@ -50,7 +50,21 @@ class ImpostaLaDirettaAction
             ->fillForm(fn (Game $record): array => self::valori($record, LiveSession::perLaGaraSenzaCrearla($record)))
             ->schema(fn (Game $record): array => self::campi($record))
             ->action(function (Game $record, array $data): void {
-                if (self::salva($record, $data)) {
+                $pubblicata = self::salva($record, $data);
+                $escluse = self::graficheCheNonVannoInOnda($record, array_merge(...self::grafiche($data['sponsor'] ?? [])));
+
+                if ($pubblicata && $escluse !== []) {
+                    Notification::make()
+                        ->title('Diretta salvata, ma alcune grafiche non andranno in onda')
+                        ->body('In questa gara il sito le salta: '.implode('; ', $escluse).'. Correggi le date o l\'attivazione nella scheda dello sponsor, o scegline altre.')
+                        ->warning()
+                        ->persistent()
+                        ->send();
+
+                    return;
+                }
+
+                if ($pubblicata) {
                     Notification::make()->title('Diretta salvata')->success()->send();
 
                     return;
@@ -246,14 +260,14 @@ class ImpostaLaDirettaAction
                                 ->helperText('Compaiono gli sponsor con almeno una grafica: si caricano nella scheda dello sponsor.'),
                             CheckboxList::make('preroll')
                                 ->label('Spot prima della diretta')
-                                ->options(fn (Get $get): array => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Preroll, $get('preroll') ?? []))
+                                ->options(fn (Get $get): array => self::graficheDelloSponsor($game, (int) $get('sponsor_id'), UsoCreativita::Preroll, $get('preroll') ?? []))
                                 ->live()
-                                ->visible(fn (Get $get): bool => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Preroll, $get('preroll') ?? []) !== []),
+                                ->visible(fn (Get $get): bool => self::graficheDelloSponsor($game, (int) $get('sponsor_id'), UsoCreativita::Preroll, $get('preroll') ?? []) !== []),
                             CheckboxList::make('cornici')
                                 ->label('Cornici durante la gara')
-                                ->options(fn (Get $get): array => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Cornice, $get('cornici') ?? []))
+                                ->options(fn (Get $get): array => self::graficheDelloSponsor($game, (int) $get('sponsor_id'), UsoCreativita::Cornice, $get('cornici') ?? []))
                                 ->live()
-                                ->visible(fn (Get $get): bool => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Cornice, $get('cornici') ?? []) !== []),
+                                ->visible(fn (Get $get): bool => self::graficheDelloSponsor($game, (int) $get('sponsor_id'), UsoCreativita::Cornice, $get('cornici') ?? []) !== []),
                             Placeholder::make('anteprima')
                                 ->label('Anteprima')
                                 ->content(fn (Get $get): HtmlString => self::anteprimaDelleGrafiche(
@@ -341,10 +355,14 @@ class ImpostaLaDirettaAction
      * possano vedere e togliere. Senza, restavano agganciate di nascosto e
      * tornavano in onda appena riaccese.
      *
+     * Sono segnate anche quelle fuori dal periodo di validità nel giorno
+     * della gara: il sito le salta in silenzio, e una cornice scaduta
+     * riscelta per la gara dopo ha lasciato in onda un solo sponsor.
+     *
      * @param  array<int|string, mixed>  $scelte
      * @return array<int, string>
      */
-    private static function graficheDelloSponsor(int $sponsor, UsoCreativita $uso, array $scelte = []): array
+    private static function graficheDelloSponsor(Game $game, int $sponsor, UsoCreativita $uso, array $scelte = []): array
     {
         if ($sponsor === 0) {
             return [];
@@ -358,7 +376,46 @@ class ImpostaLaDirettaAction
             ->where(fn ($q) => $q->where('attiva', true)->orWhereKey($scelte))
             ->orderBy('nome')
             ->get()
-            ->mapWithKeys(fn (LiveCreative $c): array => [$c->id => $c->nome.' ('.$c->tipo->getLabel().', '.$c->durata_secondi.' s)'.($c->attiva ? '' : ' — spenta, non va in onda')])
+            ->mapWithKeys(function (LiveCreative $c) use ($game): array {
+                $motivo = self::motivoPerCuiNonVaInOnda($c, $game);
+
+                return [$c->id => $c->nome.' ('.$c->tipo->getLabel().', '.$c->durata_secondi.' s)'.($motivo === null ? '' : ' — '.$motivo.', non va in onda')];
+            })
+            ->all();
+    }
+
+    /**
+     * Perché la grafica non andrà in onda nella gara, o `null` se ci andrà.
+     * Stesse regole del sito (`LiveCreative::valida()` e `creativitaValide()`
+     * nel browser), con il giorno della gara al posto di oggi.
+     */
+    private static function motivoPerCuiNonVaInOnda(LiveCreative $creativita, Game $game): ?string
+    {
+        $giorno = $game->match_date->format('Y-m-d');
+
+        return match (true) {
+            ! $creativita->attiva => 'spenta',
+            $creativita->valida_al !== null && $creativita->valida_al->format('Y-m-d') < $giorno => 'scaduta il '.$creativita->valida_al->format('d/m/Y'),
+            $creativita->valida_dal !== null && $creativita->valida_dal->format('Y-m-d') > $giorno => 'valida solo dal '.$creativita->valida_dal->format('d/m/Y'),
+            default => null,
+        };
+    }
+
+    /**
+     * Le grafiche scelte che il sito salterà in questa gara, col motivo.
+     *
+     * @param  list<int>  $ids
+     * @return list<string>
+     */
+    private static function graficheCheNonVannoInOnda(Game $game, array $ids): array
+    {
+        return LiveCreative::query()
+            ->whereKey($ids)
+            ->orderBy('nome')
+            ->get()
+            ->map(fn (LiveCreative $c): ?string => ($motivo = self::motivoPerCuiNonVaInOnda($c, $game)) === null ? null : $c->nome.' ('.$motivo.')')
+            ->filter()
+            ->values()
             ->all();
     }
 

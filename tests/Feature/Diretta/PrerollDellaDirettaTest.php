@@ -14,6 +14,7 @@ use App\Models\LiveSession;
 use App\Models\SiteSetting;
 use App\Models\Team;
 use App\Models\User;
+use Filament\Notifications\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
@@ -215,6 +216,37 @@ class PrerollDellaDirettaTest extends TestCase
             ->assertHasTableActionErrors(['sponsor.b.preroll.1']);
 
         $this->assertNull($gara->liveSession()->first());
+    }
+
+    #[Test]
+    public function salvare_una_cornice_scaduta_per_la_gara_avvisa_che_non_andra_in_onda(): void
+    {
+        $this->accendi();
+        $this->comunicazione();
+        $gara = $this->gara();
+        $valida = $this->spot(['uso' => UsoCreativita::Cornice, 'nome' => 'Shop']);
+        $scaduta = $this->spot(['uso' => UsoCreativita::Cornice, 'nome' => 'Vecchia gara', 'valida_al' => now()->subDays(20)]);
+
+        Livewire::test(DirettaSettingsPage::class)
+            ->callTableAction('imposta', $gara, [
+                'stream_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                'preroll_attivo' => false,
+                'sponsor' => [
+                    'a' => ['sponsor_id' => $valida->sponsor_id, 'preroll' => [], 'cornici' => [$valida->id]],
+                    'b' => ['sponsor_id' => $scaduta->sponsor_id, 'preroll' => [], 'cornici' => [$scaduta->id]],
+                ],
+                'ciclo_attivo' => true,
+                'ciclo_ogni_minuti' => 10,
+                'ciclo_durata_secondi' => 15,
+                'ciclo_ritardo_minuti' => 5,
+                'pausa_durata_predefinita_secondi' => 120,
+            ])
+            ->assertHasNoTableActionErrors()
+            ->assertNotified(Notification::make()
+                ->title('Diretta salvata, ma alcune grafiche non andranno in onda')
+                ->body('In questa gara il sito le salta: Vecchia gara (scaduta il '.$scaduta->valida_al->format('d/m/Y').'). Correggi le date o l\'attivazione nella scheda dello sponsor, o scegline altre.')
+                ->warning()
+                ->persistent());
     }
 
     #[Test]
