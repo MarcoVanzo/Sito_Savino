@@ -169,6 +169,25 @@ class CmsResourcesSmokeTest extends TestCase
     }
 
     /**
+     * Un anno a due cifre («26») arrivava al DB come 0026 e MySQL rifiutava
+     * l'UPDATE con un 500 (15/11/2026): ora è un errore sul campo.
+     */
+    #[Test]
+    public function una_data_con_l_anno_a_due_cifre_e_un_errore_del_campo(): void
+    {
+        $post = Post::first();
+        $dataDiPrima = $post->published_at;
+
+        Livewire::actingAs($this->admin)
+            ->test(Resources\PostResource\Pages\EditPost::class, ['record' => $post->getKey()])
+            ->fillForm(['published_at' => '0026-11-15 17:00:00'])
+            ->call('save')
+            ->assertHasFormErrors(['published_at']);
+
+        $this->assertEquals($dataDiPrima, $post->fresh()->published_at);
+    }
+
+    /**
      * La modifica di un'atleta andava in 500: la risorsa usava il plugin
      * traduzioni ma `players` non ha colonne tradotte.
      */
