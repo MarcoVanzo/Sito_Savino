@@ -51,6 +51,7 @@ use App\Support\HostFidati;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\BaseFileUpload;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -199,6 +200,13 @@ class AppServiceProvider extends ServiceProvider
         Grid::configureUsing(fn (Grid $grid) => $grid->columnSpanFull());
         Section::configureUsing(fn (Section $section) => $section->columnSpanFull());
         Field::configureUsing(fn (Field $field) => $field->uniqueValidationIgnoresRecordByDefault(false));
+
+        // Un anno scritto a due cifre («26») arrivava al DB come 0026 e MySQL
+        // rifiutava l'UPDATE con un 500 (notizia 1003, 15/11/2026): il limite
+        // fa dire al campo cosa non va. Vale anche per DatePicker (sottoclasse).
+        DateTimePicker::configureUsing(fn (DateTimePicker $picker) => $picker
+            ->minDate('1900-01-01')
+            ->maxDate('2100-12-31'));
 
         // La media library rifiuta i file oltre `media-library.max_file_size`
         // solo al salvataggio, con un 500: le foto prodotto da fotocamera
