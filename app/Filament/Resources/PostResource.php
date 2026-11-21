@@ -126,7 +126,14 @@ class PostResource extends Resource
                             ->searchable()
                             ->default(fn () => auth()->id()),
                         DateTimePicker::make('published_at')
-                            ->label('Data e Ora Pubblicazione'),
+                            ->label('Data e Ora Pubblicazione')
+                            // Un anno a due cifre («26») diventava 0026 e MySQL rifiutava il salvataggio (SITO-SAVINO-18)
+                            ->minDate('2000-01-01 00:00:00')
+                            ->maxDate('2099-12-31 23:59:59')
+                            ->validationMessages([
+                                'after_or_equal' => 'Controlla l\'anno: deve essere di quattro cifre (es. 2026).',
+                                'before_or_equal' => 'Controlla l\'anno: deve essere di quattro cifre (es. 2026).',
+                            ]),
                         TextInput::make('meta_title')
                             ->label('Meta Titolo (SEO)')
                             ->maxLength(255),
