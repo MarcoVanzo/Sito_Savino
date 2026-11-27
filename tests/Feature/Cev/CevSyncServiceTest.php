@@ -180,6 +180,8 @@ class CevSyncServiceTest extends TestCase
 
         $gara = Game::where('home_team_id', $this->savino->id)->orWhere('away_team_id', $this->savino->id)->orderBy('match_date')->first();
         $this->assertNotNull($gara);
+        // Non ancora giocata: la fixture invecchia col calendario vero.
+        $this->travelTo($gara->match_date->copy()->subDay());
 
         // Il portale la ritira (rinvio, errore di calendario): stessa riga,
         // identificativo diverso.
@@ -222,6 +224,7 @@ class CevSyncServiceTest extends TestCase
         $gara = Game::where('home_team_id', $this->savino->id)->orderBy('match_date')->first()
             ?? Game::where('away_team_id', $this->savino->id)->orderBy('match_date')->firstOrFail();
         $gara->update(['biglietti_url' => 'https://www.vivaticket.com/it/ticket/savino/1']);
+        $this->travelTo($gara->match_date->copy()->subDay());
 
         $this->mock(AvvisoTecnico::class)
             ->shouldReceive('invia')
