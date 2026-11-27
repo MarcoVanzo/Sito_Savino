@@ -188,6 +188,23 @@ class CmsResourcesSmokeTest extends TestCase
     }
 
     /**
+     * Il RichEditor aggiorna il testo con un percorso per nodo di Tiptap: in
+     * un elenco annidato superava i 10 livelli di Livewire e la notizia non
+     * si modificava più (500 del 27/11/2026).
+     */
+    #[Test]
+    public function il_testo_di_un_elenco_annidato_nella_notizia_si_aggiorna(): void
+    {
+        $percorso = 'data.content.content.0.content.0.content.1.content.0.content.0.content.0.text';
+
+        Livewire::actingAs($this->admin)
+            ->test(Resources\PostResource\Pages\EditPost::class, ['record' => Post::first()->getKey()])
+            ->set($percorso, 'Testo')
+            ->assertSuccessful()
+            ->assertSet($percorso, 'Testo');
+    }
+
+    /**
      * La modifica di un'atleta andava in 500: la risorsa usava il plugin
      * traduzioni ma `players` non ha colonne tradotte.
      */

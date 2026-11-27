@@ -183,4 +183,25 @@ return [
     */
 
     'release_token' => 'a',
+
+    /*
+    |---------------------------------------------------------------------------
+    | Payload Guards
+    |---------------------------------------------------------------------------
+    |
+    | Come i valori di Livewire, tranne la profondità: il RichEditor di Filament
+    | manda il JSON di Tiptap con un percorso per nodo, e un elenco dentro un
+    | elenco (o una tabella) supera 10 livelli (`data.content.content.6.content
+    | .0.content.0.content.1.text` = 11): la modifica di una notizia andava in
+    | 500 (27/11/2026). La chiave va scritta intera: la configurazione del
+    | pacchetto si fonde solo al primo livello.
+    |
+    */
+
+    'payload' => [
+        'max_size' => 1024 * 1024,
+        'max_nesting_depth' => 40,
+        'max_calls' => 50,
+        'max_components' => 200,
+    ],
 ];
