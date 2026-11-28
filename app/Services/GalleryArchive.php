@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
 use App\Models\Player;
 use App\Support\GenerazioneDiCache;
@@ -154,6 +155,50 @@ class GalleryArchive
         }
 
         return $foto;
+    }
+
+    /**
+     * Le prime foto di ogni album, con titolo e testo alternativo: è ciò che
+     * serve alla sitemap. Leggerle dall'archivio completo voleva dire
+     * decomprimere dodicimila foto per tenerne venti per album, e lo
+     * scheduler da 0,5 GB andava fuori memoria alle 04:00 (24-28/11/2026).
+     * Qui si legge un album per volta, solo quante ne servono.
+     *
+     * @return array<int, array{titolo: string, foto: list<array{0: string, 1: string}>}>
+     */
+    public function primeFotoDegliAlbum(int $perAlbum, string $locale): array
+    {
+        $eventi = GalleryEvent::query()->get(['id', 'title', 'event_date'])->keyBy('id');
+        $idDegliAlbum = GalleryImage::active()
+            ->where('gallery_event_id', '>', 0)
+            ->distinct()
+            ->orderBy('gallery_event_id')
+            ->pluck('gallery_event_id');
+
+        $album = [];
+
+        foreach ($idDegliAlbum as $id) {
+            $evento = $eventi->get($id);
+            $titolo = $this->testoTradotto($evento?->title, $locale);
+            $alt = mb_substr(TestiSeoDellaFoto::altDellAlbum($titolo, $evento?->event_date?->format('d/m/Y')), 0, 255);
+
+            $foto = GalleryImage::active()->ordered()
+                ->where('gallery_event_id', $id)
+                ->whereHas('media', fn ($q) => $q->where('collection_name', 'gallery'))
+                ->with('media')
+                ->limit($perAlbum)
+                ->get()
+                ->map(fn (GalleryImage $img): array => [$img->getFirstMediaUrl('gallery', 'lightbox') ?: $img->getFirstMediaUrl('gallery'), $alt])
+                ->filter(fn (array $riga): bool => $riga[0] !== '')
+                ->values()
+                ->all();
+
+            if ($foto !== []) {
+                $album[(int) $id] = ['titolo' => $titolo, 'foto' => $foto];
+            }
+        }
+
+        return $album;
     }
 
     private function durata(): DateTimeInterface

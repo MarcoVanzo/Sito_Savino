@@ -409,20 +409,9 @@ class SitemapBuilder
     {
         $album = [];
 
-        foreach (app(GalleryArchive::class)->media(null, 'it') as $foto) {
-            $id = (int) ($foto['event_id'] ?? 0);
-            $indirizzo = (string) ($foto['url'] ?? '');
-
-            if ($id <= 0 || $indirizzo === '') {
-                continue;
-            }
-
-            $titolo = Str::slug((string) ($foto['event_name'] ?? ''));
-            $slug = $titolo !== '' ? $id.'-'.$titolo : (string) $id;
-
-            if (count($album[$slug] ?? []) < 20) {
-                $album[$slug][] = [$indirizzo, (string) ($foto['alt'] ?? '')];
-            }
+        foreach (app(GalleryArchive::class)->primeFotoDegliAlbum(20, 'it') as $id => ['titolo' => $titolo, 'foto' => $foto]) {
+            $titolo = Str::slug($titolo);
+            $album[$titolo !== '' ? $id.'-'.$titolo : (string) $id] = $foto;
         }
 
         return $album;
